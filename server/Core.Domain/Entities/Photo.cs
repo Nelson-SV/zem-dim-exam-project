@@ -1,0 +1,41 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace Core.Domain.Entities;
+
+public partial class Photo
+{
+    public Guid Id { get; set; }
+
+    public Guid Projectid { get; set; }
+
+    public Guid? Milestoneid { get; set; }
+
+    public string Filename { get; set; } = null!;
+
+    public string Fileurl { get; set; } = null!;
+
+    public string? Thumbnailurl { get; set; }
+
+    public long? Filesize { get; set; }
+
+    public string? Mimetype { get; set; }
+
+    public int? Width { get; set; }
+
+    public int? Height { get; set; }
+
+    public string? Caption { get; set; }
+
+    public DateTime? Takenat { get; set; }
+
+    public Guid Uploadedbyid { get; set; }
+
+    public DateTime? Createdat { get; set; }
+
+    public virtual Milestone? Milestone { get; set; }
+
+    public virtual Project Project { get; set; } = null!;
+
+    public virtual User Uploadedby { get; set; } = null!;
+}
