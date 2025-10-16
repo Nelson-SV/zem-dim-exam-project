@@ -22,7 +22,7 @@ public class AuthController(ISecurityService securityService) : ControllerBase
 
     [HttpPost]
     [Route(RegisterRoute)]
-    public ActionResult<AuthResponseDto> Register([FromBody] AuthRequestDto dto)
+    public ActionResult<AuthResponseDto> Register([FromBody] RegisterRequestDto dto)
     {
         return Ok(securityService.Register(dto));
     }

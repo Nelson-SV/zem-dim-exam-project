@@ -3,8 +3,12 @@ POST http://localhost:5001/api/auth/Register
 Content-Type: application/json
 
 {
-  "email": "testuser@memohouse.com",
-  "password": "Password123!"
+    "email": "user@user.com",
+    "password": "Password123!",
+    "firstName": "User",
+    "lastName": "San",
+    "phoneNumber": "+4573491124",
+    "language": "en"
 }
 
 ### Login a user
@@ -12,7 +16,7 @@ POST http://localhost:5001/api/auth/Login
 Content-Type: application/json
 
 {
-  "email": "testuser@memohouse.com",
+  "email": "admin@admin.com",
   "password": "Password123!"
 }
 

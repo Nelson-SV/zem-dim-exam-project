@@ -54,7 +54,7 @@ export class AuthClient {
         return Promise.resolve<AuthResponseDto>(null as any);
     }
 
-    register(dto: AuthRequestDto): Promise<AuthResponseDto> {
+    register(dto: RegisterRequestDto): Promise<AuthResponseDto> {
         let url_ = this.baseUrl + "/api/auth/Register";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -137,6 +137,16 @@ export interface AuthResponseDto {
 export interface AuthRequestDto {
     email: string;
     password: string;
+}
+
+export interface RegisterRequestDto {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber?: string | undefined;
+    profileImageUrl?: string | undefined;
+    language?: string | undefined;
 }
 
 export interface FileResponse {

@@ -36,7 +36,7 @@ public static class GenerateTypescriptClient
         if (startIndex >= 0)
             lines.RemoveRange(startIndex, 4); // Remove 3 lines (interface declaration and two properties)
 
-        lines.Insert(0, "import { BaseDto } from 'ws-request-hook';");
+        //lines.Insert(0, "import { BaseDto } from 'ws-request-hook';");
 
         var modifiedCode = string.Join(Environment.NewLine, lines);
 

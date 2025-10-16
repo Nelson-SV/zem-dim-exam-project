@@ -12,7 +12,7 @@ public class UserRepository(AppDbContext ctx) : IUserRepository
         return ctx.Users.ToList();
     }
 
-    public User? GetUserByIdOrNull(string email)
+    public User? GetUserByEmailOrNull(string email)
     {
         return ctx.Users.FirstOrDefault(u => u.Email == email);
     }

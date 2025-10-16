@@ -5,7 +5,7 @@ namespace Application.Interfaces.Infrastructure.Postgres;
 public interface IUserRepository
 {
     List<User> GetAll();
-    User? GetUserByIdOrNull(string email);
+    User? GetUserByEmailOrNull(string email);
     User AddUser(User user);
     User UpdateUserEmail(User user);
     bool DeleteUser(string userId);

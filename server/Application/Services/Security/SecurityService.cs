@@ -20,14 +20,14 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
 {
     public AuthResponseDto Login(AuthRequestDto dto)
     {
-        var player = repository.GetUserByIdOrNull(dto.Email) ?? throw new ValidationException("Username not found");
-        VerifyPasswordOrThrow(dto.Password + player.Salt, player.Passwordhash);
+        var user = repository.GetUserByEmailOrNull(dto.Email) ?? throw new ValidationException("User email not found");
+        VerifyPasswordOrThrow(dto.Password + user.Salt, user.Passwordhash);
         return new AuthResponseDto
         {
             Jwt = GenerateJwt(new JwtClaims
             {
-                Id = player.Id.ToString(),
-                Role = player.Role,
+                Id = user.Id.ToString(),
+                Role = user.Role,
                 Exp = DateTimeOffset.UtcNow.AddHours(1000)
                     .ToUnixTimeSeconds()
                     .ToString(),
@@ -36,17 +36,23 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         };
     }
 
-    public AuthResponseDto Register(AuthRequestDto dto)
+    public AuthResponseDto Register(RegisterRequestDto dto)
     {
-        var player = repository.GetUserByIdOrNull(dto.Email);
-        if (player is not null) throw new ValidationException("User already exists");
+        var existing = repository.GetUserByEmailOrNull(dto.Email);
+        if (existing is not null) throw new ValidationException("User already exists");
         var salt = GenerateSalt();
         var hash = HashPassword(dto.Password + salt);
-        var insertedPlayer = repository.AddUser(new User
+        var insertedUser = repository.AddUser(new User
         {
             Id = Guid.NewGuid(),
             Email = dto.Email,
-            Role = Roles.AdminRole,
+            Firstname = dto.FirstName,
+            Lastname = dto.LastName,
+            Phonenumber = dto.PhoneNumber,
+            Role = Roles.UserRole,
+            Isactive = true,
+            Profileimageurl = dto.ProfileImageUrl ?? "https://example.com/default-avatar.png",
+            Language = dto.Language ?? "en",
             Salt = salt,
             Passwordhash = hash
         });
@@ -54,10 +60,10 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         {
             Jwt = GenerateJwt(new JwtClaims
             {
-                Id = insertedPlayer.Id.ToString(),
-                Role = insertedPlayer.Role,
+                Id = insertedUser.Id.ToString(),
+                Role = insertedUser.Role,
                 Exp = DateTimeOffset.UtcNow.AddHours(1000).ToUnixTimeSeconds().ToString(),
-                Email = insertedPlayer.Email
+                Email = insertedUser.Email
             })
         };
     }
