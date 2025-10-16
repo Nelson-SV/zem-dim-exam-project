@@ -38,8 +38,8 @@ public class Program
         services.RegisterRestApiServices();
         services.AddOpenApiDocument(conf =>
         {
-            //conf.DocumentProcessors.Add(new AddAllDerivedTypesProcessor());
-            //conf.DocumentProcessors.Add(new AddStringConstantsProcessor());
+            conf.DocumentProcessors.Add(new AddAllDerivedTypesProcessor());
+            conf.DocumentProcessors.Add(new AddStringConstantsProcessor());
         });
         //services.AddSingleton<IProxyConfig, ProxyConfig>();
     }

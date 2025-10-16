@@ -1,10 +1,11 @@
 using NJsonSchema;
 using NSwag.Generation.Processors;
 using NSwag.Generation.Processors.Contexts;
+using WebSocketBoilerplate;
 
 namespace Startup.Documentation;
 
-/*
+
 /// <summary>
 ///     I want nswag to include event type names like "ClientWantsToDoX" as simple string constants
 /// </summary>
@@ -47,4 +48,3 @@ public sealed class AddStringConstantsProcessor : IDocumentProcessor
         context.Document.Definitions["StringConstants"] = schema;
     }
 }
-*/

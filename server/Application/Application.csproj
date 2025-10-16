@@ -12,13 +12,6 @@
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.10" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Interfaces\Infrastructure.Postgres\" />
-    <Folder Include="Models\Dtos\" />
-    <Folder Include="Models\Enums\" />
-    <Folder Include="Services\" />
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

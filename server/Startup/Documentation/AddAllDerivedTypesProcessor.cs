@@ -1,9 +1,10 @@
 using Namotion.Reflection;
 using NSwag.Generation.Processors;
 using NSwag.Generation.Processors.Contexts;
+using WebSocketBoilerplate;
 
 namespace Startup.Documentation;
-/*
+
 /// <summary>
 ///     I want nswag to generate schemas for all derived types of BaseDto
 /// </summary>
@@ -39,4 +40,3 @@ public sealed class AddAllDerivedTypesProcessor : IDocumentProcessor
             context.SchemaGenerator.Generate(type.ToContextualType(), context.SchemaResolver);
     }
 }
-*/

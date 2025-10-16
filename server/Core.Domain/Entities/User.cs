@@ -11,6 +11,8 @@ public partial class User
 
     public string Passwordhash { get; set; } = null!;
 
+    public string Salt { get; set; } = null!;
+
     public string Firstname { get; set; } = null!;
 
     public string Lastname { get; set; } = null!;

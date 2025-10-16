@@ -158,6 +158,7 @@ CREATE TABLE users (
     id uuid NOT NULL DEFAULT (gen_random_uuid()),
     email character varying(255) NOT NULL,
     passwordhash character varying(255) NOT NULL,
+    salt text NOT NULL,
     firstname character varying(100) NOT NULL,
     lastname character varying(100) NOT NULL,
     phonenumber character varying(20),

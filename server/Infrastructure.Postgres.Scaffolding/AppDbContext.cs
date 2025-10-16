@@ -59,6 +59,8 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("documents");
 
+            entity.HasIndex(e => e.Uploadedbyid, "IX_documents_uploadedbyid");
+
             entity.HasIndex(e => e.Projectid, "idx_documents_project");
 
             entity.HasIndex(e => e.Documenttype, "idx_documents_type");
@@ -214,6 +216,8 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("notifications");
 
+            entity.HasIndex(e => e.Projectid, "IX_notifications_projectid");
+
             entity.HasIndex(e => e.Createdat, "idx_notifications_date").IsDescending();
 
             entity.HasIndex(e => new { e.Userid, e.Isread }, "idx_notifications_unread").HasFilter("(isread = false)");
@@ -261,6 +265,8 @@ public partial class AppDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("photos_pkey");
 
             entity.ToTable("photos");
+
+            entity.HasIndex(e => e.Uploadedbyid, "IX_photos_uploadedbyid");
 
             entity.HasIndex(e => e.Takenat, "idx_photos_date").IsDescending();
 
@@ -427,6 +433,8 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("threedscans");
 
+            entity.HasIndex(e => e.Uploadedbyid, "IX_threedscans_uploadedbyid");
+
             entity.HasIndex(e => e.Milestoneid, "idx_3dscans_milestone");
 
             entity.HasIndex(e => e.Projectid, "idx_3dscans_project");
@@ -482,6 +490,10 @@ public partial class AppDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("updates_pkey");
 
             entity.ToTable("updates");
+
+            entity.HasIndex(e => e.Createdbyid, "IX_updates_createdbyid");
+
+            entity.HasIndex(e => e.Milestoneid, "IX_updates_milestoneid");
 
             entity.HasIndex(e => e.Createdat, "idx_updates_date").IsDescending();
 
@@ -572,6 +584,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Role)
                 .HasMaxLength(20)
                 .HasColumnName("role");
+            entity.Property(e => e.Salt).HasColumnName("salt");
             entity.Property(e => e.Updatedat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
