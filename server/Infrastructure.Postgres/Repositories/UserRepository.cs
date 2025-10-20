@@ -16,6 +16,11 @@ public class UserRepository(AppDbContext ctx) : IUserRepository
     {
         return ctx.Users.FirstOrDefault(u => u.Email == email);
     }
+    
+    public async Task<User?> GetByIdAsync(Guid id)
+    {
+        return await ctx.Users.FirstOrDefaultAsync(u => u.Id == id);
+    }
 
     public User AddUser(User user)
     {

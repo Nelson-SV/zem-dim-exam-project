@@ -1,5 +1,8 @@
 using Application.Interfaces.Security;
+using Application.Interfaces.Services;
 using Application.Interfaces.UserService;
+using Application.Services.MessageService;
+using Application.Services.ProjectService;
 using Application.Services.Security;
 using Application.Services.UserService;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +15,8 @@ public static class ServicesExtensions
     {
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IProjectService, ProjectService>(); 
         return services;
     }
 }

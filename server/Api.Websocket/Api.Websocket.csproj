@@ -16,6 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
       <PackageReference Include="uldahlalex.websocket.boilerplate" Version="2.3.4" />
     </ItemGroup>
 
