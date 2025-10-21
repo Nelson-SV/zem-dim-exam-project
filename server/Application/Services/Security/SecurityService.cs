@@ -7,6 +7,8 @@ using Application.Interfaces.Security;
 using Application.Models.Dtos.Auth;
 using Application.Models.Enums;
 using Application.Models.Security;
+using Application.Services.Email;
+using Common.Email.TemplateReader;
 using Core.Domain.Entities;
 using JWT;
 using JWT.Algorithms;
@@ -16,11 +18,15 @@ using Microsoft.Extensions.Options;
 
 namespace Application.Services.Security;
 
-public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRepository repository) : ISecurityService
+public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRepository repository, EmailService emailService, TemplateReader templateReader) : ISecurityService
 {
     public AuthResponseDto Login(AuthRequestDto dto)
     {
         var user = repository.GetUserByEmailOrNull(dto.Email) ?? throw new ValidationException("User email not found");
+        
+        if (user.Isactive != true)
+            throw new ValidationException("User is inactive");
+            
         VerifyPasswordOrThrow(dto.Password + user.Salt, user.Passwordhash);
         return new AuthResponseDto
         {
@@ -36,7 +42,7 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         };
     }
 
-    public AuthResponseDto Register(RegisterRequestDto dto)
+    public async Task<RegisterResponseDto> Register(RegisterRequestDto dto)
     {
         var existing = repository.GetUserByEmailOrNull(dto.Email);
         if (existing is not null) throw new ValidationException("User already exists");
@@ -44,32 +50,40 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         var password = GenerateRandomPassword();
         var salt = GenerateSalt();
         var hash = HashPassword(password + salt);
+        var insertedUser = new User();
         
-        var insertedUser = repository.AddUser(new User
+        try
         {
-            Id = Guid.NewGuid(),
-            Email = dto.Email,
-            Firstname = dto.FirstName,
-            Lastname = dto.LastName,
-            Phonenumber = dto.PhoneNumber,
-            Role = Roles.UserRole,
-            Isactive = true,
-            Profileimageurl = dto.ProfileImageUrl ?? "https://example.com/default-avatar.png",
-            Language = dto.Language ?? "en",
-            Salt = salt,
-            Passwordhash = hash,
-            Mustchangepassword = true,
-        });
-        return new AuthResponseDto
-        {
-            Jwt = GenerateJwt(new JwtClaims
+            insertedUser = repository.AddUser(new User
             {
-                Id = insertedUser.Id.ToString(),
-                Role = insertedUser.Role,
-                Exp = DateTimeOffset.UtcNow.AddHours(1000).ToUnixTimeSeconds().ToString(),
-                Email = insertedUser.Email
-            })
-        };
+                Id = Guid.NewGuid(),
+                Email = dto.Email,
+                Firstname = dto.FirstName,
+                Lastname = dto.LastName,
+                Phonenumber = dto.PhoneNumber,
+                Role = Roles.UserRole,
+                Isactive = true,
+                Profileimageurl = dto.ProfileImageUrl ?? "https://example.com/default-avatar.png",
+                Language = dto.Language ?? "en",
+                Salt = salt,
+                Passwordhash = hash,
+                Mustchangepassword = true,
+            });
+
+            var template = templateReader.LoadTemplate("TemporaryPasswordEmail.html");
+            var body = template.Replace("{{CustomerName}}", dto.FirstName)
+                .Replace("{{Password}}", password)
+                .Replace("{{Email}}", dto.Email);
+            
+            await emailService.SendEmailAsync(dto.Email, "Your account has been created", body);
+            
+            return RegisterResponseDto.FromEntity(insertedUser);
+        }
+        catch (Exception ex)
+        {
+            repository.DeleteUser(insertedUser.Id.ToString());
+            throw new ApplicationException("Failed to send email to the user. Registration rolled back and user was deleted.", ex);
+        }
     }
 
     /// <summary>

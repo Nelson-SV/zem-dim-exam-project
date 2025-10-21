@@ -169,6 +169,7 @@ CREATE TABLE users (
     createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
     updatedat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
     lastloginat timestamp without time zone,
+    mustchangepassword boolean DEFAULT FALSE,
     CONSTRAINT users_pkey PRIMARY KEY (id)
 );
 

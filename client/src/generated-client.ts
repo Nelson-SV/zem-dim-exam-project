@@ -54,7 +54,7 @@ export class AuthClient {
         return Promise.resolve<AuthResponseDto>(null as any);
     }
 
-    register(dto: RegisterRequestDto): Promise<AuthResponseDto> {
+    register(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
         let url_ = this.baseUrl + "/api/auth/Register";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -74,13 +74,13 @@ export class AuthClient {
         });
     }
 
-    protected processRegister(response: Response): Promise<AuthResponseDto> {
+    protected processRegister(response: Response): Promise<RegisterResponseDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as AuthResponseDto;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as RegisterResponseDto;
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -88,7 +88,7 @@ export class AuthClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<AuthResponseDto>(null as any);
+        return Promise.resolve<RegisterResponseDto>(null as any);
     }
 
     secured(): Promise<FileResponse> {
@@ -139,9 +139,18 @@ export interface AuthRequestDto {
     password: string;
 }
 
+export interface RegisterResponseDto {
+    email: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber?: string | undefined;
+    profileImageUrl?: string | undefined;
+    language?: string | undefined;
+    createdAt?: Date | undefined;
+}
+
 export interface RegisterRequestDto {
     email: string;
-    password: string;
     firstName: string;
     lastName: string;
     phoneNumber?: string | undefined;

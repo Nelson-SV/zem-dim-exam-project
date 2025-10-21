@@ -1,4 +1,4 @@
-using Application.Models.Dtos.User;
+using Application.Models.Dtos.UserManagement;
 
 namespace Application.Interfaces.UserService;
 

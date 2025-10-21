@@ -3,7 +3,7 @@ using Core.Domain.Entities;
 
 namespace Application.Models.Dtos.Auth;
 
-public class RegisterRequestDto
+public class RegisterResponseDto
 {
     [Required, EmailAddress]
     public string Email { get; set; } = null!;
@@ -17,11 +17,12 @@ public class RegisterRequestDto
     public string? PhoneNumber { get; set; }
     public string? ProfileImageUrl { get; set; }
     public string? Language { get; set; }
+    public DateTime? CreatedAt { get; set; }
     
     
-    public static RegisterRequestDto FromEntity(User user)
+    public static RegisterResponseDto FromEntity(User user)
     {
-        return new RegisterRequestDto
+        return new RegisterResponseDto
         {
             FirstName = user.Firstname,
             LastName = user.Lastname,
@@ -29,6 +30,7 @@ public class RegisterRequestDto
             PhoneNumber = user.Phonenumber,
             ProfileImageUrl = user.Profileimageurl,
             Language = user.Language,
+            CreatedAt = user.Createdat
         };
     }
 

@@ -22,9 +22,10 @@ public class AuthController(ISecurityService securityService) : ControllerBase
 
     [HttpPost]
     [Route(RegisterRoute)]
-    public ActionResult<AuthResponseDto> Register([FromBody] RegisterRequestDto dto)
+    public async Task<ActionResult<RegisterResponseDto>> Register([FromBody] RegisterRequestDto dto)
     {
-        return Ok(securityService.Register(dto));
+        var result = await securityService.Register(dto);
+        return Ok(result);
     }
 
     [HttpGet]

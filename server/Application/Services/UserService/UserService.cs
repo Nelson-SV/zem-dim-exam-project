@@ -1,7 +1,7 @@
 using Application.Interfaces.Infrastructure.Postgres;
 using Application.Interfaces.UserService;
 using Application.Models;
-using Application.Models.Dtos.User;
+using Application.Models.Dtos.UserManagement;
 using Core.Domain.Entities;
 
 namespace Application.Services.UserService;

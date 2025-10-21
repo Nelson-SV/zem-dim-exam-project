@@ -1,5 +1,7 @@
 ﻿using Api.Rest;
 using Application;
+using Common.Email.Configurations;
+using Common.Email.TemplateReader;
 using Infrastructure.Postgres;
 using Infrastructure.Postgres.Seeder;
 using Microsoft.AspNetCore.Builder;
@@ -29,7 +31,7 @@ public class Program
     {
         var appOptions = services.AddAppOptions(configuration);
 
-        services.RegisterApplicationServices();
+        services.RegisterApplicationServices(configuration);
 
         services.AddDataSourceAndRepositories();
         //services.AddWebsocketInfrastructure();
@@ -42,6 +44,10 @@ public class Program
             conf.DocumentProcessors.Add(new AddStringConstantsProcessor());
         });
         //services.AddSingleton<IProxyConfig, ProxyConfig>();
+        
+        /* Bind EmailSettings*/
+        services.Configure<EmailSettings>(configuration.GetSection("AppOptions"));
+        services.AddSingleton<TemplateReader>();
     }
 
     public static async Task ConfigureMiddleware(WebApplication app)

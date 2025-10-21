@@ -3,10 +3,9 @@ POST http://localhost:5001/api/auth/Register
 Content-Type: application/json
 
 {
-    "email": "user@user.com",
-    "password": "Password123!",
-    "firstName": "User",
-    "lastName": "San",
+    "email": "test@test.com",
+    "firstName": "Test",
+    "lastName": "User",
     "phoneNumber": "+4573491124",
     "language": "en"
 }
@@ -18,6 +17,15 @@ Content-Type: application/json
 {
   "email": "admin@admin.com",
   "password": "Password123!"
+}
+
+### Login a user V2
+POST http://localhost:5001/api/auth/Login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "k5gk$8$jyzV&"
 }
 
 ### Update a user email

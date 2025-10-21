@@ -10,7 +10,7 @@ public interface ISecurityService
     public string GenerateSalt();
     public string GenerateJwt(JwtClaims claims);
     public AuthResponseDto Login(AuthRequestDto dto);
-    public AuthResponseDto Register(RegisterRequestDto dto);
+    public Task<RegisterResponseDto> Register(RegisterRequestDto dto);
     public JwtClaims VerifyJwtOrThrow(string jwt);
     public string GenerateRandomPassword(int length);
 }
