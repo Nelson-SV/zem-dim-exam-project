@@ -33,6 +33,8 @@ public partial class User
 
     public DateTime? Lastloginat { get; set; }
 
+    public bool? Mustchangepassword { get; set; }
+
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
 
     public virtual ICollection<Message> MessageReceivers { get; set; } = new List<Message>();

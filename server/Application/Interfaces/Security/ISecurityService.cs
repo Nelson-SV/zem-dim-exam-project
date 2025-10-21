@@ -12,4 +12,5 @@ public interface ISecurityService
     public AuthResponseDto Login(AuthRequestDto dto);
     public AuthResponseDto Register(RegisterRequestDto dto);
     public JwtClaims VerifyJwtOrThrow(string jwt);
+    public string GenerateRandomPassword(int length);
 }

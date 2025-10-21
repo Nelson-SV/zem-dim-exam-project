@@ -40,8 +40,11 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
     {
         var existing = repository.GetUserByEmailOrNull(dto.Email);
         if (existing is not null) throw new ValidationException("User already exists");
+
+        var password = GenerateRandomPassword();
         var salt = GenerateSalt();
-        var hash = HashPassword(dto.Password + salt);
+        var hash = HashPassword(password + salt);
+        
         var insertedUser = repository.AddUser(new User
         {
             Id = Guid.NewGuid(),
@@ -54,7 +57,8 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
             Profileimageurl = dto.ProfileImageUrl ?? "https://example.com/default-avatar.png",
             Language = dto.Language ?? "en",
             Salt = salt,
-            Passwordhash = hash
+            Passwordhash = hash,
+            Mustchangepassword = true,
         });
         return new AuthResponseDto
         {
@@ -119,5 +123,35 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
             throw new AuthenticationException("Token expired");
         return token;
     }
-    
+
+    public string GenerateRandomPassword(int length = 12)
+    {
+        const string upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";  // removed I and O
+        const string lower = "abcdefghijkmnopqrstuvwxyz";  // removed l
+        const string digits = "23456789";                  // removed 0 and 1
+        const string specials = "@#$%&*?!";
+        const string allChars = upper + lower + digits + specials;
+
+        var randomBytes = new byte[length];
+        using (var rng = RandomNumberGenerator.Create())
+            rng.GetBytes(randomBytes);
+
+        var password = new StringBuilder(length);
+
+        // Ensure at least one character from each category
+        password.Append(upper[randomBytes[0] % upper.Length]);
+        password.Append(lower[randomBytes[1] % lower.Length]);
+        password.Append(digits[randomBytes[2] % digits.Length]);
+        password.Append(specials[randomBytes[3] % specials.Length]);
+
+        // Fill the rest randomly
+        for (int i = 4; i < length; i++)
+        {
+            password.Append(allChars[randomBytes[i] % allChars.Length]);
+        }
+
+        // Shuffle result to avoid predictable positions
+        return new string(password.ToString().OrderBy(_ => RandomNumberGenerator.GetInt32(100)).ToArray());
+    }
 }
+
