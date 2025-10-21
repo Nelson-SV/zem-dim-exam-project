@@ -1,6 +1,6 @@
-# 👨‍💼 ADMIN FEATURES
+## 👨‍💼 ADMIN FEATURES
 
-## 1️⃣ User / Client Management
+### 1️⃣ User / Client Management
 
 **Backend**
 - [ ] Create User (Client) — `POST /api/users`
@@ -13,7 +13,7 @@
   - [ ] Set `IsActive = false` instead of removing
 - [ ] Get Users List — `GET /api/users` (paginated, filter by `IsActive`)
 - [ ] Get User Details — `GET /api/users/{id}`
-- [ ] Write unit tests for repository + service layer
+- [ ] Unit tests for repository + service layer
 
 **Frontend**
 - [ ] Create `/admin/clients` page
@@ -29,7 +29,7 @@
 
 ---
 
-## 2️⃣ Project Management
+### 2️⃣ Project Management
 
 **Backend**
 - [ ] Create Project — `POST /api/projects`
@@ -41,12 +41,12 @@
 - [ ] Get All Projects — paginated
 - [ ] Get Project Details — includes milestones + progress
 - [ ] Recalculate progress based on milestones
-- [ ] Add validation rules (dates, progress ≤ 100)
-- [ ] Add tests for repository and service layer
+- [ ] Validation rules (dates, progress ≤ 100)
+- [ ] Unit/integration tests
 
 **Frontend**
 - [ ] Create `/admin/projects` page
-  - [ ] List or grid view with client, address, and progress
+  - [ ] Grid or table view with client, address, progress
   - [ ] “Create Project” form (assign client)
   - [ ] “Edit Project” modal
   - [ ] Project detail page (tabs: info, milestones, media, chat)
@@ -55,7 +55,7 @@
 
 ---
 
-## 3️⃣ Milestone / Construction Stages
+### 3️⃣ Milestone / Construction Stages
 
 **Backend**
 - [ ] Create Milestone — `POST /api/projects/{projectId}/milestones`
@@ -65,49 +65,196 @@
 - [ ] Auto-update project progress when milestone changes
 
 **Frontend**
-- [ ] Add milestones tab on project page
+- [ ] Milestones tab on project page
 - [ ] Add/Edit milestone modal
 - [ ] Add progress slider (0–100%)
 - [ ] Add status badges (Pending / In Progress / Completed)
-- [ ] Auto-refresh progress bar
+- [ ] Auto-refresh project progress bar
 
 ---
 
-## 4️⃣ Media & Files (Photos, 3D Scans, Documents)
+### 4️⃣ Media & Files (Photos, 3D Scans, Documents)
 
 **Backend**
-- [ ] Upload files to Google Cloud Storage
-- [ ] Save file metadata (url, type, uploader)
-- [ ] Implement endpoints:
+- [ ] Implement file upload to Google Cloud Storage
+- [ ] Save metadata (url, type, uploader)
+- [ ] Create endpoints:
   - [ ] `POST /api/projects/{id}/photos`
   - [ ] `POST /api/projects/{id}/documents`
   - [ ] `GET /api/projects/{id}/media`
   - [ ] `DELETE /api/media/{id}`
-- [ ] Enforce permissions (Admin only)
-- [ ] Test uploads and deletions
+- [ ] Ensure permissions (Admin only)
+- [ ] Test upload and deletion logic
 
 **Frontend**
-- [ ] Add file upload components (drag & drop / button)
-- [ ] Create gallery grid with thumbnails
-- [ ] Add document list with download links
-- [ ] Add delete button (confirmation modal)
-- [ ] Add upload progress bar
-- [ ] Add filters by milestone or media type
+- [ ] Add upload components (drag & drop / button)
+- [ ] Gallery grid with thumbnails
+- [ ] Document list with download links
+- [ ] Delete button (confirmation modal)
+- [ ] Upload progress bar
+- [ ] Filter by milestone or file type
 
 ---
 
-## 5️⃣ Communication (Real-Time Chat)
+### 5️⃣ Communication (Real-Time Chat)
 
 **Backend**
 - [ ] Implement SignalR Hub for chat
-- [ ] Store messages in DB
-- [ ] Emit new message events
+- [ ] Store messages in database
+- [ ] Emit “new message” events
 - [ ] `GET /api/messages/{projectId}` — fetch conversation
-- [ ] Restrict to authorized project participants
+- [ ] Restrict to authorized participants
 
 **Frontend**
-- [ ] Build chat UI (Admin ↔ Client)
-- [ ] Add live updates with SignalR
-- [ ] Add typing indicator
-- [ ] Add read receipts
-- [ ] Add scroll + “load more” for message history
+- [ ] Chat UI (Admin ↔ Client)
+- [ ] Live updates via SignalR
+- [ ] Typing indicator
+- [ ] Read receipts
+- [ ] Scroll and “load more” history
+
+---
+
+### 6️⃣ Project Updates & Notifications
+
+**Backend**
+- [ ] Create “Update” entity (milestone completed, photos added, etc.)
+- [ ] `GET /api/updates/{projectId}` — fetch timeline
+- [ ] NotificationService:
+  - [ ] Push via SignalR
+  - [ ] Store in database
+- [ ] Mark notifications as read
+
+**Frontend**
+- [ ] Add notifications dropdown (bell icon)
+- [ ] Highlight unread notifications
+- [ ] Project timeline (“Recent Updates”)
+- [ ] Toast pop-up for real-time alerts
+
+---
+
+## 👤 CLIENT FEATURES
+
+### 1️⃣ Personal Dashboard
+
+**Backend**
+- [ ] `GET /api/client/projects` — fetch projects for logged-in client
+  - [ ] Include progress %, milestones, and latest updates
+
+**Frontend**
+- [ ] `/client/dashboard` page
+  - [ ] Display cards with project info (title, progress, current stage)
+  - [ ] “View Details” button → `/client/project/:id`
+  - [ ] Notifications widget
+  - [ ] Responsive layout (desktop/tablet/mobile)
+
+---
+
+### 2️⃣ Project Details (Client View)
+
+**Backend**
+- [ ] `GET /api/projects/{id}` — only if user is assigned client
+  - [ ] Return milestones, photos, documents, updates
+
+**Frontend**
+- [ ] Project overview page
+  - [ ] Display progress bars
+  - [ ] Milestones accordion (status, dates)
+  - [ ] Photo gallery grouped by stage
+  - [ ] Downloadable company documents
+  - [ ] Integrated chat tab
+
+---
+
+### 3️⃣ Chat with Admin
+
+**Backend**
+- [ ] Use shared SignalR Hub
+- [ ] Restrict visibility by project
+- [ ] Save messages to database
+
+**Frontend**
+- [ ] Client-side chat component
+- [ ] Auto-scroll to newest message
+- [ ] Real-time updates via SignalR
+- [ ] Unread indicator on navbar
+
+---
+
+### 4️⃣ Document Uploads
+
+**Backend**
+- [ ] `POST /api/client/documents`
+- [ ] Mark `IsVisibleToAdmin = true`
+- [ ] Allow deletion by uploader
+- [ ] `GET /api/client/documents`
+
+**Frontend**
+- [ ] “My Documents” page/tab
+- [ ] Upload (PDF, DOCX, JPG, etc.)
+- [ ] Download & delete buttons
+- [ ] Upload progress bar
+- [ ] Validate file type and size
+
+---
+
+### 5️⃣ Cost Calculator
+
+**Backend**
+- [ ] `POST /api/calculator/estimate`
+  - [ ] Accept: area, foundation, wall material, roof type, finishing, floors
+  - [ ] Return estimated range + breakdown
+
+**Frontend**
+- [ ] `/client/calculator` page
+  - [ ] Input form for area, material, etc.
+  - [ ] Validate area (must be numeric)
+  - [ ] Display price range + breakdown
+  - [ ] Add “Request Consultation” button
+
+---
+
+### 6️⃣ Profile Management
+
+**Backend**
+- [ ] `GET /api/client/profile`
+- [ ] `PUT /api/client/profile`
+  - [ ] Update name, phone, language, and avatar
+
+**Frontend**
+- [ ] `/client/profile` page
+  - [ ] Editable form for user data
+  - [ ] Avatar upload
+  - [ ] Language selector (UA/EN)
+  - [ ] Confirmation toast on save
+
+---
+
+## 🔒 COMMON FEATURES
+
+**Both**
+- [ ] Authentication (JWT Login)
+- [ ] Role-based route protection
+- [ ] Refresh token handling
+- [ ] Multi-language support (UA / EN)
+- [ ] Responsive design (desktop/tablet/mobile)
+- [ ] Dark mode toggle
+- [ ] Global error handling
+- [ ] Toast notifications for all actions
+
+---
+
+## 🧭 Recommended Development Order
+
+1. **Admin — User CRUD**
+2. **Admin — Projects CRUD**
+3. **Admin — Milestones**
+4. **Client — Dashboard + Project View**
+5. **File Uploads + Media**
+6. **SignalR Chat + Notifications**
+7. **Cost Calculator + Profile**
+8. **Final polish + Deployment**
+
+---
+
+> ✅ Tip: To mark progress, edit this file and change `[ ]` → `[x]` next to completed tasks.  
+> GitHub will automatically render interactive checkboxes.
