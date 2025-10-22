@@ -5,7 +5,9 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
+using Application.Interfaces.Infrastructure.Postgres.DatabaseTransactions;
 using Application.Interfaces.Security;
+using Application.Models;
 using Application.Models.Dtos.Auth;
 using Application.Models.Enums;
 using Application.Models.Security;
@@ -21,7 +23,12 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Services.Security;
 
-public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IAdminUserManagementRepository managementRepository, EmailService emailService, TemplateReader templateReader) : ISecurityService
+public class SecurityService(
+    IOptionsMonitor<AppOptions> optionsMonitor, 
+    IAdminUserManagementRepository managementRepository, 
+    EmailService emailService, 
+    TemplateReader templateReader,
+    IDbUnitOfWork unitOfWork) : ISecurityService
 {
     public AuthResponseDto Login(AuthRequestDto dto)
     {
@@ -48,13 +55,14 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IAdminU
     public async Task<RegisterResponseDto> RegisterUser(RegisterRequestDto dto)
     {
         var existing = managementRepository.GetUserByEmailOrNull(dto.Email);
-        if (existing is not null) throw new ValidationException("User already exists");
+        if (existing is not null) throw new ValidationException(ErrorMessages.GetMessage(ErrorCode.UserAlreadyExists));
 
         var password = GenerateRandomPassword();
         var salt = GenerateSalt();
         var hash = HashPassword(password + salt);
         var insertedUser = new User();
         
+        await unitOfWork.BeginAsync();
         try
         {
             insertedUser = managementRepository.AddUser(new User
@@ -79,13 +87,15 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IAdminU
                 .Replace("{{Email}}", dto.Email);
             
             await emailService.SendEmailAsync(dto.Email, "Your account has been created", body);
+            await unitOfWork.CommitAsync();
             
             return RegisterResponseDto.FromEntity(insertedUser);
         }
         catch (Exception ex)
         {
-            managementRepository.DeleteUser(insertedUser.Id);
-            throw new ApplicationException("Failed to send email to the user. Registration rolled back and user was deleted.", ex);
+            //managementRepository.DeleteUser(insertedUser.Id);
+            await unitOfWork.RollbackAsync();
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.RegistrationEmailFailed), ex);
         }
     }
 

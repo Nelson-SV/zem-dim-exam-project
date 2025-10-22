@@ -1,5 +1,7 @@
 using Application;
 using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
+using Application.Interfaces.Infrastructure.Postgres.DatabaseTransactions;
+using Infrastructure.Postgres.DatabaseTransactions;
 using Infrastructure.Postgres.Repositories.Admin.UserManagement;
 using Infrastructure.Postgres.Scaffolding;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +23,7 @@ public static class InfrastructurePostgresExtensions
         });
 
         services.AddScoped<IAdminUserManagementRepository, AdminUserManagementRepository>();
+        services.AddScoped<IDbUnitOfWork, DbUnitOfWork>();
         services.AddScoped<Seeder.Seeder>();
 
         return services;

@@ -3,7 +3,7 @@ using Application.Interfaces.Security;
 using Application.Models.Dtos.Auth;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Rest.Controllers;
+namespace Api.Rest.Controllers.Auth;
 
 public class AuthController(ISecurityService securityService) : ControllerBase
 {

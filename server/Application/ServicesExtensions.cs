@@ -3,6 +3,8 @@ using Application.Interfaces.UserService;
 using Application.Services.Email;
 using Application.Services.Security;
 using Application.Services.UserService;
+using Application.Validators.Admin.UserManagement;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,6 +31,7 @@ public static class ServicesExtensions
             services.Configure<AppOptions>(configuration.GetSection("AppOptions"));
         }
         
+        services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IUserService, UserService>();
         services.AddTransient<EmailService>();

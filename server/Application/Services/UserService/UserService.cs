@@ -42,7 +42,7 @@ public class UserService(IAdminUserManagementRepository adminUserManagementRepos
     {
         if (userId == null)
         {
-            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.ErrorUserId));
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserIdRequired));
         }
 
         Guid.TryParse(userId, out var guid);

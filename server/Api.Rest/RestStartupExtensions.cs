@@ -1,5 +1,6 @@
 using System.Text;
 using Api.Rest.Middleware;
+using Application.Models.Enums;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,7 +17,7 @@ public static class RestStartupExtensions
         var controllersAssembly = typeof(RestStartupExtensions).Assembly;
         services.AddControllers().AddApplicationPart(controllersAssembly);
         
-        // 1️⃣ JWT Authentication setup
+        //JWT Authentication setup
         var jwtSecret = configuration["AppOptions:JwtSecret"];
         if (string.IsNullOrEmpty(jwtSecret))
             throw new InvalidOperationException("JwtSecret is missing in configuration");
@@ -38,7 +39,7 @@ public static class RestStartupExtensions
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("AdminOnly", policy => policy.RequireRole("admin"));
+            options.AddPolicy("AdminOnly", policy => policy.RequireRole(Roles.AdminRole));
         });
 
         return services;
