@@ -38,12 +38,33 @@
         }
       }
     },
-    "/api/auth/Register": {
-      "post": {
+    "/api/auth/Secured": {
+      "get": {
         "tags": [
           "Auth"
         ],
-        "operationId": "Auth_Register",
+        "operationId": "Auth_Secured",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/RegisterUser": {
+      "post": {
+        "tags": [
+          "AdminUserManagement"
+        ],
+        "operationId": "AdminUserManagement_RegisterUser",
         "requestBody": {
           "x-name": "dto",
           "content": {
@@ -63,27 +84,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RegisterResponseDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/Secured": {
-      "get": {
-        "tags": [
-          "Auth"
-        ],
-        "operationId": "Auth_Secured",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
                 }
               }
             }

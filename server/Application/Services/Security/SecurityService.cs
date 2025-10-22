@@ -1,8 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Authentication;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Application.Interfaces.Infrastructure.Postgres;
+using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
 using Application.Interfaces.Security;
 using Application.Models.Dtos.Auth;
 using Application.Models.Enums;
@@ -15,14 +17,15 @@ using JWT.Algorithms;
 using JWT.Builder;
 using JWT.Serializers;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Services.Security;
 
-public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRepository repository, EmailService emailService, TemplateReader templateReader) : ISecurityService
+public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IAdminUserManagementRepository managementRepository, EmailService emailService, TemplateReader templateReader) : ISecurityService
 {
     public AuthResponseDto Login(AuthRequestDto dto)
     {
-        var user = repository.GetUserByEmailOrNull(dto.Email) ?? throw new ValidationException("User email not found");
+        var user = managementRepository.GetUserByEmailOrNull(dto.Email) ?? throw new ValidationException("User email not found");
         
         if (user.Isactive != true)
             throw new ValidationException("User is inactive");
@@ -42,9 +45,9 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         };
     }
 
-    public async Task<RegisterResponseDto> Register(RegisterRequestDto dto)
+    public async Task<RegisterResponseDto> RegisterUser(RegisterRequestDto dto)
     {
-        var existing = repository.GetUserByEmailOrNull(dto.Email);
+        var existing = managementRepository.GetUserByEmailOrNull(dto.Email);
         if (existing is not null) throw new ValidationException("User already exists");
 
         var password = GenerateRandomPassword();
@@ -54,7 +57,7 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         
         try
         {
-            insertedUser = repository.AddUser(new User
+            insertedUser = managementRepository.AddUser(new User
             {
                 Id = Guid.NewGuid(),
                 Email = dto.Email,
@@ -81,7 +84,7 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         }
         catch (Exception ex)
         {
-            repository.DeleteUser(insertedUser.Id.ToString());
+            managementRepository.DeleteUser(insertedUser.Id);
             throw new ApplicationException("Failed to send email to the user. Registration rolled back and user was deleted.", ex);
         }
     }
@@ -110,6 +113,7 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         return Guid.NewGuid().ToString();
     }
 
+    /*
     public string GenerateJwt(JwtClaims claims)
     {
         var tokenBuilder = new JwtBuilder()
@@ -122,6 +126,27 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
             tokenBuilder.AddClaim(claim.Name, claim.GetValue(claims)!.ToString());
         return tokenBuilder.Encode();
     }
+    */
+    
+    public string GenerateJwt(JwtClaims claims)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(optionsMonitor.CurrentValue.JwtSecret));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
+
+        var token = new JwtSecurityToken(
+            claims: new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, claims.Id),
+                new Claim(ClaimTypes.Role, claims.Role),
+                new Claim(ClaimTypes.Email, claims.Email)
+            },
+            expires: DateTimeOffset.FromUnixTimeSeconds(long.Parse(claims.Exp)).UtcDateTime,
+            signingCredentials: creds
+        );
+        
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    
 
     public JwtClaims VerifyJwtOrThrow(string jwt)
     {
