@@ -11,7 +11,6 @@ public class AdminUserManagementController(ISecurityService securityService) : C
     public const string ControllerRoute = "api/admin/";
     public const string RegisterUserRoute = ControllerRoute + nameof(RegisterUser);
     
-    //TODO: Validation of the inputs (FluentValidation)
     [HttpPost]
     [Authorize(Policy = "AdminOnly")]
     [Route(RegisterUserRoute)]
@@ -23,7 +22,7 @@ public class AdminUserManagementController(ISecurityService securityService) : C
            if (!validation.IsValid)
                return BadRequest(validation.Errors.Select(e => e.ErrorMessage));
          
-        var result = await securityService.RegisterUser(dto);
-        return Ok(result);
+           var result = await securityService.RegisterUser(dto);
+           return Ok(result);
     }
 }
