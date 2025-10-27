@@ -18,6 +18,7 @@ using JWT;
 using JWT.Algorithms;
 using JWT.Builder;
 using JWT.Serializers;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -28,7 +29,8 @@ public class SecurityService(
     IAdminUserManagementRepository managementRepository, 
     EmailService emailService, 
     TemplateReader templateReader,
-    IDbUnitOfWork unitOfWork) : ISecurityService
+    IDbUnitOfWork unitOfWork,
+    ILogger<SecurityService> logger) : ISecurityService
 {
     public AuthResponseDto Login(AuthRequestDto dto)
     {
@@ -60,12 +62,11 @@ public class SecurityService(
         var password = GenerateRandomPassword();
         var salt = GenerateSalt();
         var hash = HashPassword(password + salt);
-        var insertedUser = new User();
-        
+
         await unitOfWork.BeginAsync();
         try
         {
-            insertedUser = managementRepository.AddUser(new User
+            var insertedUser = managementRepository.AddUser(new User
             {
                 Id = Guid.NewGuid(),
                 Email = dto.Email,
@@ -94,6 +95,7 @@ public class SecurityService(
         catch (Exception ex)
         {
             //managementRepository.DeleteUser(insertedUser.Id);
+            logger.LogError(ex, "Failed to register user {Email}: {Error}", dto.Email, ex.Message);
             await unitOfWork.RollbackAsync();
             throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.RegistrationEmailFailed), ex);
         }

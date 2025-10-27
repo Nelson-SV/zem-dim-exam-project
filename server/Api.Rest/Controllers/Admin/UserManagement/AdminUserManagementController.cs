@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Rest.Controllers.Admin.UserManagement;
 
-public class AdminUserManagementController(ISecurityService securityService) : ControllerBase
+public class AdminUserManagementController(ISecurityService securityService, ILogger<AdminUserManagementController> logger) : ControllerBase
 {
     public const string ControllerRoute = "api/admin/";
     public const string RegisterUserRoute = ControllerRoute + nameof(RegisterUser);
@@ -19,10 +19,12 @@ public class AdminUserManagementController(ISecurityService securityService) : C
         [FromServices] IValidator<RegisterRequestDto> validator)
     {
          var validation = await validator.ValidateAsync(dto);
-           if (!validation.IsValid)
-               return BadRequest(validation.Errors.Select(e => e.ErrorMessage));
-         
-           var result = await securityService.RegisterUser(dto);
-           return Ok(result);
+         if (!validation.IsValid)
+         {
+             logger.LogWarning("Validation failed for email {Email}: {@Errors}", dto.Email, validation.Errors);
+             return BadRequest(validation.Errors.Select(e => e.ErrorMessage)); 
+         } 
+         var result = await securityService.RegisterUser(dto); 
+         return Ok(result);
     }
 }
