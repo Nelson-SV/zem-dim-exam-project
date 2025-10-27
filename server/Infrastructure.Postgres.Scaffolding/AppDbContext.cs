@@ -572,6 +572,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Lastname)
                 .HasMaxLength(100)
                 .HasColumnName("lastname");
+            entity.Property(e => e.Mustchangepassword)
+                .HasDefaultValue(false)
+                .HasColumnName("mustchangepassword");
             entity.Property(e => e.Passwordhash)
                 .HasMaxLength(255)
                 .HasColumnName("passwordhash");

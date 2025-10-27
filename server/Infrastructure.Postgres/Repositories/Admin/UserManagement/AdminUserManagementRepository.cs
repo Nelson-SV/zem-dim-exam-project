@@ -1,11 +1,11 @@
-using Application.Interfaces.Infrastructure.Postgres;
+using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
 using Core.Domain.Entities;
 using Infrastructure.Postgres.Scaffolding;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Postgres.Repositories;
+namespace Infrastructure.Postgres.Repositories.Admin.UserManagement;
 
-public class UserRepository(AppDbContext ctx) : IUserRepository
+public class AdminUserManagementRepository(AppDbContext ctx) : IAdminUserManagementRepository
 {
     public List<User> GetAll()
     {
@@ -15,6 +15,11 @@ public class UserRepository(AppDbContext ctx) : IUserRepository
     public User? GetUserByEmailOrNull(string email)
     {
         return ctx.Users.FirstOrDefault(u => u.Email == email);
+    }
+    
+    public User? GetUserByIdOrNull(Guid id)
+    {
+        return ctx.Users.FirstOrDefault(u => u.Id == id);
     }
 
     public User AddUser(User user)
@@ -33,7 +38,7 @@ public class UserRepository(AppDbContext ctx) : IUserRepository
         return existingUser;
     }
 
-    public bool DeleteUser(string userId)
+    public bool DeleteUser(Guid userId)
     {
         var user = ctx.Users.Find(userId);
         ctx.Users.Remove(user);

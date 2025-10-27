@@ -9,7 +9,15 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-
+        
+  mailcatcher:
+    image: dockage/mailcatcher
+    container_name: mailcatcher
+    restart: always
+    ports:
+      - "1025:1025"   # SMTP server
+      - "1080:1080"   # Web UI
+    # no environment variables needed
+    
 volumes:
   postgres_data:

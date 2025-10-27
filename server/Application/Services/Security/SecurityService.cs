@@ -1,26 +1,44 @@
 using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Authentication;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Application.Interfaces.Infrastructure.Postgres;
+using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
+using Application.Interfaces.Infrastructure.Postgres.DatabaseTransactions;
 using Application.Interfaces.Security;
+using Application.Models;
 using Application.Models.Dtos.Auth;
 using Application.Models.Enums;
 using Application.Models.Security;
+using Application.Services.Email;
+using Common.Email.TemplateReader;
 using Core.Domain.Entities;
 using JWT;
 using JWT.Algorithms;
 using JWT.Builder;
 using JWT.Serializers;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Services.Security;
 
-public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRepository repository) : ISecurityService
+public class SecurityService(
+    IOptionsMonitor<AppOptions> optionsMonitor, 
+    IAdminUserManagementRepository managementRepository, 
+    EmailService emailService, 
+    TemplateReader templateReader,
+    IDbUnitOfWork unitOfWork,
+    ILogger<SecurityService> logger) : ISecurityService
 {
     public AuthResponseDto Login(AuthRequestDto dto)
     {
-        var user = repository.GetUserByEmailOrNull(dto.Email) ?? throw new ValidationException("User email not found");
+        var user = managementRepository.GetUserByEmailOrNull(dto.Email) ?? throw new ValidationException("User email not found");
+        
+        if (user.Isactive != true)
+            throw new ValidationException("User is inactive");
+            
         VerifyPasswordOrThrow(dto.Password + user.Salt, user.Passwordhash);
         return new AuthResponseDto
         {
@@ -36,36 +54,51 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         };
     }
 
-    public AuthResponseDto Register(RegisterRequestDto dto)
+    public async Task<RegisterResponseDto> RegisterUser(RegisterRequestDto dto)
     {
-        var existing = repository.GetUserByEmailOrNull(dto.Email);
-        if (existing is not null) throw new ValidationException("User already exists");
+        var existing = managementRepository.GetUserByEmailOrNull(dto.Email);
+        if (existing is not null) throw new ValidationException(ErrorMessages.GetMessage(ErrorCode.UserAlreadyExists));
+
+        var password = GenerateRandomPassword();
         var salt = GenerateSalt();
-        var hash = HashPassword(dto.Password + salt);
-        var insertedUser = repository.AddUser(new User
+        var hash = HashPassword(password + salt);
+
+        await unitOfWork.BeginAsync();
+        try
         {
-            Id = Guid.NewGuid(),
-            Email = dto.Email,
-            Firstname = dto.FirstName,
-            Lastname = dto.LastName,
-            Phonenumber = dto.PhoneNumber,
-            Role = Roles.UserRole,
-            Isactive = true,
-            Profileimageurl = dto.ProfileImageUrl ?? "https://example.com/default-avatar.png",
-            Language = dto.Language ?? "en",
-            Salt = salt,
-            Passwordhash = hash
-        });
-        return new AuthResponseDto
-        {
-            Jwt = GenerateJwt(new JwtClaims
+            var insertedUser = managementRepository.AddUser(new User
             {
-                Id = insertedUser.Id.ToString(),
-                Role = insertedUser.Role,
-                Exp = DateTimeOffset.UtcNow.AddHours(1000).ToUnixTimeSeconds().ToString(),
-                Email = insertedUser.Email
-            })
-        };
+                Id = Guid.NewGuid(),
+                Email = dto.Email,
+                Firstname = dto.FirstName,
+                Lastname = dto.LastName,
+                Phonenumber = dto.PhoneNumber,
+                Role = Roles.UserRole,
+                Isactive = true,
+                Profileimageurl = dto.ProfileImageUrl ?? "https://example.com/default-avatar.png",
+                Language = dto.Language ?? "en",
+                Salt = salt,
+                Passwordhash = hash,
+                Mustchangepassword = true,
+            });
+
+            var template = templateReader.LoadTemplate("TemporaryPasswordEmail.html");
+            var body = template.Replace("{{CustomerName}}", dto.FirstName)
+                .Replace("{{Password}}", password)
+                .Replace("{{Email}}", dto.Email);
+            
+            await emailService.SendEmailAsync(dto.Email, "Your account has been created", body);
+            await unitOfWork.CommitAsync();
+            
+            return RegisterResponseDto.FromEntity(insertedUser);
+        }
+        catch (Exception ex)
+        {
+            //managementRepository.DeleteUser(insertedUser.Id);
+            logger.LogError(ex, "Failed to register user {Email}: {Error}", dto.Email, ex.Message);
+            await unitOfWork.RollbackAsync();
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.RegistrationEmailFailed), ex);
+        }
     }
 
     /// <summary>
@@ -92,6 +125,7 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
         return Guid.NewGuid().ToString();
     }
 
+    /*
     public string GenerateJwt(JwtClaims claims)
     {
         var tokenBuilder = new JwtBuilder()
@@ -104,6 +138,27 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
             tokenBuilder.AddClaim(claim.Name, claim.GetValue(claims)!.ToString());
         return tokenBuilder.Encode();
     }
+    */
+    
+    public string GenerateJwt(JwtClaims claims)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(optionsMonitor.CurrentValue.JwtSecret));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
+
+        var token = new JwtSecurityToken(
+            claims: new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, claims.Id),
+                new Claim(ClaimTypes.Role, claims.Role),
+                new Claim(ClaimTypes.Email, claims.Email)
+            },
+            expires: DateTimeOffset.FromUnixTimeSeconds(long.Parse(claims.Exp)).UtcDateTime,
+            signingCredentials: creds
+        );
+        
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    
 
     public JwtClaims VerifyJwtOrThrow(string jwt)
     {
@@ -119,5 +174,35 @@ public class SecurityService(IOptionsMonitor<AppOptions> optionsMonitor, IUserRe
             throw new AuthenticationException("Token expired");
         return token;
     }
-    
+
+    public string GenerateRandomPassword(int length = 12)
+    {
+        const string upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";  // removed I and O
+        const string lower = "abcdefghijkmnopqrstuvwxyz";  // removed l
+        const string digits = "23456789";                  // removed 0 and 1
+        const string specials = "@#$%&*?!";
+        const string allChars = upper + lower + digits + specials;
+
+        var randomBytes = new byte[length];
+        using (var rng = RandomNumberGenerator.Create())
+            rng.GetBytes(randomBytes);
+
+        var password = new StringBuilder(length);
+
+        // Ensure at least one character from each category
+        password.Append(upper[randomBytes[0] % upper.Length]);
+        password.Append(lower[randomBytes[1] % lower.Length]);
+        password.Append(digits[randomBytes[2] % digits.Length]);
+        password.Append(specials[randomBytes[3] % specials.Length]);
+
+        // Fill the rest randomly
+        for (int i = 4; i < length; i++)
+        {
+            password.Append(allChars[randomBytes[i] % allChars.Length]);
+        }
+
+        // Shuffle result to avoid predictable positions
+        return new string(password.ToString().OrderBy(_ => RandomNumberGenerator.GetInt32(100)).ToArray());
+    }
 }
+

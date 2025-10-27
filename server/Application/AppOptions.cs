@@ -10,4 +10,5 @@ public sealed class AppOptions
     public int PORT { get; set; } = 8080;
     public int WS_PORT { get; set; } = 8181;
     public int REST_PORT { get; set; } = 5001;
+    public string SendGridApiKey { get; set; }
 }

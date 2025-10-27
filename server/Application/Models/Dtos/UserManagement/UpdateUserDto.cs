@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Application.Models.Dtos.User;
+namespace Application.Models.Dtos.UserManagement;
 
 public class UpdateUserDto
 {
