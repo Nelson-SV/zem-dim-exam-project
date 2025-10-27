@@ -38,12 +38,33 @@
         }
       }
     },
-    "/api/auth/Register": {
-      "post": {
+    "/api/auth/Secured": {
+      "get": {
         "tags": [
           "Auth"
         ],
-        "operationId": "Auth_Register",
+        "operationId": "Auth_Secured",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/RegisterUser": {
+      "post": {
+        "tags": [
+          "AdminUserManagement"
+        ],
+        "operationId": "AdminUserManagement_RegisterUser",
         "requestBody": {
           "x-name": "dto",
           "content": {
@@ -62,28 +83,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponseDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/Secured": {
-      "get": {
-        "tags": [
-          "Auth"
-        ],
-        "operationId": "Auth_Secured",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
+                  "$ref": "#/components/schemas/RegisterResponseDto"
                 }
               }
             }
@@ -125,12 +125,11 @@
           }
         }
       },
-      "RegisterRequestDto": {
+      "RegisterResponseDto": {
         "type": "object",
         "additionalProperties": false,
         "required": [
           "email",
-          "password",
           "firstName",
           "lastName"
         ],
@@ -140,9 +139,46 @@
             "format": "email",
             "minLength": 1
           },
-          "password": {
+          "firstName": {
             "type": "string",
-            "minLength": 6
+            "minLength": 2
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 2
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "profileImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "language": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "RegisterRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "firstName",
+          "lastName"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "minLength": 1
           },
           "firstName": {
             "type": "string",
