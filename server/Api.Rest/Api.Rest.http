@@ -1,10 +1,10 @@
 ### Register a new user
-POST http://localhost:5001/api/admin/RegisterUser
-Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjVjNzE2YjJkLTg3NDEtNDJiNi04MDNjLTgzYWI4MWE5MzFmMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImFkbWluIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoiYWRtaW5AYWRtaW4uY29tIiwiZXhwIjoxNzY0OTAxMzI3fQ.xCVOtrnXxYyTjyLjsfnR_I36dAfO6V1rZDPycU_VVefiv6dS7gfUe-6Z_-TRz6nEYyIFPBZw0pHlRS6aehC20Q
+POST http://localhost:5001/api/admin/usermanagement/RegisterUser
+Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1YzcxNmIyZC04NzQxLTQyYjYtODAzYy04M2FiODFhOTMxZjAiLCJlbWFpbCI6ImFkbWluQGFkbWluLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6ImFkbWluIiwibmJmIjoxNzYxNjg4NDM2LCJleHAiOjE3NjE3NzQ4MzZ9.UpUK7D6DYBKziAVsZdQtObcSmR95OiudRyODCgBv7J2u-U9RZbUDVG7FV2IomAe8IsaXRs0523xDMTUBnF_nJw
 Content-Type: application/json
 
 {
-    "email": "test123@test.com",
+    "email": "another@test.com",
     "firstName": "Test123",
     "lastName": "User123",
     "phoneNumber": "+4573491124",

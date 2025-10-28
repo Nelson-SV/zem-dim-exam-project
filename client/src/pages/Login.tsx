@@ -134,10 +134,10 @@ export function Login() {
                             <div className="mt-4 p-3 bg-muted rounded-lg text-center">
                                 <p className="text-muted-foreground">Demo credentials:</p>
                                 <p className="text-muted-foreground">
-                                    <strong>Admin:</strong> admin@zemdim.com / password123
+                                    <strong>Admin:</strong> admin@admin.com / Password123!
                                 </p>
                                 <p className="text-muted-foreground">
-                                    <strong>Client:</strong> client@zemdim.com / password123
+                                    <strong>Client:</strong> user@user.com / Password123!
                                 </p>
                             </div>
                         </form>
