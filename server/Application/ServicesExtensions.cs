@@ -1,7 +1,10 @@
 using Application.Interfaces.Admin.UserManagement;
 using Application.Interfaces.Security;
+using Application.Interfaces.Services;
 using Application.Services.Admin.UserManagement;
 using Application.Services.Email;
+using Application.Services.MessageService;
+using Application.Services.ProjectService;
 using Application.Services.Security;
 using Application.Validators.Admin.UserManagement;
 using FluentValidation;
@@ -14,6 +17,7 @@ public static class ServicesExtensions
 {
     public static IServiceCollection RegisterApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
+        
         // Fetch SendGrid API Key from Environment Variables
         var sendGridApiKey = Environment.GetEnvironmentVariable("sendgrid");
 
@@ -33,8 +37,12 @@ public static class ServicesExtensions
         
         services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
         services.AddValidatorsFromAssemblyContaining<UpdateUserValidator>();
+        
+        
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IUserManagementService, UserManagementService>();
+        services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IProjectService, ProjectService>();
         services.AddTransient<EmailService>();
         return services;
     }

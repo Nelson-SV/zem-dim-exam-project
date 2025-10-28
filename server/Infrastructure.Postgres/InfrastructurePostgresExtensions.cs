@@ -1,7 +1,11 @@
+
+
 using Application;
+using Application.Interfaces.Infrastructure.Postgres;
 using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
 using Application.Interfaces.Infrastructure.Postgres.DatabaseTransactions;
 using Infrastructure.Postgres.DatabaseTransactions;
+using Infrastructure.Postgres.Repositories;
 using Infrastructure.Postgres.Repositories.Admin.UserManagement;
 using Infrastructure.Postgres.Scaffolding;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +29,8 @@ public static class InfrastructurePostgresExtensions
         services.AddScoped<IUserManagementRepository, UserManagementRepository>();
         services.AddScoped<IDbUnitOfWork, DbUnitOfWork>();
         services.AddScoped<Seeder.Seeder>();
+        services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddScoped<IProjectRepository, ProjectRepository>();
 
         return services;
     }

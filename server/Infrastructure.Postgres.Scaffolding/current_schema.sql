@@ -240,7 +240,7 @@ CREATE TABLE messages (
     readat timestamp without time zone,
     attachmenturl character varying(500),
     attachmenttype character varying(50),
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone DEFAULT (now()),
     CONSTRAINT messages_pkey PRIMARY KEY (id),
     CONSTRAINT messages_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
     CONSTRAINT messages_receiverid_fkey FOREIGN KEY (receiverid) REFERENCES users (id),

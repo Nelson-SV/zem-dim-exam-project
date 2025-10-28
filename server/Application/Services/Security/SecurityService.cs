@@ -4,10 +4,14 @@ using System.Security.Authentication;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Application.Interfaces.Infrastructure.Postgres;
 using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
 using Application.Interfaces.Security;
 using Application.Models.Dtos.Auth;
+using Application.Models.Dtos.UserManagement;
+using Application.Models.Enums;
 using Application.Models.Security;
+using Core.Domain.Entities;
 using JWT;
 using JWT.Algorithms;
 using JWT.Builder;
@@ -27,8 +31,9 @@ public class SecurityService(
         
         if (user.Isactive != true)
             throw new ValidationException("User is inactive");
-            
+        
         VerifyPasswordOrThrow(dto.Password + user.Salt, user.Passwordhash);
+        /*
         return new AuthResponseDto
         {
             Jwt = GenerateJwt(new JwtClaims
@@ -40,6 +45,11 @@ public class SecurityService(
                     .ToString(),
                 Email = dto.Email
             })
+        };
+        */
+        return new AuthResponseDto
+        {
+            Jwt = GenerateJwtFor(user, dto.Email)
         };
     }
     
@@ -81,28 +91,54 @@ public class SecurityService(
             tokenBuilder.AddClaim(claim.Name, claim.GetValue(claims)!.ToString());
         return tokenBuilder.Encode();
     }
+    
+    //The one i changed - Nelson
+    public string GenerateJwt(JwtClaims claims)
+       {
+           var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(optionsMonitor.CurrentValue.JwtSecret));
+           var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
+
+           var token = new JwtSecurityToken(
+               claims: new[]
+               {
+                   new Claim(ClaimTypes.NameIdentifier, claims.Id),
+                   new Claim(ClaimTypes.Role, claims.Role),
+                   new Claim(ClaimTypes.Email, claims.Email)
+               },
+               expires: DateTimeOffset.FromUnixTimeSeconds(long.Parse(claims.Exp)).UtcDateTime,
+               signingCredentials: creds
+           );
+           
+           return new JwtSecurityTokenHandler().WriteToken(token);
+       }
     */
     
-    public string GenerateJwt(JwtClaims claims)
+    /// <summary>
+    ///     Generates a valid JWT token compatible with JwtBearer and SignalR authentication
+    /// </summary>
+    public string GenerateJwtFor(User user, string email)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(optionsMonitor.CurrentValue.JwtSecret));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
+        var secret = (optionsMonitor.CurrentValue.JwtSecret ?? string.Empty).Trim();
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512); // HS512
+
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, email),
+            new Claim(ClaimTypes.Role, user.Role)
+        };
 
         var token = new JwtSecurityToken(
-            claims: new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, claims.Id),
-                new Claim(ClaimTypes.Role, claims.Role),
-                new Claim(ClaimTypes.Email, claims.Email)
-            },
-            expires: DateTimeOffset.FromUnixTimeSeconds(long.Parse(claims.Exp)).UtcDateTime,
-            signingCredentials: creds
-        );
-        
+            claims: claims,
+            notBefore: DateTime.UtcNow,
+            expires: DateTime.UtcNow.AddHours(24),
+            signingCredentials: creds);
+
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-    
 
+    /*
     public JwtClaims VerifyJwtOrThrow(string jwt)
     {
         var token = new JwtBuilder()
@@ -117,7 +153,27 @@ public class SecurityService(
             throw new AuthenticationException("Token expired");
         return token;
     }
+    */
+    /// <summary>
+    ///     Validates and decodes a JWT manually (used only if needed)
+    /// </summary>
+    public Dictionary<string, object> VerifyJwtOrThrow(string jwt)
+    {
+        var token = new JwtBuilder()
+            .WithAlgorithm(new HMACSHA512Algorithm())
+            .WithSecret(optionsMonitor.CurrentValue.JwtSecret)
+            .WithUrlEncoder(new JwtBase64UrlEncoder())
+            .WithJsonSerializer(new JsonNetSerializer())
+            .MustVerifySignature()
+            .Decode<IDictionary<string, object>>(jwt);
 
+        if (!token.ContainsKey("exp") || 
+            DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(token["exp"])) < DateTimeOffset.UtcNow)
+            throw new AuthenticationException("Token expired");
+
+        return new Dictionary<string, object>(token);
+    }
+    
     public string GenerateRandomPassword(int length = 12)
     {
         const string upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";  // removed I and O
@@ -148,4 +204,3 @@ public class SecurityService(
         return new string(password.ToString().OrderBy(_ => RandomNumberGenerator.GetInt32(100)).ToArray());
     }
 }
-

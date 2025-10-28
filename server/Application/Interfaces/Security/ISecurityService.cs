@@ -1,6 +1,6 @@
 using Application.Models.Dtos.Auth;
-using Application.Models.Dtos.UserManagement;
 using Application.Models.Security;
+using Core.Domain.Entities;
 
 namespace Application.Interfaces.Security;
 
@@ -9,8 +9,10 @@ public interface ISecurityService
     public string HashPassword(string password);
     public void VerifyPasswordOrThrow(string password, string hashedPassword);
     public string GenerateSalt();
-    public string GenerateJwt(JwtClaims claims);
+    public string GenerateJwtFor(User user, string email);
     public AuthResponseDto Login(AuthRequestDto dto);
-    public JwtClaims VerifyJwtOrThrow(string jwt);
+    //public JwtClaims VerifyJwtOrThrow(string jwt);
+    Dictionary<string, object> VerifyJwtOrThrow(string jwt);
     public string GenerateRandomPassword(int length);
+
 }

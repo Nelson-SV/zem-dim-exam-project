@@ -133,8 +133,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("attachmenturl");
             entity.Property(e => e.Content).HasColumnName("content");
             entity.Property(e => e.Createdat)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp with time zone")
                 .HasColumnName("createdat");
             entity.Property(e => e.Isread)
                 .HasDefaultValue(false)
