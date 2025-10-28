@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { AuthContext } from './AuthContext';
 import type { User, RegisterData } from './auth-types';
-import { authClient } from '../lib/api';
+import { authClient, userManagementClient } from '../lib/api';
 import { chatService } from '../lib/chatService';
 
 const ROLE_CLAIM = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';

@@ -1,5 +1,6 @@
 import {
     AuthClient,
+    UserManagementClient,
     MessagesClient,
     ProjectsClient,
     type FileResponse,
@@ -10,6 +11,7 @@ const API_URL = 'http://localhost:5001';
 export const authClient = new AuthClient(API_URL);
 export const messagesClient = new MessagesClient(API_URL);
 export const projectsClient = new ProjectsClient(API_URL);
+export const userManagementClient = new UserManagementClient(API_URL);
 
 // Допоміжне: розпарсити FileResponse у JSON
 async function readJson<T>(fr: FileResponse): Promise<T> {
