@@ -1,8 +1,10 @@
 
 
 using Application;
-using Application.Interfaces.Infrastructure.Postgres;
-using Infrastructure.Postgres.Repositories;
+using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
+using Application.Interfaces.Infrastructure.Postgres.DatabaseTransactions;
+using Infrastructure.Postgres.DatabaseTransactions;
+using Infrastructure.Postgres.Repositories.Admin.UserManagement;
 using Infrastructure.Postgres.Scaffolding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +24,8 @@ public static class InfrastructurePostgresExtensions
             options.EnableSensitiveDataLogging();
         });
 
-        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserManagementRepository, UserManagementRepository>();
+        services.AddScoped<IDbUnitOfWork, DbUnitOfWork>();
         services.AddScoped<Seeder.Seeder>();
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IProjectRepository, ProjectRepository>();

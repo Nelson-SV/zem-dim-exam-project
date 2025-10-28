@@ -1,20 +1,18 @@
 using Application.Models.Dtos.Auth;
+using Application.Models.Security;
 using Core.Domain.Entities;
 
 namespace Application.Interfaces.Security;
 
 public interface ISecurityService
 {
-    string HashPassword(string password);
-    void VerifyPasswordOrThrow(string password, string hashedPassword);
-    string GenerateSalt();
-    
-     
-    string GenerateJwtFor(User user, string email);
-    
-    AuthResponseDto Login(AuthRequestDto dto);
-    AuthResponseDto Register(RegisterRequestDto dto);
-    
-    // 🔹 повертає claims у зручному вигляді
+    public string HashPassword(string password);
+    public void VerifyPasswordOrThrow(string password, string hashedPassword);
+    public string GenerateSalt();
+    public string GenerateJwtFor(User user, string email);
+    public AuthResponseDto Login(AuthRequestDto dto);
+    //public JwtClaims VerifyJwtOrThrow(string jwt);
     Dictionary<string, object> VerifyJwtOrThrow(string jwt);
+    public string GenerateRandomPassword(int length);
+
 }

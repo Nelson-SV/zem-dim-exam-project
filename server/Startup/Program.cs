@@ -4,6 +4,8 @@ using System.Text;
 using Api.Rest;
 using Api.Websocket.Hubs;
 using Application;
+using Common.Email.Configurations;
+using Common.Email.TemplateReader;
 using Infrastructure.Postgres;
 using Infrastructure.Postgres.Seeder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -13,6 +15,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NSwag.Generation;
+using Serilog;
+using Serilog.Events;
 using Startup.Documentation;
 
 namespace Startup;
@@ -21,28 +25,52 @@ public class Program
 {
     public static async Task Main()
     {
-        var builder = WebApplication.CreateBuilder();
+        // --- Configure Serilog before building the app ---
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug() // or Information if you want less detail
+            .WriteTo.Console()
+            .WriteTo.File(
+                path: "logs/log-.txt",
+                rollingInterval: RollingInterval.Day, // new file per day
+                retainedFileCountLimit: 7, // keep only last 7 days (optional)
+                restrictedToMinimumLevel: LogEventLevel.Information)
+            .CreateLogger();
+        try
+        {
+            Log.Information("Starting up...");
+            var builder = WebApplication.CreateBuilder();
+            builder.Host.UseSerilog(); //Integrate Serilog with ASP.NET logging
 
-       
-        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-        JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
 
-        ConfigureServices(builder.Services, builder.Configuration);
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
 
-        var app = builder.Build();
 
-        await ConfigureMiddleware(app);
-        await app.RunAsync();
+            ConfigureServices(builder.Services, builder.Configuration);
+            var app = builder.Build();
+            await ConfigureMiddleware(app);
+            //var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+            //var url = $"http://0.0.0.0:{port}";
+            //await app.RunAsync(url);
+            await app.RunAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Application start-up failed");
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 
     public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
         var appOptions = services.AddAppOptions(configuration);
 
-        services.RegisterApplicationServices();
-        services.AddDataSourceAndRepositories();
+        services.RegisterApplicationServices(configuration);
 
-         
+        services.AddDataSourceAndRepositories();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -116,14 +144,19 @@ public class Program
             options.KeepAliveInterval = TimeSpan.FromSeconds(15);
             options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
         });
+        //services.AddWebsocketInfrastructure();
 
-        // REST + OpenAPI
-        services.RegisterRestApiServices();
+        //services.RegisterWebsocketApiServices();
+        services.RegisterRestApiServices(configuration);
         services.AddOpenApiDocument(conf =>
         {
             conf.DocumentProcessors.Add(new AddAllDerivedTypesProcessor());
             conf.DocumentProcessors.Add(new AddStringConstantsProcessor());
         });
+        //services.AddSingleton<IProxyConfig, ProxyConfig>();
+        /* Bind EmailSettings*/
+        services.Configure<EmailSettings>(configuration.GetSection("AppOptions"));
+        services.AddSingleton<TemplateReader>();
     }
 
     public static async Task ConfigureMiddleware(WebApplication app)
@@ -138,25 +171,28 @@ public class Program
 
         app.Urls.Clear();
         app.Urls.Add($"http://0.0.0.0:{appOptions.REST_PORT}");
+        //app.Services.GetRequiredService<IProxyConfig>()
+            //.StartProxyServer(appOptions.PORT, appOptions.REST_PORT, appOptions.WS_PORT);
 
-         
-        app.UseRouting();
+            app.UseRouting();
 
-        app.UseCors(policy => policy
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .SetIsOriginAllowed(_ => true)
-            .AllowCredentials());
+            app.UseCors(policy => policy
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .SetIsOriginAllowed(_ => true)
+                .AllowCredentials());
 
-        app.UseAuthentication();
-        app.UseAuthorization();
-
+            app.UseAuthentication();
+            app.UseAuthorization();
+            
         app.ConfigureRestApi();
-
         app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization();
 
-        app.MapGet("Acceptance", () => "Accepted");
+        //await app.ConfigureWebsocketApi(appOptions.WS_PORT);
 
+
+        app.MapGet("Acceptance", () => "Accepted");
+        
         app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
 
         var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
@@ -164,5 +200,6 @@ public class Program
         await File.WriteAllTextAsync("openapi.json", json);
 
         app.GenerateTypeScriptClient("/../../client/src/generated-client.ts").GetAwaiter().GetResult();
+        
     }
 }

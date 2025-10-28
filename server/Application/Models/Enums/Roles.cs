@@ -1,10 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Application.Models.Enums;
 
-public class Roles
+public static class Roles
 {
-    [Required] public static string UserRole = "user";
+    public const string UserRole = "user";
 
-    [Required] public static string AdminRole = "admin";
+    public const string AdminRole = "admin";
 }

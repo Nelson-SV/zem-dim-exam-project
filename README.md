@@ -3,10 +3,10 @@
 ### 1️⃣ User / Client Management
 
 **Backend**
-- [ ] Create User (Client) — `POST /api/users`
-  - [ ] Validate required fields (email, first name, last name, password)
-  - [ ] Hash password + store salt
-  - [ ] Default role = “Client”
+- [x] Create User (Client) — `POST /api/users`
+  - [x] Validate required fields (email, first name, last name, password)
+  - [x] Hash password + store salt
+  - [x] Default role = “Client”
 - [ ] Edit User — `PUT /api/users/{id}`
   - [ ] Update name, phone, email, language, and active status
 - [ ] Soft Delete User — `DELETE /api/users/{id}`
