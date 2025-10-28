@@ -1,3 +1,5 @@
+
+
 using Application;
 using Application.Interfaces.Infrastructure.Postgres;
 using Infrastructure.Postgres.Repositories;
@@ -22,6 +24,8 @@ public static class InfrastructurePostgresExtensions
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<Seeder.Seeder>();
+        services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddScoped<IProjectRepository, ProjectRepository>();
 
         return services;
     }
