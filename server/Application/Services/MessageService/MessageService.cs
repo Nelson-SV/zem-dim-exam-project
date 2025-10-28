@@ -1,4 +1,5 @@
 using Application.Interfaces.Infrastructure.Postgres;
+using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
 using Application.Interfaces.Services;
 using Application.Models.Dtos.Message;
 using Core.Domain.Entities;
@@ -8,9 +9,9 @@ namespace Application.Services.MessageService;
 public class MessageService : IMessageService
 {
     private readonly IMessageRepository _messageRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly IUserManagementRepository _userRepository;
 
-    public MessageService(IMessageRepository messageRepository, IUserRepository userRepository)
+    public MessageService(IMessageRepository messageRepository, IUserManagementRepository userRepository)
     {
         _messageRepository = messageRepository;
         _userRepository = userRepository;

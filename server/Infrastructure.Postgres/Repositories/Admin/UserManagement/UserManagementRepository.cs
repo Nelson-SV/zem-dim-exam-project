@@ -21,6 +21,11 @@ public class UserManagementRepository(AppDbContext ctx) : IUserManagementReposit
     {
         return ctx.Users.FirstOrDefault(u => u.Id == id);
     }
+    
+    public async Task<User?> GetByIdAsync(Guid id)
+    {
+        return await ctx.Users.FirstOrDefaultAsync(u => u.Id == id);
+    }
 
     public async Task<User> AddUser(User user)
     {

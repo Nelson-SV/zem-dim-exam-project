@@ -1,4 +1,5 @@
 using Application.Interfaces.Infrastructure.Postgres;
+using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
 using Application.Interfaces.Services;
 using Application.Models.Dtos.Project;
 
@@ -7,10 +8,10 @@ namespace Application.Services.ProjectService;
 public class ProjectService : IProjectService
 {
     private readonly IProjectRepository _projectRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly IUserManagementRepository _userRepository;
     private static readonly Guid ADMIN_ID = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-    public ProjectService(IProjectRepository projectRepository, IUserRepository userRepository)
+    public ProjectService(IProjectRepository projectRepository, IUserManagementRepository userRepository)
     {
         _projectRepository = projectRepository;
         _userRepository = userRepository;
