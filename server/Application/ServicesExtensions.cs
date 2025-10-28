@@ -1,8 +1,8 @@
+using Application.Interfaces.Admin.UserManagement;
 using Application.Interfaces.Security;
-using Application.Interfaces.UserService;
+using Application.Services.Admin.UserManagement;
 using Application.Services.Email;
 using Application.Services.Security;
-using Application.Services.UserService;
 using Application.Validators.Admin.UserManagement;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
@@ -32,8 +32,9 @@ public static class ServicesExtensions
         }
         
         services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
+        services.AddValidatorsFromAssemblyContaining<UpdateUserValidator>();
         services.AddScoped<ISecurityService, SecurityService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddTransient<EmailService>();
         return services;
     }

@@ -22,7 +22,7 @@ public static class InfrastructurePostgresExtensions
             options.EnableSensitiveDataLogging();
         });
 
-        services.AddScoped<IAdminUserManagementRepository, AdminUserManagementRepository>();
+        services.AddScoped<IUserManagementRepository, UserManagementRepository>();
         services.AddScoped<IDbUnitOfWork, DbUnitOfWork>();
         services.AddScoped<Seeder.Seeder>();
 

@@ -7,20 +7,19 @@ using Application.Models;
 using Application.Models.Dtos.UserManagement;
 using Application.Models.Enums;
 using Application.Services.Email;
-using Application.Services.Security;
 using Common.Email.TemplateReader;
 using Core.Domain.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Services.Admin.UserManagement;
 
-public class UserManagementManagementService(
+public class UserManagementService(
     ISecurityService securityService, 
-    IAdminUserManagementRepository managementRepository, 
+    IUserManagementRepository managementRepository, 
     EmailService emailService, 
     TemplateReader templateReader,
     IDbUnitOfWork unitOfWork,
-    ILogger<SecurityService> logger) : IUserManagementService
+    ILogger<UserManagementService> logger) : IUserManagementService
 {
     public List<User> GetAll()
     {
@@ -44,7 +43,7 @@ public class UserManagementManagementService(
         await unitOfWork.BeginAsync();
         try
         {
-            var insertedUser = managementRepository.AddUser(new User
+            var insertedUser = await managementRepository.AddUser(new User
             {
                 Id = Guid.NewGuid(),
                 Email = dto.Email,
@@ -72,31 +71,40 @@ public class UserManagementManagementService(
         }
         catch (Exception ex)
         {
-            //managementRepository.DeleteUser(insertedUser.Id);
             logger.LogError(ex, "Failed to register user {Email}: {Error}", dto.Email, ex.Message);
             await unitOfWork.RollbackAsync();
             throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.RegistrationEmailFailed), ex);
         }
     }
 
-    public UpdateResponseDto UpdateUser(UpdateRequestDto request)
+    public async Task<UpdateResponseDto> UpdateUser(UpdateRequestDto dto)
     {
-        if (request == null || string.IsNullOrWhiteSpace(request.Email))
-        {
+        if (string.IsNullOrWhiteSpace(dto.Email))
             throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.InvalidUserEmail));
+
+        try
+        {
+            var existingUser = managementRepository.GetUserByIdOrNull(Guid.Parse(dto.Id));
+            if (existingUser is null)
+                throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
+            existingUser.Email = dto.Email;
+            existingUser.Firstname = dto.FirstName;
+            existingUser.Lastname = dto.LastName;
+            existingUser.Phonenumber = dto.PhoneNumber;
+            existingUser.Profileimageurl = dto.ProfileImageUrl ?? existingUser.Profileimageurl;
+            existingUser.Language = dto.Language ?? existingUser.Language;
+            existingUser.Updatedat = DateTime.Now; 
+            
+            var updatedUser = await managementRepository.UpdateUser(existingUser);
+
+            return UpdateResponseDto.FromEntity(updatedUser);
         }
-
-        var updatedUser = adminUserManagementRepository.UpdateUserEmail(new User
+        catch (Exception ex)
         {
-            Id = Guid.Parse(request.UserId),
-            Email = request.Email
-        });
-
-        return new UpdateResponseDto
-        {
-            Email = updatedUser.Email,
-            UserId = updatedUser.Id.ToString()
-        };
+            logger.LogError(ex, "Failed to update user {Email}: {Error}", dto.Email, ex.Message);
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UpdatingUserFailed), ex);
+        }
+        
     }
 
     public bool DeleteUser(string userId)
@@ -107,7 +115,7 @@ public class UserManagementManagementService(
         }
 
         Guid.TryParse(userId, out var guid);
-        var result = adminUserManagementRepository.DeleteUser(guid);
+        var result = managementRepository.DeleteUser(guid);
 
         if (!result)
         {
