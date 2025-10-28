@@ -1,5 +1,6 @@
 using Application.Interfaces.Security;
 using Application.Models.Dtos.Auth;
+using Application.Models.Dtos.UserManagement;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,8 +34,8 @@ public class AdminUserManagementController(ISecurityService securityService, ILo
     [Authorize(Policy = "AdminOnly")]
     [Route(UpdateUserRoute)]
     public async Task<ActionResult<RegisterResponseDto>> UpdateUser(
-        [FromBody] RegisterRequestDto dto,
-        [FromServices] IValidator<RegisterRequestDto> validator)
+        [FromBody] UpdateRequestDto dto,
+        [FromServices] IValidator<UpdateRequestDto> validator)
     {
         var validation = await validator.ValidateAsync(dto);
         if (!validation.IsValid)
