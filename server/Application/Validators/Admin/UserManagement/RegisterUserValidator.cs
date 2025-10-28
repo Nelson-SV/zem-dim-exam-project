@@ -1,4 +1,5 @@
 using Application.Models.Dtos.Auth;
+using Application.Models.Dtos.UserManagement;
 using FluentValidation;
 
 namespace Application.Validators.Admin.UserManagement;

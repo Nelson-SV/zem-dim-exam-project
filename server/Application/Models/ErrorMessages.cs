@@ -7,22 +7,26 @@ public enum ErrorCode
     UnexpectedError,
     UserAlreadyExists,
     RegistrationEmailFailed,
+    UpdatingUserFailed,
+    UserNotFound
 }
 
 public static class ErrorMessages
 {
     private static readonly Dictionary<ErrorCode, string> _errorMessages = new()
     {
-        { ErrorCode.UserIdRequired, "Id is required" },
-        { ErrorCode.InvalidUserEmail, "Invalid user email" },
-        { ErrorCode.UnexpectedError, "An unexpected error occured, please try again" },
-        { ErrorCode.UserAlreadyExists, "User already exists" },
+        { ErrorCode.UserIdRequired, "Id is required." },
+        { ErrorCode.InvalidUserEmail, "Invalid user email." },
+        { ErrorCode.UnexpectedError, "An unexpected error occured, please try again." },
+        { ErrorCode.UserAlreadyExists, "User already exists." },
         { ErrorCode.RegistrationEmailFailed, "Failed to send email to the user. Registration rolled back and user was deleted." },
+        { ErrorCode.UpdatingUserFailed, "Failed to update the user, please try again later." },
+        { ErrorCode.UserNotFound, "User not found, please try again." },
         
     };
     
     public static string GetMessage(ErrorCode errorCode)
     {
-        return _errorMessages.GetValueOrDefault(errorCode, "This error is undefined");
+        return _errorMessages.GetValueOrDefault(errorCode, "This error is undefined.");
     }
 }

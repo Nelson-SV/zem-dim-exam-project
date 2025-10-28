@@ -93,7 +93,7 @@ export class AuthClient {
     }
 }
 
-export class AdminUserManagementClient {
+export class UserManagementClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -104,7 +104,7 @@ export class AdminUserManagementClient {
     }
 
     registerUser(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
-        let url_ = this.baseUrl + "/api/admin/RegisterUser";
+        let url_ = this.baseUrl + "/api/admin/usermanagement/RegisterUser";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(dto);
@@ -139,6 +139,43 @@ export class AdminUserManagementClient {
         }
         return Promise.resolve<RegisterResponseDto>(null as any);
     }
+
+    updateUser(dto: UpdateRequestDto): Promise<UpdateResponseDto> {
+        let url_ = this.baseUrl + "/api/admin/usermanagement/UpdateUser";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateUser(_response);
+        });
+    }
+
+    protected processUpdateUser(response: Response): Promise<UpdateResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as UpdateResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UpdateResponseDto>(null as any);
+    }
 }
 
 export interface AuthResponseDto {
@@ -161,6 +198,26 @@ export interface RegisterResponseDto {
 }
 
 export interface RegisterRequestDto {
+    email: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber?: string | undefined;
+    profileImageUrl?: string | undefined;
+    language?: string | undefined;
+}
+
+export interface UpdateResponseDto {
+    email: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber?: string | undefined;
+    profileImageUrl?: string | undefined;
+    language?: string | undefined;
+    createdAt?: Date | undefined;
+}
+
+export interface UpdateRequestDto {
+    id: string;
     email: string;
     firstName: string;
     lastName: string;

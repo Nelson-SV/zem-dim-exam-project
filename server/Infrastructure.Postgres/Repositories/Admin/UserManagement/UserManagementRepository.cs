@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Postgres.Repositories.Admin.UserManagement;
 
-public class AdminUserManagementRepository(AppDbContext ctx) : IAdminUserManagementRepository
+public class UserManagementRepository(AppDbContext ctx) : IUserManagementRepository
 {
     public List<User> GetAll()
     {
@@ -22,20 +22,18 @@ public class AdminUserManagementRepository(AppDbContext ctx) : IAdminUserManagem
         return ctx.Users.FirstOrDefault(u => u.Id == id);
     }
 
-    public User AddUser(User user)
+    public async Task<User> AddUser(User user)
     {
         ctx.Users.Add(user);
-        ctx.SaveChanges();
+        await ctx.SaveChangesAsync();
         return user;
     }
 
-    public User UpdateUserEmail(User user)
+    public async Task<User> UpdateUser(User user)
     {
-        var existingUser = ctx.Users.Find(user.Id);
-        existingUser.Email = user.Email;
-        ctx.Entry(existingUser).State = EntityState.Modified;
-        ctx.SaveChanges();
-        return existingUser;
+        ctx.Users.Update(user);
+        await ctx.SaveChangesAsync();
+        return user;
     }
 
     public bool DeleteUser(Guid userId)

@@ -17,6 +17,15 @@
     <PackageReference Include="SendGrid" Version="9.29.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove="Services\Security\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Interfaces\User\" />
+    <Folder Include="Services\User\" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

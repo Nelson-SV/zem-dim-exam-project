@@ -5,20 +5,13 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
-using Application.Interfaces.Infrastructure.Postgres.DatabaseTransactions;
 using Application.Interfaces.Security;
-using Application.Models;
 using Application.Models.Dtos.Auth;
-using Application.Models.Enums;
 using Application.Models.Security;
-using Application.Services.Email;
-using Common.Email.TemplateReader;
-using Core.Domain.Entities;
 using JWT;
 using JWT.Algorithms;
 using JWT.Builder;
 using JWT.Serializers;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -26,11 +19,7 @@ namespace Application.Services.Security;
 
 public class SecurityService(
     IOptionsMonitor<AppOptions> optionsMonitor, 
-    IAdminUserManagementRepository managementRepository, 
-    EmailService emailService, 
-    TemplateReader templateReader,
-    IDbUnitOfWork unitOfWork,
-    ILogger<SecurityService> logger) : ISecurityService
+    IUserManagementRepository managementRepository) : ISecurityService
 {
     public AuthResponseDto Login(AuthRequestDto dto)
     {
@@ -53,53 +42,7 @@ public class SecurityService(
             })
         };
     }
-
-    public async Task<RegisterResponseDto> RegisterUser(RegisterRequestDto dto)
-    {
-        var existing = managementRepository.GetUserByEmailOrNull(dto.Email);
-        if (existing is not null) throw new ValidationException(ErrorMessages.GetMessage(ErrorCode.UserAlreadyExists));
-
-        var password = GenerateRandomPassword();
-        var salt = GenerateSalt();
-        var hash = HashPassword(password + salt);
-
-        await unitOfWork.BeginAsync();
-        try
-        {
-            var insertedUser = managementRepository.AddUser(new User
-            {
-                Id = Guid.NewGuid(),
-                Email = dto.Email,
-                Firstname = dto.FirstName,
-                Lastname = dto.LastName,
-                Phonenumber = dto.PhoneNumber,
-                Role = Roles.UserRole,
-                Isactive = true,
-                Profileimageurl = dto.ProfileImageUrl ?? "https://example.com/default-avatar.png",
-                Language = dto.Language ?? "en",
-                Salt = salt,
-                Passwordhash = hash,
-                Mustchangepassword = true,
-            });
-
-            var template = templateReader.LoadTemplate("TemporaryPasswordEmail.html");
-            var body = template.Replace("{{CustomerName}}", dto.FirstName)
-                .Replace("{{Password}}", password)
-                .Replace("{{Email}}", dto.Email);
-            
-            await emailService.SendEmailAsync(dto.Email, "Your account has been created", body);
-            await unitOfWork.CommitAsync();
-            
-            return RegisterResponseDto.FromEntity(insertedUser);
-        }
-        catch (Exception ex)
-        {
-            //managementRepository.DeleteUser(insertedUser.Id);
-            logger.LogError(ex, "Failed to register user {Email}: {Error}", dto.Email, ex.Message);
-            await unitOfWork.RollbackAsync();
-            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.RegistrationEmailFailed), ex);
-        }
-    }
+    
 
     /// <summary>
     ///     Gives hex representation of SHA512 hash

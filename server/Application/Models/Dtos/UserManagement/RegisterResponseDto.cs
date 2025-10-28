@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Core.Domain.Entities;
 
-namespace Application.Models.Dtos.Auth;
+namespace Application.Models.Dtos.UserManagement;
 
 public class RegisterResponseDto
 {
