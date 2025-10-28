@@ -11,7 +11,7 @@ Content-Type: application/json
     "language": "en"
 }
 
-### Login a user
+### Login a admin
 POST http://localhost:5001/api/auth/Login
 Content-Type: application/json
 
@@ -20,7 +20,7 @@ Content-Type: application/json
   "password": "Password123!"
 }
 
-### Login a user V2
+### Login a user 
 POST http://localhost:5001/api/auth/Login
 Content-Type: application/json
 
@@ -28,19 +28,3 @@ Content-Type: application/json
   "email": "user@user.com",
   "password": "Password123!"
 }
-
-### Update a user email
-PUT http://localhost:5001/api/UserController/UpdateUserEmail
-Content-Type: application/json
-
-{
-  "userId": "70a7ab31-b33b-4e12-b2aa-71748168bc3e",
-  "jwt": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJSb2xlIjoidXNlciIsIkVtYWlsIjoidGVzdHVzZXJAbWVtb2hvdXNlLmNvbSIsIklkIjoiNzBhN2FiMzEtYjMzYi00ZTEyLWIyYWEtNzE3NDgxNjhiYzNlIiwiRXhwIjoiMTc0Njk1Nzk5NiJ9.AwZSaiLTXuc9Z2YH7xqQ_bAnHlEikzWixfNr1tW4v_u-YNlWkbLRhVOCFHZNBKS3-pZgc3D4_xi3TStBN0ElKw",
-  "email": "changewasmade@momaemail.com"
-}
-
-### Delete a user email
-DELETE http://localhost:5001/api/UserController/DeleteUser
-Content-Type: application/json
-
-"317c651d-1fd5-4ef9-8966-8a5996ac0144"
