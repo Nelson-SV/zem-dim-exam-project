@@ -17,6 +17,7 @@ public static class RestStartupExtensions
         var controllersAssembly = typeof(RestStartupExtensions).Assembly;
         services.AddControllers().AddApplicationPart(controllersAssembly);
         
+        /*
         //JWT Authentication setup
         var jwtSecret = configuration["AppOptions:JwtSecret"];
         if (string.IsNullOrEmpty(jwtSecret))
@@ -41,6 +42,7 @@ public static class RestStartupExtensions
         {
             options.AddPolicy("AdminOnly", policy => policy.RequireRole(Roles.AdminRole));
         });
+        */
 
         return services;
     }

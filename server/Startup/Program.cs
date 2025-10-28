@@ -84,7 +84,7 @@ public class Program
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
 
         options.RequireHttpsMetadata = false;
-        options.MapInboundClaims = false; //  
+        options.MapInboundClaims = false; 
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -147,7 +147,7 @@ public class Program
         //services.AddWebsocketInfrastructure();
 
         //services.RegisterWebsocketApiServices();
-        //services.RegisterRestApiServices(configuration);
+        services.RegisterRestApiServices(configuration);
         services.AddOpenApiDocument(conf =>
         {
             conf.DocumentProcessors.Add(new AddAllDerivedTypesProcessor());

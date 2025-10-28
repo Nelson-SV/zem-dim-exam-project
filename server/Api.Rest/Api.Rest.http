@@ -25,8 +25,8 @@ POST http://localhost:5001/api/auth/Login
 Content-Type: application/json
 
 {
-  "email": "test@test.com",
-  "password": "ciTNNrX8E@zL"
+  "email": "user@user.com",
+  "password": "Password123!"
 }
 
 ### Update a user email
