@@ -80,6 +80,8 @@ public class UserManagementService(
 
     public async Task<UpdateResponseDto> UpdateUser(UpdateRequestDto dto)
     {
+        Console.WriteLine("DTO: " + dto);
+        
         if (string.IsNullOrWhiteSpace(dto.Email))
             throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.InvalidUserEmail));
 
@@ -94,6 +96,8 @@ public class UserManagementService(
             existingUser.Phonenumber = dto.PhoneNumber;
             existingUser.Profileimageurl = dto.ProfileImageUrl ?? existingUser.Profileimageurl;
             existingUser.Language = dto.Language ?? existingUser.Language;
+            existingUser.Isactive = dto.IsActive ?? existingUser.Isactive;
+            existingUser.Isdeleted = dto.IsDeleted ??  existingUser.Isdeleted;
             existingUser.Updatedat = DateTime.Now; 
             
             var updatedUser = await managementRepository.UpdateUser(existingUser);

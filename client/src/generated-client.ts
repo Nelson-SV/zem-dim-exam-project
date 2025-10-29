@@ -490,6 +490,8 @@ export interface UpdateResponseDto {
     phoneNumber?: string | undefined;
     profileImageUrl?: string | undefined;
     language?: string | undefined;
+    isActive?: boolean | undefined;
+    isDeleted?: boolean | undefined;
     createdAt?: Date | undefined;
 }
 
@@ -501,6 +503,8 @@ export interface UpdateRequestDto {
     phoneNumber?: string | undefined;
     profileImageUrl?: string | undefined;
     language?: string | undefined;
+    isActive?: boolean | undefined;
+    isDeleted?: boolean | undefined;
 }
 
 export interface FileResponse {

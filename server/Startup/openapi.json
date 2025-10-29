@@ -485,6 +485,14 @@
             "type": "string",
             "nullable": true
           },
+          "isActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "nullable": true
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -529,6 +537,14 @@
           },
           "language": {
             "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean",
             "nullable": true
           }
         }

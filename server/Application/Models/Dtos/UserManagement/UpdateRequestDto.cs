@@ -19,6 +19,8 @@ public class UpdateRequestDto
     public string? PhoneNumber { get; set; }
     public string? ProfileImageUrl { get; set; }
     public string? Language { get; set; }
+    public bool? IsActive { get; set; }
+    public bool? IsDeleted { get; set; }
     
     
     public static UpdateRequestDto FromEntity(User user)
@@ -31,6 +33,8 @@ public class UpdateRequestDto
             PhoneNumber = user.Phonenumber,
             ProfileImageUrl = user.Profileimageurl,
             Language = user.Language,
+            IsActive =  user.Isactive,
+            IsDeleted = user.Isdeleted,
         };
     }
 }
