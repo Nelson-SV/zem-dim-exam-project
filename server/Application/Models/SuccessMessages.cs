@@ -2,14 +2,14 @@ namespace Application.Models;
 
 public enum SuccessCode
 {
-    Example,
+    UserDeletedSuccess,
 }
 
 public static class SuccessMessages
 {
     private static readonly Dictionary<SuccessCode, string> _successMessages = new()
     {
-        { SuccessCode.Example, "Example" },
+        { SuccessCode.UserDeletedSuccess, "User deleted  successfully." },
     };
     
     public static string GetMessage(SuccessCode code)

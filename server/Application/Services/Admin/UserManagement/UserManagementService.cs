@@ -54,6 +54,7 @@ public class UserManagementService(
                 Isactive = true,
                 Profileimageurl = dto.ProfileImageUrl ?? "https://example.com/default-avatar.png",
                 Language = dto.Language ?? "en",
+                Createdat = DateTime.Now,
                 Salt = salt,
                 Passwordhash = hash,
                 Mustchangepassword = true,
@@ -107,21 +108,15 @@ public class UserManagementService(
         
     }
 
-    public bool DeleteUser(string userId)
+    public async Task<DeleteResponseDto> SoftDelete(string userId)
     {
-        if (userId == null)
-        {
+        if (!Guid.TryParse(userId, out var guid))
             throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserIdRequired));
-        }
 
-        Guid.TryParse(userId, out var guid);
-        var result = managementRepository.DeleteUser(guid);
+        var success = await managementRepository.SoftDelete(guid);
+        if (!success)
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
-        if (!result)
-        {
-            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UnexpectedError));
-        }
-        
-        return result;
+        return DeleteResponseDto.FromObjects(success, SuccessMessages.GetMessage(SuccessCode.UserDeletedSuccess));
     }
 }

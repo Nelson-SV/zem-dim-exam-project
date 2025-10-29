@@ -8,5 +8,5 @@ public interface IUserManagementService
     Core.Domain.Entities.User? GetUserById(string email);
     Task<RegisterResponseDto> RegisterUser(RegisterRequestDto dto);
     Task<UpdateResponseDto> UpdateUser(UpdateRequestDto request);
-    bool DeleteUser(string userId);
+    Task<DeleteResponseDto> SoftDelete(string userId);
 }

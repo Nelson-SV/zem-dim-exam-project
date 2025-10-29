@@ -8,7 +8,8 @@ public enum ErrorCode
     UserAlreadyExists,
     RegistrationEmailFailed,
     UpdatingUserFailed,
-    UserNotFound
+    UserNotFound,
+    DeletingUserFailed
 }
 
 public static class ErrorMessages
@@ -22,6 +23,7 @@ public static class ErrorMessages
         { ErrorCode.RegistrationEmailFailed, "Failed to send email to the user. Registration rolled back and user was deleted." },
         { ErrorCode.UpdatingUserFailed, "Failed to update the user, please try again later." },
         { ErrorCode.UserNotFound, "User not found, please try again." },
+        { ErrorCode.DeletingUserFailed, "Failed to delete the user, please try again later." },
         
     };
     
