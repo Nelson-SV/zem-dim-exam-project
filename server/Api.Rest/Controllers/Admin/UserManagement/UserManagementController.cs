@@ -1,4 +1,5 @@
 using Application.Interfaces.Admin.UserManagement;
+using Application.Models;
 using Application.Models.Dtos.UserManagement;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
@@ -11,6 +12,7 @@ public class UserManagementController(IUserManagementService userManagementServi
     public const string ControllerRoute = "api/admin/usermanagement/";
     public const string RegisterUserRoute = ControllerRoute + nameof(RegisterUser);
     public const string UpdateUserRoute = ControllerRoute + nameof(UpdateUser);
+    public const string DeleteUserRoute = ControllerRoute + nameof(DeleteUser);
     
     [HttpPost]
     [Authorize(Policy = "AdminOnly")]
@@ -44,5 +46,19 @@ public class UserManagementController(IUserManagementService userManagementServi
         } 
         var result = await userManagementService.UpdateUser(dto); 
         return Ok(result);
+    }
+    
+    [HttpDelete]
+    [Authorize(Policy = "AdminOnly")]
+    [Route(DeleteUserRoute)]
+    public async Task<ActionResult> DeleteUser([FromQuery] string userId)
+    {
+        var deleteResponseDto = await userManagementService.SoftDelete(userId); 
+        if (!deleteResponseDto.Status)
+        {
+            return BadRequest(ErrorMessages.GetMessage(ErrorCode.DeletingUserFailed)); 
+        }
+        
+        return Ok(deleteResponseDto);
     }
 }

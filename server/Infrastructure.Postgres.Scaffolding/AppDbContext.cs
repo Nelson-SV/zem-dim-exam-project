@@ -133,8 +133,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("attachmenturl");
             entity.Property(e => e.Content).HasColumnName("content");
             entity.Property(e => e.Createdat)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp with time zone")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdat");
             entity.Property(e => e.Isread)
                 .HasDefaultValue(false)
@@ -562,6 +562,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Isactive)
                 .HasDefaultValue(true)
                 .HasColumnName("isactive");
+            entity.Property(e => e.Isdeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("isdeleted");
             entity.Property(e => e.Language)
                 .HasMaxLength(5)
                 .HasDefaultValueSql("'ua'::character varying")

@@ -10,5 +10,5 @@ public interface IUserManagementRepository
     Task<User?> GetByIdAsync(Guid id);
     Task<User> AddUser(User user);
     Task<User> UpdateUser(User user);
-    bool DeleteUser(Guid userId);
+    Task<bool> SoftDelete(Guid userId);
 }

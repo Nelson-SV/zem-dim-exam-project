@@ -1,4 +1,6 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+
 namespace Core.Domain.Entities;
 
 public partial class User
@@ -32,6 +34,8 @@ public partial class User
     public DateTime? Lastloginat { get; set; }
 
     public bool? Mustchangepassword { get; set; }
+
+    public bool? Isdeleted { get; set; }
 
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
 

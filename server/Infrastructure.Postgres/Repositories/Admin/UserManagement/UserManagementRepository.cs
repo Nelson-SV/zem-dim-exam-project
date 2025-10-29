@@ -36,15 +36,29 @@ public class UserManagementRepository(AppDbContext ctx) : IUserManagementReposit
 
     public async Task<User> UpdateUser(User user)
     {
+        /*
         ctx.Users.Update(user);
         await ctx.SaveChangesAsync();
         return user;
+        */
+        var existing = await ctx.Users.AsTracking().FirstOrDefaultAsync(u => u.Id == user.Id);
+        if (existing == null) throw new InvalidOperationException("User not found");
+
+        ctx.Entry(existing).CurrentValues.SetValues(user);
+        await ctx.SaveChangesAsync();
+        return existing;
     }
 
-    public bool DeleteUser(Guid userId)
+    public async Task<bool> SoftDelete(Guid userId)
     {
-        var user = ctx.Users.Find(userId);
-        ctx.Users.Remove(user);
-        return ctx.SaveChanges() > 0;
+        var user = await ctx.Users.FindAsync(userId);
+        if (user == null) return false;
+
+        user.Isdeleted = true;
+        user.Isactive = false;
+        user.Updatedat = DateTime.Now;
+
+        await ctx.SaveChangesAsync();
+        return true;
     }
 }
