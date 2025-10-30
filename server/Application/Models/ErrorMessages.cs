@@ -9,7 +9,8 @@ public enum ErrorCode
     RegistrationEmailFailed,
     UpdatingUserFailed,
     UserNotFound,
-    DeletingUserFailed
+    DeletingUserFailed,
+    GettingAllUsersFailed
 }
 
 public static class ErrorMessages
@@ -24,6 +25,8 @@ public static class ErrorMessages
         { ErrorCode.UpdatingUserFailed, "Failed to update the user, please try again later." },
         { ErrorCode.UserNotFound, "User not found, please try again." },
         { ErrorCode.DeletingUserFailed, "Failed to delete the user, please try again later." },
+        { ErrorCode.GettingAllUsersFailed, "Failed to fetching all users, please try again later." },
+
         
     };
     

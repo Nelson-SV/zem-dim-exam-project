@@ -13,6 +13,7 @@ public class UserManagementController(IUserManagementService userManagementServi
     public const string RegisterUserRoute = ControllerRoute + nameof(RegisterUser);
     public const string UpdateUserRoute = ControllerRoute + nameof(UpdateUser);
     public const string DeleteUserRoute = ControllerRoute + nameof(DeleteUser);
+    public const string GetAllUsersRoute = ControllerRoute + nameof(GetAllUsers);
     
     [HttpPost]
     [Authorize(Policy = "AdminOnly")]
@@ -60,5 +61,19 @@ public class UserManagementController(IUserManagementService userManagementServi
         }
         
         return Ok(deleteResponseDto);
+    }
+    
+    [HttpGet]
+    //[Authorize(Policy = "AdminOnly")]
+    [Route(GetAllUsersRoute)]
+    public async Task<ActionResult<GetAllUsersResponseDto>> GetAllUsers()
+    {
+        var response = await userManagementService.GetAllUsers(); 
+        if (response.Items == null || response.Items.Count == 0)
+        {
+            return BadRequest(ErrorMessages.GetMessage(ErrorCode.GettingAllUsersFailed)); 
+        }
+        
+        return Ok(response);
     }
 }

@@ -446,6 +446,39 @@ export class UserManagementClient {
         }
         return Promise.resolve<FileResponse>(null as any);
     }
+
+    getAllUsers(): Promise<GetAllUsersResponseDto> {
+        let url_ = this.baseUrl + "/api/admin/usermanagement/GetAllUsers";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAllUsers(_response);
+        });
+    }
+
+    protected processGetAllUsers(response: Response): Promise<GetAllUsersResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as GetAllUsersResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GetAllUsersResponseDto>(null as any);
+    }
 }
 
 export interface SendMessageRequest {
@@ -465,9 +498,9 @@ export interface AuthRequestDto {
 }
 
 export interface RegisterResponseDto {
-    email: string;
-    firstName: string;
-    lastName: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
     phoneNumber?: string | undefined;
     profileImageUrl?: string | undefined;
     language?: string | undefined;
@@ -484,9 +517,9 @@ export interface RegisterRequestDto {
 }
 
 export interface UpdateResponseDto {
-    email: string;
-    firstName: string;
-    lastName: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
     phoneNumber?: string | undefined;
     profileImageUrl?: string | undefined;
     language?: string | undefined;
@@ -505,6 +538,48 @@ export interface UpdateRequestDto {
     language?: string | undefined;
     isActive?: boolean | undefined;
     isDeleted?: boolean | undefined;
+}
+
+export interface GetAllUsersResponseDto {
+    items?: UsersDetailsDto[];
+    totalItems?: number;
+    page?: number;
+    pageSize?: number;
+}
+
+export interface UsersDetailsDto {
+    userId?: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string | undefined;
+    profileImageUrl?: string | undefined;
+    language?: string | undefined;
+    isActive?: boolean | undefined;
+    isDeleted?: boolean | undefined;
+    createdAt?: Date | undefined;
+    projects?: ProjectDto[];
+}
+
+export interface ProjectDto {
+    id?: string;
+    clientId?: string;
+    clientName?: string;
+    title?: string;
+    description?: string | undefined;
+    address?: string | undefined;
+    city?: string | undefined;
+    postalCode?: string | undefined;
+    status?: string;
+    startDate?: Date;
+    plannedEndDate?: Date | undefined;
+    actualEndDate?: Date | undefined;
+    totalArea?: number | undefined;
+    budget?: number | undefined;
+    progressPercentage?: number;
+    thumbnailUrl?: string | undefined;
+    createdAt?: Date | undefined;
+    updatedAt?: Date | undefined;
 }
 
 export interface FileResponse {

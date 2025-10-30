@@ -1,12 +1,13 @@
 using Application.Models.Dtos.UserManagement;
+using Core.Domain.Entities;
 
 namespace Application.Interfaces.Admin.UserManagement;
 
 public interface IUserManagementService
 {
-    List<Core.Domain.Entities.User> GetAll();
-    Core.Domain.Entities.User? GetUserById(string email);
+    User? GetUserById(string email);
     Task<RegisterResponseDto> RegisterUser(RegisterRequestDto dto);
     Task<UpdateResponseDto> UpdateUser(UpdateRequestDto request);
     Task<DeleteResponseDto> SoftDelete(string userId);
+    Task<GetAllUsersResponseDto> GetAllUsers();
 }

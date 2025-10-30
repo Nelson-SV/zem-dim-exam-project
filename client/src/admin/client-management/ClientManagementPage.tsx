@@ -1,0 +1,134 @@
+import { useState } from 'react';
+import { Search, Mail, Phone, Building, Edit, Trash2, Eye } from 'lucide-react';
+import { Card } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
+import { format } from 'date-fns';
+import { enUS } from 'date-fns/locale';
+import { toast } from 'sonner';
+import { AddNewClientModal } from './AddNewClientModal';
+import type { RegisterRequestDto } from '../../generated-client';
+import { http } from '../../lib/apiV2';
+import { useInitializeUsersDetails } from '../../hooks/useInitializeUsersDetails';
+import { UsersDetailsAtom } from '../../atoms/admin/UsersDetailsAtom';
+import { useAtom } from 'jotai';
+
+export function ClientManagementPage() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [usersDetails, setUsersDetails] = useAtom(UsersDetailsAtom);
+
+  useInitializeUsersDetails({page: currentPage});
+
+  const handleDeleteClient = (clientName: string) => {
+    toast.success(`Client ${clientName} removed`);
+  };
+
+  const handleSaveUser = async (userData: RegisterRequestDto) => {
+    try {
+
+      await http.userManagement.registerUser(userData).then(r => {
+        if (r !== null || r !== undefined) {
+          setUsersDetails((prevUsers) => [...prevUsers, r]);
+          toast.success("User added successfully.");
+
+          // http.api.authInitPasswordReset({ email: userData.email }).then(r => {
+          //   if (r.status === 200) {
+          //     toast.success(`Email sent to ${userData.email} successfully.`);
+          //   }
+          // });
+        } else {
+          toast.error(`Failed to register the user: ${userData.email}. 
+                        Please insert this account again.`);
+        }
+      });
+
+    } catch (error) {
+      toast.error("Error performing operation for the user: " + error);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div>
+          <h2 className="mb-2">Client management</h2>
+          <p className="text-muted-foreground">
+            Total clients: {usersDetails.length}
+          </p>
+        </div>
+        <AddNewClientModal onSave={handleSaveUser} />
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Input
+          placeholder="Search clients by name or email..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      {/* Clients Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {usersDetails.map(client => (
+          <Card key={client.userId} className="p-6 hover:shadow-lg transition-all">
+            <div className="flex items-start gap-4 mb-4">
+              <Avatar className="size-12">
+                <AvatarImage src={client.profileImageUrl} />
+                <AvatarFallback>{client.firstName!.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <h4 className="mb-1">{client.firstName + " " + client.lastName}</h4>
+                <Badge variant="secondary">
+                  {client.projects?.length} {client.projects?.length === 1 ? 'project' : 'projects'}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <Mail className="size-4 shrink-0" />
+                <span className="truncate">{client.email}</span>
+              </div>
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <Phone className="size-4 shrink-0" />
+                <span>{client.phoneNumber}</span>
+              </div>
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <Building className="size-4 shrink-0" />
+                <span>
+                  Registered: {format(new Date(client.createdAt!), 'dd MMM yyyy', { locale: enUS })}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-6 pt-4 border-t">
+              <Button variant="outline" className="flex-1" size="sm">
+                <Eye className="size-4 mr-1" />
+                Overview
+              </Button>
+              <Button variant="outline" className="flex-1" size="sm">
+                <Edit className="size-4 mr-1" />
+                Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={() => handleDeleteClient(client.firstName!)}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}

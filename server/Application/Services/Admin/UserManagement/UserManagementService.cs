@@ -21,10 +21,6 @@ public class UserManagementService(
     IDbUnitOfWork unitOfWork,
     ILogger<UserManagementService> logger) : IUserManagementService
 {
-    public List<User> GetAll()
-    {
-        throw new NotImplementedException();
-    }
 
     public User? GetUserById(string email)
     {
@@ -122,5 +118,36 @@ public class UserManagementService(
             throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
         return DeleteResponseDto.FromObjects(success, SuccessMessages.GetMessage(SuccessCode.UserDeletedSuccess));
+    }
+
+    public async Task<GetAllUsersResponseDto> GetAllUsers()
+    {
+
+        var users = managementRepository.GetAll();
+        
+        if (users.Count == 0)
+        {
+            return new GetAllUsersResponseDto
+            {
+                Items = new List<UsersDetailsDto>(),
+                TotalItems = 0,
+                Page = 1,
+                PageSize = 1
+            };
+        }
+
+        var mappedUsers = users.Select(u =>
+        {
+            var detailedUser = UsersDetailsDto.FromEntity(u);
+            return detailedUser;
+        }).ToList();
+
+        return new GetAllUsersResponseDto()
+        {
+            Items = mappedUsers,
+            TotalItems = 99,
+            Page = 99,
+            PageSize = 99,
+        };
     }
 }

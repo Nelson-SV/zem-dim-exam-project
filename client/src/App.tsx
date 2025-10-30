@@ -12,7 +12,7 @@ import { Navigation } from './navigation/Navigation';
 import { Calculator } from './client/Calculator';
 import { ProjectDetails } from './admin/ProjectDetails';
 import { AdminProjectsList } from './admin/AdminProjectsList';
-import { ClientManagement } from './admin/ClientManagement';
+import { ClientManagementPage } from './admin/client-management/ClientManagementPage';
 import { AdminAnalytics } from './admin/AdminAnalytics';
 import { AdminSettings } from './admin/AdminSettings';
 import { AdminDashboard } from './admin/AdminDashboard';
@@ -71,7 +71,7 @@ function AppContent() {
         case 'projects':
           return <AdminProjectsList onViewProject={handleViewProject} />;
         case 'clients':
-          return <ClientManagement />;
+          return <ClientManagementPage />;
         case 'analytics':
           return <AdminAnalytics />;
         case 'settings':

@@ -9,7 +9,9 @@ public class UserManagementRepository(AppDbContext ctx) : IUserManagementReposit
 {
     public List<User> GetAll()
     {
-        return ctx.Users.ToList();
+        return ctx.Users
+            .Include(c => c.Projects)
+            .ToList();
     }
 
     public User? GetUserByEmailOrNull(string email)

@@ -7,10 +7,10 @@
   - [x] Validate required fields (email, first name, last name, password)
   - [x] Hash password + store salt
   - [x] Default role = “Client”
-- [ ] Edit User — `PUT /api/users/{id}`
-  - [ ] Update name, phone, email, language, and active status
-- [ ] Soft Delete User — `DELETE /api/users/{id}`
-  - [ ] Set `IsActive = false` instead of removing
+- [x] Edit User — `PUT /api/users/{id}`
+  - [x] Update name, phone, email, language, and active status
+- [x] Soft Delete User — `DELETE /api/users/{id}`
+  - [x] Set `IsActive = false` instead of removing
 - [ ] Get Users List — `GET /api/users` (paginated, filter by `IsActive`)
 - [ ] Get User Details — `GET /api/users/{id}`
 - [ ] Unit tests for repository + service layer
@@ -19,7 +19,7 @@
 - [ ] Create `/admin/clients` page
   - [ ] Display table with users (search + filter)
   - [ ] Show status (active/inactive)
-  - [ ] Add “Add Client” modal
+  - [x] Add “Add Client” modal
   - [ ] Add “Edit Client” modal
   - [ ] Add “Deactivate Client” button (soft delete)
 - [ ] Integrate with API via React Query
