@@ -248,7 +248,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RegisterResponseDto"
+                  "$ref": "#/components/schemas/UsersDetailsDto"
                 }
               }
             }
@@ -394,10 +394,13 @@
           }
         }
       },
-      "RegisterResponseDto": {
+      "UsersDetailsDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "userId": {
+            "type": "string"
+          },
           "email": {
             "type": "string"
           },
@@ -408,8 +411,7 @@
             "type": "string"
           },
           "phoneNumber": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "profileImageUrl": {
             "type": "string",
@@ -419,7 +421,106 @@
             "type": "string",
             "nullable": true
           },
+          "isActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "mustChangePassword": {
+            "type": "boolean",
+            "nullable": true
+          },
           "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectDto"
+            }
+          }
+        }
+      },
+      "ProjectDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "clientId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "postalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "plannedEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "actualEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "totalArea": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "budget": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
             "type": "string",
             "format": "date-time",
             "nullable": true
@@ -432,7 +533,8 @@
         "required": [
           "email",
           "firstName",
-          "lastName"
+          "lastName",
+          "phoneNumber"
         ],
         "properties": {
           "email": {
@@ -442,15 +544,18 @@
           },
           "firstName": {
             "type": "string",
+            "maxLength": 50,
             "minLength": 2
           },
           "lastName": {
             "type": "string",
+            "maxLength": 50,
             "minLength": 2
           },
           "phoneNumber": {
             "type": "string",
-            "nullable": true
+            "format": "phone",
+            "minLength": 1
           },
           "profileImageUrl": {
             "type": "string",
@@ -572,136 +677,6 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
-          }
-        }
-      },
-      "UsersDetailsDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "userId": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "profileImageUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "language": {
-            "type": "string",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "isDeleted": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "projects": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProjectDto"
-            }
-          }
-        }
-      },
-      "ProjectDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "clientId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "clientName": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "address": {
-            "type": "string",
-            "nullable": true
-          },
-          "city": {
-            "type": "string",
-            "nullable": true
-          },
-          "postalCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "status": {
-            "type": "string"
-          },
-          "startDate": {
-            "type": "string",
-            "format": "date"
-          },
-          "plannedEndDate": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "actualEndDate": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "totalArea": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "budget": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "progressPercentage": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "thumbnailUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
           }
         }
       },

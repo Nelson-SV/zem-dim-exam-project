@@ -331,7 +331,7 @@ export class UserManagementClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    registerUser(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
+    registerUser(dto: RegisterRequestDto): Promise<UsersDetailsDto> {
         let url_ = this.baseUrl + "/api/admin/usermanagement/RegisterUser";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -351,13 +351,13 @@ export class UserManagementClient {
         });
     }
 
-    protected processRegisterUser(response: Response): Promise<RegisterResponseDto> {
+    protected processRegisterUser(response: Response): Promise<UsersDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as RegisterResponseDto;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as UsersDetailsDto;
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -365,7 +365,7 @@ export class UserManagementClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<RegisterResponseDto>(null as any);
+        return Promise.resolve<UsersDetailsDto>(null as any);
     }
 
     updateUser(dto: UpdateRequestDto): Promise<UpdateResponseDto> {
@@ -497,21 +497,47 @@ export interface AuthRequestDto {
     password: string;
 }
 
-export interface RegisterResponseDto {
+export interface UsersDetailsDto {
+    userId?: string;
     email?: string;
     firstName?: string;
     lastName?: string;
-    phoneNumber?: string | undefined;
+    phoneNumber?: string;
     profileImageUrl?: string | undefined;
     language?: string | undefined;
+    isActive?: boolean | undefined;
+    isDeleted?: boolean | undefined;
+    mustChangePassword?: boolean | undefined;
     createdAt?: Date | undefined;
+    projects?: ProjectDto[];
+}
+
+export interface ProjectDto {
+    id?: string;
+    clientId?: string;
+    clientName?: string;
+    title?: string;
+    description?: string | undefined;
+    address?: string | undefined;
+    city?: string | undefined;
+    postalCode?: string | undefined;
+    status?: string;
+    startDate?: Date;
+    plannedEndDate?: Date | undefined;
+    actualEndDate?: Date | undefined;
+    totalArea?: number | undefined;
+    budget?: number | undefined;
+    progressPercentage?: number;
+    thumbnailUrl?: string | undefined;
+    createdAt?: Date | undefined;
+    updatedAt?: Date | undefined;
 }
 
 export interface RegisterRequestDto {
     email: string;
     firstName: string;
     lastName: string;
-    phoneNumber?: string | undefined;
+    phoneNumber: string;
     profileImageUrl?: string | undefined;
     language?: string | undefined;
 }
@@ -545,41 +571,6 @@ export interface GetAllUsersResponseDto {
     totalItems?: number;
     page?: number;
     pageSize?: number;
-}
-
-export interface UsersDetailsDto {
-    userId?: string;
-    email?: string;
-    firstName?: string;
-    lastName?: string;
-    phoneNumber?: string | undefined;
-    profileImageUrl?: string | undefined;
-    language?: string | undefined;
-    isActive?: boolean | undefined;
-    isDeleted?: boolean | undefined;
-    createdAt?: Date | undefined;
-    projects?: ProjectDto[];
-}
-
-export interface ProjectDto {
-    id?: string;
-    clientId?: string;
-    clientName?: string;
-    title?: string;
-    description?: string | undefined;
-    address?: string | undefined;
-    city?: string | undefined;
-    postalCode?: string | undefined;
-    status?: string;
-    startDate?: Date;
-    plannedEndDate?: Date | undefined;
-    actualEndDate?: Date | undefined;
-    totalArea?: number | undefined;
-    budget?: number | undefined;
-    progressPercentage?: number;
-    thumbnailUrl?: string | undefined;
-    createdAt?: Date | undefined;
-    updatedAt?: Date | undefined;
 }
 
 export interface FileResponse {

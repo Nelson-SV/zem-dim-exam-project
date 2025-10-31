@@ -16,7 +16,7 @@ public class UserManagementRepository(AppDbContext ctx) : IUserManagementReposit
 
     public User? GetUserByEmailOrNull(string email)
     {
-        return ctx.Users.FirstOrDefault(u => u.Email == email);
+        return ctx.Users.FirstOrDefault(u => u.Email.ToLower() == email.ToLower());
     }
     
     public User? GetUserByIdOrNull(Guid id)

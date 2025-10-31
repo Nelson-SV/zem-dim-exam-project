@@ -9,11 +9,12 @@ public class UsersDetailsDto
     public string Email { get; set; } = null!;
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = null!;
-    public string? PhoneNumber { get; set; }
+    public string PhoneNumber { get; set; } = null!;
     public string? ProfileImageUrl { get; set; }
     public string? Language { get; set; }
     public bool? IsActive { get; set; }
     public bool? IsDeleted { get; set; }
+    public bool? MustChangePassword { get; set; }
     public DateTime? CreatedAt { get; set; }
     public List<ProjectDto> Projects { get; set; }
     
@@ -31,6 +32,7 @@ public class UsersDetailsDto
             Language = user.Language,
             IsActive =  user.Isactive,
             IsDeleted =   user.Isdeleted,
+            MustChangePassword =   user.Mustchangepassword,
             CreatedAt = user.Createdat,
             Projects = ProjectDto.FromEntityToList(user.Projects.ToList())
         };

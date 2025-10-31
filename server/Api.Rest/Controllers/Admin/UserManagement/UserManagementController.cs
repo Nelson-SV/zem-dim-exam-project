@@ -18,7 +18,7 @@ public class UserManagementController(IUserManagementService userManagementServi
     [HttpPost]
     [Authorize(Policy = "AdminOnly")]
     [Route(RegisterUserRoute)]
-    public async Task<ActionResult<RegisterResponseDto>> RegisterUser(
+    public async Task<ActionResult<UsersDetailsDto>> RegisterUser(
         [FromBody] RegisterRequestDto dto,
         [FromServices] IValidator<RegisterRequestDto> validator)
     {

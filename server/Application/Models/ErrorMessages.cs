@@ -10,7 +10,9 @@ public enum ErrorCode
     UpdatingUserFailed,
     UserNotFound,
     DeletingUserFailed,
-    GettingAllUsersFailed
+    GettingAllUsersFailed,
+    InvalidUserData,
+    UserEmailAlreadyExists
 }
 
 public static class ErrorMessages
@@ -26,7 +28,8 @@ public static class ErrorMessages
         { ErrorCode.UserNotFound, "User not found, please try again." },
         { ErrorCode.DeletingUserFailed, "Failed to delete the user, please try again later." },
         { ErrorCode.GettingAllUsersFailed, "Failed to fetching all users, please try again later." },
-
+        { ErrorCode.InvalidUserData, "Invalid user data." },
+        { ErrorCode.UserEmailAlreadyExists, "User email already exists." },
         
     };
     

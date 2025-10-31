@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import type { RegisterRequestDto } from "../../generated-client";
 
 interface AddNewClientModalProps {
-    onSave: (userData: RegisterRequestDto) => void | Promise<void>;
+    onSave: (userData: RegisterRequestDto) => Promise<void>;
 }
 
 export function AddNewClientModal({ onSave }: AddNewClientModalProps) {
@@ -30,17 +30,6 @@ export function AddNewClientModal({ onSave }: AddNewClientModalProps) {
     });
 
 
-    const handleAddClient = () => {
-        if (!validateForm()) {
-            toast.error('Please fill in all fields');
-            return;
-        }
-
-        onSave(dtoData);
-        setIsAddClientOpen(false);
-        clearFields();
-    };
-
     const clearFields = () => {
         setDtoData({
             email: "",
@@ -49,9 +38,13 @@ export function AddNewClientModal({ onSave }: AddNewClientModalProps) {
             phoneNumber: "",
             language: ""
         });
+        setErrors({ firstName: "", lastName: "", email: "", phoneNumber: "" });
     };
 
     const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
+
+    const validatePhoneNumber = (phone: string) =>  /^\+?\d{8,15}$/.test(phone);
+    
 
     const validateForm = () => {
         const newErrors = { firstName: "", lastName: "", email: "", phoneNumber: "" };
@@ -65,13 +58,29 @@ export function AddNewClientModal({ onSave }: AddNewClientModalProps) {
         if (!dtoData.email || !validateEmail(dtoData.email)) {
             newErrors.email = "Invalid email.";
         }
-        if (!dtoData.phoneNumber || dtoData.phoneNumber.length != 8) {
-            newErrors.phoneNumber = "Phone must be numeric with 8 digits.";
+        if (!dtoData.phoneNumber || !validatePhoneNumber(dtoData.phoneNumber)) {
+            newErrors.phoneNumber = "Phone number must contain only digits (optionally start with +).";
         }
 
         setErrors(newErrors);
 
         return !newErrors.firstName && !newErrors.lastName && !newErrors.email && !newErrors.phoneNumber;
+    };
+
+    const handleAddClient = () => {
+        if (!validateForm()) {
+            toast.error('Please fill in all fields');
+            return;
+        }
+
+        onSave(dtoData);
+        setIsAddClientOpen(false);
+        clearFields();
+    };
+
+    const handleCancel = () => {
+        clearFields();
+        setIsAddClientOpen(false);
     };
 
     return <>
@@ -95,18 +104,20 @@ export function AddNewClientModal({ onSave }: AddNewClientModalProps) {
                         <Input
                             id="client-first-name"
                             value={dtoData.firstName}
-                            onChange={(e) => setDtoData((prev) => ({ ...prev, firstName: e.target.value }))}
+                            onChange={(e) => setDtoData((prev) => ({ ...prev, firstName: e.target.value.trim() }))}
                             placeholder="Ivan"
                         />
+                        {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName}</p>}
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="client-last-name">Last Name</Label>
                         <Input
                             id="client-last-name"
                             value={dtoData.lastName}
-                            onChange={(e) => setDtoData((prev) => ({ ...prev, lastName: e.target.value }))}
+                            onChange={(e) => setDtoData((prev) => ({ ...prev, lastName: e.target.value.trim() }))}
                             placeholder="Ivanenko"
                         />
+                        {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName}</p>}
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="client-email">Email</Label>
@@ -114,9 +125,10 @@ export function AddNewClientModal({ onSave }: AddNewClientModalProps) {
                             id="client-email"
                             type="email"
                             value={dtoData.email}
-                            onChange={(e) => setDtoData((prev) => ({ ...prev, email: e.target.value }))}
-                            placeholder="ivanov@example.com"
+                            onChange={(e) => setDtoData((prev) => ({ ...prev, email: e.target.value.trim() }))}
+                            placeholder="ivan@example.com"
                         />
+                        {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="client-phone">Phone</Label>
@@ -124,17 +136,18 @@ export function AddNewClientModal({ onSave }: AddNewClientModalProps) {
                             id="client-phone"
                             type="tel"
                             value={dtoData.phoneNumber}
-                            onChange={(e) => setDtoData((prev) => ({ ...prev, phoneNumber: e.target.value }))}
-                            placeholder="+380 67 123 4567"
+                            onChange={(e) => setDtoData((prev) => ({ ...prev, phoneNumber: e.target.value.trim() }))}
+                            placeholder="+380671234567"
                         />
+                        {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="client-phone"></Label>
+                        <Label htmlFor="client-phone">Choose Language</Label>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="secondary">
                                     <span className="hidden sm:inline">
-                                        {dtoData.language ? dtoData.language : "Language"}
+                                        {dtoData.language ? dtoData.language : "Options"}
                                     </span>
                                 </Button>
                             </DropdownMenuTrigger>
@@ -147,10 +160,7 @@ export function AddNewClientModal({ onSave }: AddNewClientModalProps) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => {
-                        clearFields();
-                        setIsAddClientOpen(false);
-                    }}>
+                    <Button variant="outline" onClick={handleCancel}>
                         Cancel
                     </Button>
                     <Button onClick={handleAddClient} className="bg-[#F97316] hover:bg-[#F97316]/90">

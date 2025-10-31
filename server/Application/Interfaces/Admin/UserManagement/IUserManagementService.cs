@@ -6,7 +6,7 @@ namespace Application.Interfaces.Admin.UserManagement;
 public interface IUserManagementService
 {
     User? GetUserById(string email);
-    Task<RegisterResponseDto> RegisterUser(RegisterRequestDto dto);
+    Task<UsersDetailsDto> RegisterUser(RegisterRequestDto dto);
     Task<UpdateResponseDto> UpdateUser(UpdateRequestDto request);
     Task<DeleteResponseDto> SoftDelete(string userId);
     Task<GetAllUsersResponseDto> GetAllUsers();
