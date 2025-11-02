@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Search, Mail, Phone, Building, Edit, Trash2, Eye } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Search, Mail, Phone, Building, Edit, Trash2, Eye, X } from 'lucide-react';
 import { Card } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar'
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useDebounce } from "use-debounce";
 import { AddNewClientModal } from './AddNewClientModal';
 import type { RegisterRequestDto, UpdateRequestDto, UsersDetailsDto } from '../../generated-client';
 import { http } from '../../lib/apiV2';
@@ -15,9 +16,11 @@ import { useInitializeUsersDetails } from '../../hooks/useInitializeUsersDetails
 import { UsersDetailsAtom } from '../../atoms/admin/UsersDetailsAtom';
 import { useAtom } from 'jotai';
 import ConfirmationWindowModal from '../../components/ConfirmationWindowModal';
+import { PaginationComponent } from '../../components/PaginationComponent';
 
 export function ClientManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch] = useDebounce(searchQuery, 300);
   const [currentPage, setCurrentPage] = useState(1);
   const [modalMode, setModalMode] = useState("");
   const [isModalOpen, setModalOpen] = useState(false);
@@ -25,14 +28,23 @@ export function ClientManagementPage() {
   const [usersDetails, setUsersDetails] = useAtom(UsersDetailsAtom);
   const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false);
 
-  useInitializeUsersDetails({ page: currentPage });
+  const { totalPages, totalItems } = useInitializeUsersDetails({
+    page: currentPage,
+    pageSize: 9,
+    search: debouncedSearch,
+  });
+
+  useEffect(() => {
+    setCurrentPage(1); //reset to first page when starting a new search
+  }, [debouncedSearch]);
 
   const handleAddUser = async (userData: RegisterRequestDto) => {
     try {
 
       await http.userManagement.registerUser(userData).then(r => {
         if (r !== null || r !== undefined) {
-          setUsersDetails((prevUsers) => [...prevUsers, r]);
+          setCurrentPage(1);
+          //setUsersDetails((prevUsers) => [...prevUsers, r]);
           toast.success("User added successfully.");
 
         } else {
@@ -120,7 +132,7 @@ export function ClientManagementPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
-          <h2>Total clients: {usersDetails.length}</h2>
+          <h2>Total clients: {totalItems}</h2>
         </div>
         <AddNewClientModal
           addUser={handleAddUser}
@@ -140,66 +152,90 @@ export function ClientManagementPage() {
           placeholder="Search clients by name or email..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
+          className="pl-10 pr-10"
         />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X />
+          </button>
+        )}
       </div>
+
 
       {/* Clients Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {usersDetails.map(client => (
-          <Card key={client.userId} className="p-6 hover:shadow-lg transition-all">
-            <div className="flex items-start gap-4 mb-4">
-              <Avatar className="size-12">
-                <AvatarImage src={"src/resources/profile.png"} />
-                <AvatarFallback>{client.firstName!.split(' ').map(n => n[0]).join('')
-                  + client.lastName!.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <h4 className="mb-1">{client.firstName + " " + client.lastName}</h4>
-                <Badge variant="secondary">
-                  {client.projects?.length} {client.projects?.length === 1 ? 'project' : 'projects'}
-                </Badge>
+      {usersDetails.length === 0 ? (
+        <div className="text-center text-muted-foreground py-10">
+          {debouncedSearch
+            ? "No users found for this search."
+            : "No users available yet. Add your first client!"}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {usersDetails.map(client => (
+            <Card key={client.userId} className="p-6 hover:shadow-lg transition-all">
+              <div className="flex items-start gap-4 mb-4">
+                <Avatar className="size-12">
+                  <AvatarImage src={"src/resources/profile.png"} />
+                  <AvatarFallback>{client.firstName!.split(' ').map(n => n[0]).join('')
+                    + client.lastName!.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h4 className="mb-1">{client.firstName + " " + client.lastName}</h4>
+                  <Badge variant="secondary">
+                    {client.projects?.length} {client.projects?.length === 1 ? 'project' : 'projects'}
+                  </Badge>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Mail className="size-4 shrink-0" />
-                <span className="truncate">{client.email}</span>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <Mail className="size-4 shrink-0" />
+                  <span className="truncate">{client.email}</span>
+                </div>
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <Phone className="size-4 shrink-0" />
+                  <span>{client.phoneNumber}</span>
+                </div>
+                <div className="flex items-center gap-3 text-muted-foreground">
+                  <Building className="size-4 shrink-0" />
+                  <span>
+                    Registered: {format(new Date(client.createdAt!), 'dd MMM yyyy', { locale: enUS })}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Phone className="size-4 shrink-0" />
-                <span>{client.phoneNumber}</span>
-              </div>
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Building className="size-4 shrink-0" />
-                <span>
-                  Registered: {format(new Date(client.createdAt!), 'dd MMM yyyy', { locale: enUS })}
-                </span>
-              </div>
-            </div>
 
-            <div className="flex gap-2 mt-6 pt-4 border-t">
-              <Button variant="outline" className="flex-1" size="sm">
-                <Eye className="size-4 mr-1" />
-                Overview
-              </Button>
-              <Button variant="outline" className="flex-1" size="sm" onClick={() => openEditModal(client)}>
-                <Edit className="size-4 mr-1" />
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => openDeleteModal(client)}
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
+              <div className="flex gap-2 mt-6 pt-4 border-t">
+                <Button variant="outline" className="flex-1" size="sm">
+                  <Eye className="size-4 mr-1" />
+                  Overview
+                </Button>
+                <Button variant="outline" className="flex-1" size="sm" onClick={() => openEditModal(client)}>
+                  <Edit className="size-4 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => openDeleteModal(client)}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <PaginationComponent
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
+
       <ConfirmationWindowModal
         isOpen={openConfirmDeleteModal}
         title="Confirm deletion"

@@ -20,7 +20,7 @@ public class JwtUserValidationMiddleware
         if (userIdClaim is not null)
         {
             var userId = Guid.Parse(userIdClaim.Value);
-            var user = userManagementRepository.GetUserByIdOrNull(userId);
+            var user = await userManagementRepository.GetByIdAsync(userId);
 
             if (user is null || user.Isactive != true)
             {

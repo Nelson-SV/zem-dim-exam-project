@@ -1,25 +1,29 @@
 import { useAtom } from "jotai";
 import { UsersDetailsAtom } from "../atoms/admin/UsersDetailsAtom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { http } from "../lib/apiV2";
 import { toast } from "sonner";
 
-export function useInitializeUsersDetails({page = 1}) {
+export function useInitializeUsersDetails({ page = 1, pageSize = 9, search = "" }) {
 
     const [, setUsersDetails] = useAtom(UsersDetailsAtom);
-    //const [, setTotalPages] = useAtom(PaginationAtom);
-
-    //const adminId: string = getUserInfoFromToken().userId;
-    const pageSize = 8;
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
-        http.userManagement.getAllUsers()
+        http.userManagement.getAllUsers(page, pageSize, search)
             .then((response) => {
-                setUsersDetails(response.items!);
-                //setTotalPages(Math.ceil(response.totalItems / pageSize));
-            }).catch(e => {
-            const message = e.response?.data?.message || "An unexpected error occurred.";
-            toast.error(`Error: ${message}`);
-        });
-    }, [page, pageSize]);
+                setUsersDetails(response.items || []);
+                setTotalItems(response.totalItems!);
+                setTotalPages(Math.ceil(response.totalItems! / pageSize));
+
+                if ((response.items?.length ?? 0) === 0 && search) {
+                    toast.info("No users found for this search.");
+                }
+            }).catch((e) => {
+                const message = e.response?.data?.message || "An unexpected error occurred.";
+                toast.error(`Error: ${message}`);
+            });
+    }, [page, pageSize, search, setUsersDetails]);
+    return { totalItems, totalPages };
 }

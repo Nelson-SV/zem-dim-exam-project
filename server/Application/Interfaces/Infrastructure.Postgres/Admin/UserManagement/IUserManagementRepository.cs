@@ -4,9 +4,8 @@ namespace Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
 
 public interface IUserManagementRepository
 {
-    List<User> GetAll();
+    List<User> GetAllUsers(int page, int pageSize, out int totalUsers, string? search);
     User? GetUserByEmailOrNull(string email);
-    User? GetUserByIdOrNull(Guid id);
     Task<User?> GetByIdAsync(Guid id);
     Task<User> AddUser(User user);
     Task<User> UpdateUser(User user);

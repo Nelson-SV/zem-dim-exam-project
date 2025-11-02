@@ -66,14 +66,12 @@ public class UserManagementController(IUserManagementService userManagementServi
     [HttpGet]
     [Authorize(Policy = "AdminOnly")]
     [Route(GetAllUsersRoute)]
-    public async Task<ActionResult<GetAllUsersResponseDto>> GetAllUsers()
+    public async Task<ActionResult<GetAllUsersResponseDto>> GetAllUsers(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 9,
+        [FromQuery] string? search = null)
     {
-        var response = await userManagementService.GetAllUsers(); 
-        if (response.Items.Count == 0)
-        {
-            return BadRequest(ErrorMessages.GetMessage(ErrorCode.GettingAllUsersFailed)); 
-        }
-        
+        var response = await userManagementService.GetAllUsers(page, pageSize, search);
         return Ok(response);
     }
 }

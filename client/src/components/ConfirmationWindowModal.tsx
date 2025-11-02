@@ -5,8 +5,8 @@ interface ConfirmationWindowModalProps {
     isOpen: boolean;
     title: string;
     message: string;
-    onConfirm?: () => void;
-    onCancel?: () => void;
+    onConfirm: () => void;
+    onCancel: () => void;
 }
 
 export default function ConfirmationWindowModal({ isOpen, title, message, onConfirm, onCancel }: ConfirmationWindowModalProps) {

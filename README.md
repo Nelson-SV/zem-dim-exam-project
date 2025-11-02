@@ -11,17 +11,17 @@
   - [x] Update name, phone, email, language, and active status
 - [x] Soft Delete User — `DELETE /api/users/{id}`
   - [x] Set `IsActive = false` instead of removing
-- [ ] Get Users List — `GET /api/users` (paginated, filter by `IsActive`)
-- [ ] Get User Details — `GET /api/users/{id}`
+- [x] Get Users List — `GET /api/users` (paginated, filter by `IsActive`)
+- [x] Get User Details — `GET /api/users/{id}`
 - [ ] Unit tests for repository + service layer
 
 **Frontend**
 - [x] Create `/admin/clients` page
-  - [ ] Display table with users (search + filter)
+  - [x] Display table with users (search)
   - [x] Show status (active/inactive)
   - [x] Add “Add Client” modal
-  - [ ] Add “Edit Client” modal
-  - [ ] Add “Deactivate Client” button (soft delete)
+  - [x] Add “Edit Client” modal
+  - [x] Add “Deactivate Client” button (soft delete)
 - [x] Integrate with API via React Query
 - [x] Add success/error toasts
 - [x] Add validation feedback (missing fields, invalid email)
@@ -256,5 +256,5 @@
 
 ---
 
-> ✅ Tip: To mark progress, edit this file and change `[ ]` → `[x]` next to completed tasks.  
+> To mark progress, edit this file and change `[ ]` → `[x]` next to completed tasks.  
 > GitHub will automatically render interactive checkboxes.

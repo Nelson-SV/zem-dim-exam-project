@@ -21,11 +21,6 @@ public class UserManagementService(
     IDbUnitOfWork unitOfWork,
     ILogger<UserManagementService> logger) : IUserManagementService
 {
-
-    public User? GetUserById(string email)
-    {
-        throw new NotImplementedException();
-    }
     
     public async Task<UsersDetailsDto> RegisterUser(RegisterRequestDto dto)
     {
@@ -100,7 +95,7 @@ public class UserManagementService(
             if (!Guid.TryParse(dto.Id, out var userId))
                 throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserIdRequired));
 
-            var existingUser = managementRepository.GetUserByIdOrNull(userId);
+            var existingUser = await managementRepository.GetByIdAsync(userId);
             if (existingUser is null)
                 throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
             
@@ -145,10 +140,9 @@ public class UserManagementService(
         return DeleteResponseDto.FromObjects(success, SuccessMessages.GetMessage(SuccessCode.UserDeletedSuccess));
     }
 
-    public async Task<GetAllUsersResponseDto> GetAllUsers()
+    public async Task<GetAllUsersResponseDto> GetAllUsers(int page, int pageSize, string? search)
     {
-
-        var users = managementRepository.GetAll();
+        var users = managementRepository.GetAllUsers(page, pageSize, out int totalUsers, search);
         
         if (users.Count == 0)
         {
@@ -156,7 +150,7 @@ public class UserManagementService(
             {
                 Items = new List<UsersDetailsDto>(),
                 TotalItems = 0,
-                Page = 1,
+                Page = page,
                 PageSize = 1
             };
         }
@@ -170,9 +164,9 @@ public class UserManagementService(
         return new GetAllUsersResponseDto()
         {
             Items = mappedUsers,
-            TotalItems = 99,
-            Page = 99,
-            PageSize = 99,
+            TotalItems = totalUsers,
+            Page = page,
+            PageSize = pageSize,
         };
     }
 }
