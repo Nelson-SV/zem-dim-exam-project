@@ -308,10 +308,9 @@
           "200": {
             "description": "",
             "content": {
-              "application/octet-stream": {
+              "application/json": {
                 "schema": {
-                  "type": "string",
-                  "format": "binary"
+                  "$ref": "#/components/schemas/DeleteResponseDto"
                 }
               }
             }
@@ -612,6 +611,19 @@
           },
           "isDeleted": {
             "type": "boolean",
+            "nullable": true
+          }
+        }
+      },
+      "DeleteResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
             "nullable": true
           }
         }

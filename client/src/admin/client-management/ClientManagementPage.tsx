@@ -14,6 +14,7 @@ import { http } from '../../lib/apiV2';
 import { useInitializeUsersDetails } from '../../hooks/useInitializeUsersDetails';
 import { UsersDetailsAtom } from '../../atoms/admin/UsersDetailsAtom';
 import { useAtom } from 'jotai';
+import ConfirmationWindowModal from '../../components/ConfirmationWindowModal';
 
 export function ClientManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,12 +23,9 @@ export function ClientManagementPage() {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UsersDetailsDto | null>(null);
   const [usersDetails, setUsersDetails] = useAtom(UsersDetailsAtom);
+  const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false);
 
   useInitializeUsersDetails({ page: currentPage });
-
-  const handleDeleteClient = (clientName: string) => {
-    toast.success(`Client ${clientName} removed`);
-  };
 
   const handleAddUser = async (userData: RegisterRequestDto) => {
     try {
@@ -42,11 +40,10 @@ export function ClientManagementPage() {
                         Please insert this account again.`);
         }
       });
-
-      setModalOpen(false);
-
     } catch (error) {
       toast.error("Error performing operation for the user: " + error);
+    } finally {
+      setModalOpen(false);
     }
   };
 
@@ -54,9 +51,9 @@ export function ClientManagementPage() {
     try {
 
       await http.userManagement.updateUser(userData).then(r => {
-        if (r !== null || r !== undefined) {
-          setUsersDetails((prevUsers) => 
-          prevUsers.map((user) => (user.userId === r.userId ? r : user)));
+        if (r !== null && r !== undefined) {
+          setUsersDetails((prevUsers) =>
+            prevUsers.map((user) => (user.userId === r.userId ? r : user)));
           toast.success("User updated successfully.");
 
         } else {
@@ -64,11 +61,35 @@ export function ClientManagementPage() {
                         Please try again.`);
         }
       });
-
-      setModalOpen(false);
-
     } catch (error) {
       toast.error("Error performing operation for the user: " + error);
+    } finally {
+      setModalOpen(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    try {
+      if (selectedUser != null) {
+        if (selectedUser.userId != null) {
+          const response = await http.userManagement.deleteUser(selectedUser.userId);
+          if (response.status === true) {
+            setUsersDetails((prevUsers) =>
+              prevUsers.filter((user) => user.userId !== selectedUser.userId)
+            );
+            toast.success("User deleted successfully.");
+          } else {
+            toast.error("Error deleting user.");
+          }
+        }
+        else {
+          toast.error("An unexpected error occurred, please try again later.");
+        }
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred: " + error);
+    } finally {
+      handleConfirmationModalClose();
     }
   };
 
@@ -86,7 +107,12 @@ export function ClientManagementPage() {
 
   const openDeleteModal = (user: UsersDetailsDto) => {
     setSelectedUser(user);
-    //setConfirmDeleteModal(true);
+    setOpenConfirmDeleteModal(true);
+  };
+
+  const handleConfirmationModalClose = () => {
+    setOpenConfirmDeleteModal(false);
+    setSelectedUser(null);
   };
 
   return (
@@ -125,8 +151,8 @@ export function ClientManagementPage() {
             <div className="flex items-start gap-4 mb-4">
               <Avatar className="size-12">
                 <AvatarImage src={"src/resources/profile.png"} />
-                <AvatarFallback>{client.firstName!.split(' ').map(n => n[0]).join('') 
-                + client.lastName!.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                <AvatarFallback>{client.firstName!.split(' ').map(n => n[0]).join('')
+                  + client.lastName!.split(' ').map(n => n[0]).join('')}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <h4 className="mb-1">{client.firstName + " " + client.lastName}</h4>
@@ -166,7 +192,7 @@ export function ClientManagementPage() {
                 variant="outline"
                 size="sm"
                 className="text-destructive hover:text-destructive"
-                onClick={() => handleDeleteClient(client.firstName!)}
+                onClick={() => openDeleteModal(client)}
               >
                 <Trash2 className="size-4" />
               </Button>
@@ -174,6 +200,13 @@ export function ClientManagementPage() {
           </Card>
         ))}
       </div>
+      <ConfirmationWindowModal
+        isOpen={openConfirmDeleteModal}
+        title="Bekræft sletning"
+        message={`Er du sikker på, at du vil slette ${selectedUser?.email}? Denne handling kan ikke fortrydes.`}
+        onConfirm={handleDeleteUser}
+        onCancel={handleConfirmationModalClose}
+      />
     </div>
   );
 }

@@ -405,7 +405,7 @@ export class UserManagementClient {
         return Promise.resolve<UsersDetailsDto>(null as any);
     }
 
-    deleteUser(userId: string | undefined): Promise<FileResponse> {
+    deleteUser(userId: string | undefined): Promise<DeleteResponseDto> {
         let url_ = this.baseUrl + "/api/admin/usermanagement/DeleteUser?";
         if (userId === null)
             throw new globalThis.Error("The parameter 'userId' cannot be null.");
@@ -416,7 +416,7 @@ export class UserManagementClient {
         let options_: RequestInit = {
             method: "DELETE",
             headers: {
-                "Accept": "application/octet-stream"
+                "Accept": "application/json"
             }
         };
 
@@ -425,26 +425,21 @@ export class UserManagementClient {
         });
     }
 
-    protected processDeleteUser(response: Response): Promise<FileResponse> {
+    protected processDeleteUser(response: Response): Promise<DeleteResponseDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DeleteResponseDto;
+            return result200;
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<FileResponse>(null as any);
+        return Promise.resolve<DeleteResponseDto>(null as any);
     }
 
     getAllUsers(): Promise<GetAllUsersResponseDto> {
@@ -552,6 +547,11 @@ export interface UpdateRequestDto {
     language?: string | undefined;
     isActive?: boolean | undefined;
     isDeleted?: boolean | undefined;
+}
+
+export interface DeleteResponseDto {
+    status?: boolean;
+    message?: string | undefined;
 }
 
 export interface GetAllUsersResponseDto {

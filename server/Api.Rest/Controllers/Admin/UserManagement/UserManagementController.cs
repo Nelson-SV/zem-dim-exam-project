@@ -52,7 +52,7 @@ public class UserManagementController(IUserManagementService userManagementServi
     [HttpDelete]
     [Authorize(Policy = "AdminOnly")]
     [Route(DeleteUserRoute)]
-    public async Task<ActionResult> DeleteUser([FromQuery] string userId)
+    public async Task<ActionResult<DeleteResponseDto>> DeleteUser([FromQuery] string userId)
     {
         var deleteResponseDto = await userManagementService.SoftDelete(userId); 
         if (!deleteResponseDto.Status)
@@ -64,12 +64,12 @@ public class UserManagementController(IUserManagementService userManagementServi
     }
     
     [HttpGet]
-    //[Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = "AdminOnly")]
     [Route(GetAllUsersRoute)]
     public async Task<ActionResult<GetAllUsersResponseDto>> GetAllUsers()
     {
         var response = await userManagementService.GetAllUsers(); 
-        if (response.Items == null || response.Items.Count == 0)
+        if (response.Items.Count == 0)
         {
             return BadRequest(ErrorMessages.GetMessage(ErrorCode.GettingAllUsersFailed)); 
         }
