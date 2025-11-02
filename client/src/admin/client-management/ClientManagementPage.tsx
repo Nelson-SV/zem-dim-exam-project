@@ -202,8 +202,8 @@ export function ClientManagementPage() {
       </div>
       <ConfirmationWindowModal
         isOpen={openConfirmDeleteModal}
-        title="Bekræft sletning"
-        message={`Er du sikker på, at du vil slette ${selectedUser?.email}? Denne handling kan ikke fortrydes.`}
+        title="Confirm deletion"
+        message={`Are you sure you want to delete the user ${selectedUser?.email}?`}
         onConfirm={handleDeleteUser}
         onCancel={handleConfirmationModalClose}
       />

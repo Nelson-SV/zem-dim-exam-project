@@ -1,4 +1,5 @@
 import { Button } from "./ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 
 interface ConfirmationWindowModalProps {
     isOpen: boolean;
@@ -12,25 +13,29 @@ export default function ConfirmationWindowModal({ isOpen, title, message, onConf
     if (!isOpen) return null;
 
     return (
-        <dialog className="modal bg-opacity-60 bg-black" open>
-            <div className="modal-box">
-                <h3 className="font-bold text-lg">{title}</h3>
-                <p className="py-4">{message}</p>
-                <div className="flex justify-end space-x-4 mt-4">
+        <Dialog open={isOpen} onOpenChange={(open) => {
+            if (!open) onCancel?.();
+        }}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>{title}</DialogTitle>
+                    <DialogDescription>{message}</DialogDescription>
+                </DialogHeader>
+                <div className="space-x-4">
                     <Button
-                        variant="outline"
+                        className="bg-[#F97316] hover:bg-[#F97316]/90"
                         onClick={onConfirm}
                     >
                         Confirm
                     </Button>
                     <Button
-                        className="bg-[#F97316] hover:bg-[#F97316]/90"
+                        variant="outline"
                         onClick={onCancel}
                     >
                         Cancel
                     </Button>
                 </div>
-            </div>
-        </dialog>
+            </DialogContent>
+        </Dialog>
     );
 }

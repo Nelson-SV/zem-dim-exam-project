@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
 import { Button } from "../../components/ui/button";
 import { Plus } from "lucide-react";
 import { Label } from "../../components/ui/label";
@@ -145,119 +145,129 @@ export function AddNewClientModal({ addUser, updateUser, mode, user, isOpen, onO
     };
 
     return <>
-        <Dialog open={isOpen}>
-            <DialogTrigger asChild>
-                <Button
-                    className="bg-[#F97316] hover:bg-[#F97316]/90"
-                    onClick={onOpenAdd}
-                >
-                    <Plus className="size-4" />
-                    Add client
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle>
-                        {mode === "edit" ? "Edit User" : "Add a new client"}
-                    </DialogTitle>
-                    <DialogDescription>
-                        {mode === "edit"
-                            ? "Update the client details below"
-                            : "Enter the client details to register them in the system"}
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="client-first-name">First Name</Label>
-                        <Input
-                            id="client-first-name"
-                            value={formData.firstName}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, firstName: e.target.value.trim() }))}
-                            placeholder="Ivan"
-                            className="placeholder:text-gray-500"
-                        />
-                        {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName}</p>}
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="client-last-name">Last Name</Label>
-                        <Input
-                            id="client-last-name"
-                            value={formData.lastName}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, lastName: e.target.value.trim() }))}
-                            placeholder="Ivanenko"
-                            className="placeholder:text-gray-500"
-                        />
-                        {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName}</p>}
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="client-email">Email</Label>
-                        <Input
-                            id="client-email"
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value.trim() }))}
-                            placeholder="ivan@example.com"
-                            className="placeholder:text-gray-500"
-                        />
-                        {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="client-phone">Phone</Label>
-                        <Input
-                            id="client-phone"
-                            type="tel"
-                            value={formData.phoneNumber}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, phoneNumber: e.target.value.trim() }))}
-                            placeholder="+380671234567"
-                            className="placeholder:text-gray-500"
-                        />
-                        {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="client-phone">Choose Language</Label>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="secondary">
-                                    <span className="hidden sm:inline">
-                                        {formData.language ? formData.language : "Options"}
-                                    </span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start">
-                                <DropdownMenuItem onSelect={() => setFormData((prev) => ({ ...prev, language: "ENG" }))}>English</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onSelect={() => setFormData((prev) => ({ ...prev, language: "UKR" }))}>Ukranian</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                    {mode === "edit" &&
-                        <div className="flex items-center space-x-2">
-                            <Label htmlFor="user-active">Status</Label>
-                            <Switch
-                                id="user-active"
-                                checked={formData.isActive}
-                                onCheckedChange={(checked) =>
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        isActive: checked,
-                                        isDeleted: !checked,
-                                    }))
-                                }
+        <Dialog
+            open={isOpen}
+            onOpenChange={(open) => {
+                if (!open) onClose?.();
+                else onOpenAdd?.();
+            }}
+        >
+            <form>
+                <DialogTrigger asChild>
+                    <Button
+                        className="bg-[#F97316] hover:bg-[#F97316]/90"
+                        onClick={onOpenAdd}
+                    >
+                        <Plus className="size-4" />
+                        Add client
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {mode === "edit" ? "Edit User" : "Add a new client"}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {mode === "edit"
+                                ? "Update the client details below"
+                                : "Enter the client details to register them in the system"}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="client-first-name">First Name</Label>
+                            <Input
+                                id="client-first-name"
+                                value={formData.firstName}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, firstName: e.target.value.trim() }))}
+                                placeholder="Ivan"
+                                className="placeholder:text-gray-500"
                             />
-                            <span className={formData.isActive ? "text-green-600 font-medium" : "text-gray-500"}>
-                                {formData.isActive ? "Active" : "Inactive"}
-                            </span>
-                        </div>}
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={handleCancel}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSave} className="bg-[#F97316] hover:bg-[#F97316]/90">
-                        {mode === "edit" ? "Save changes" : "Add client"}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
+                            {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="client-last-name">Last Name</Label>
+                            <Input
+                                id="client-last-name"
+                                value={formData.lastName}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, lastName: e.target.value.trim() }))}
+                                placeholder="Ivanenko"
+                                className="placeholder:text-gray-500"
+                            />
+                            {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="client-email">Email</Label>
+                            <Input
+                                id="client-email"
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value.trim() }))}
+                                placeholder="ivan@example.com"
+                                className="placeholder:text-gray-500"
+                            />
+                            {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="client-phone">Phone</Label>
+                            <Input
+                                id="client-phone"
+                                type="tel"
+                                value={formData.phoneNumber}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, phoneNumber: e.target.value.trim() }))}
+                                placeholder="+380671234567"
+                                className="placeholder:text-gray-500"
+                            />
+                            {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="client-phone">Choose Language</Label>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="secondary">
+                                        <span className="hidden sm:inline">
+                                            {formData.language ? formData.language : "Options"}
+                                        </span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                    <DropdownMenuItem onSelect={() => setFormData((prev) => ({ ...prev, language: "ENG" }))}>English</DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onSelect={() => setFormData((prev) => ({ ...prev, language: "UKR" }))}>Ukranian</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                        {mode === "edit" &&
+                            <div className="flex items-center space-x-2">
+                                <Label htmlFor="user-active">Status</Label>
+                                <Switch
+                                    id="user-active"
+                                    checked={formData.isActive}
+                                    onCheckedChange={(checked) =>
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            isActive: checked,
+                                            isDeleted: !checked,
+                                        }))
+                                    }
+                                />
+                                <span className={formData.isActive ? "text-green-600 font-medium" : "text-gray-500"}>
+                                    {formData.isActive ? "Active" : "Inactive"}
+                                </span>
+                            </div>}
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="outline" onClick={handleCancel}>
+                                Cancel
+                            </Button>
+                        </DialogClose>
+                        <Button onClick={handleSave} className="bg-[#F97316] hover:bg-[#F97316]/90">
+                            {mode === "edit" ? "Save changes" : "Add client"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </form>
         </Dialog>
     </>
 }
