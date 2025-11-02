@@ -84,7 +84,7 @@ public class UserManagementService(
         }
     }
 
-    public async Task<UpdateResponseDto> UpdateUser(UpdateRequestDto dto)
+    public async Task<UsersDetailsDto> UpdateUser(UpdateRequestDto dto)
     {
         var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
         var firstName = dto.FirstName.Trim();
@@ -123,7 +123,7 @@ public class UserManagementService(
             
             var updatedUser = await managementRepository.UpdateUser(existingUser);
 
-            return UpdateResponseDto.FromEntity(updatedUser);
+            return UsersDetailsDto.FromEntity(updatedUser);
         }
         catch (Exception ex)
         {

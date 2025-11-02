@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { AddNewClientModal } from './AddNewClientModal';
-import type { RegisterRequestDto } from '../../generated-client';
+import type { RegisterRequestDto, UpdateRequestDto, UsersDetailsDto } from '../../generated-client';
 import { http } from '../../lib/apiV2';
 import { useInitializeUsersDetails } from '../../hooks/useInitializeUsersDetails';
 import { UsersDetailsAtom } from '../../atoms/admin/UsersDetailsAtom';
@@ -18,15 +18,18 @@ import { useAtom } from 'jotai';
 export function ClientManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [modalMode, setModalMode] = useState("");
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UsersDetailsDto | null>(null);
   const [usersDetails, setUsersDetails] = useAtom(UsersDetailsAtom);
 
-  useInitializeUsersDetails({page: currentPage});
+  useInitializeUsersDetails({ page: currentPage });
 
   const handleDeleteClient = (clientName: string) => {
     toast.success(`Client ${clientName} removed`);
   };
 
-  const handleSaveUser = async (userData: RegisterRequestDto) => {
+  const handleAddUser = async (userData: RegisterRequestDto) => {
     try {
 
       await http.userManagement.registerUser(userData).then(r => {
@@ -34,20 +37,56 @@ export function ClientManagementPage() {
           setUsersDetails((prevUsers) => [...prevUsers, r]);
           toast.success("User added successfully.");
 
-          // http.api.authInitPasswordReset({ email: userData.email }).then(r => {
-          //   if (r.status === 200) {
-          //     toast.success(`Email sent to ${userData.email} successfully.`);
-          //   }
-          // });
         } else {
           toast.error(`Failed to register the user: ${userData.email}. 
                         Please insert this account again.`);
         }
       });
 
+      setModalOpen(false);
+
     } catch (error) {
       toast.error("Error performing operation for the user: " + error);
     }
+  };
+
+  const handleUpdateUser = async (userData: UpdateRequestDto) => {
+    try {
+
+      await http.userManagement.updateUser(userData).then(r => {
+        if (r !== null || r !== undefined) {
+          setUsersDetails((prevUsers) => 
+          prevUsers.map((user) => (user.userId === r.userId ? r : user)));
+          toast.success("User updated successfully.");
+
+        } else {
+          toast.error(`Failed to update the user: ${userData.email}. 
+                        Please try again.`);
+        }
+      });
+
+      setModalOpen(false);
+
+    } catch (error) {
+      toast.error("Error performing operation for the user: " + error);
+    }
+  };
+
+  const openAddModal = () => {
+    setModalMode("create");
+    setSelectedUser(null);
+    setModalOpen(true);
+  };
+
+  const openEditModal = (user: UsersDetailsDto) => {
+    setModalMode("edit");
+    setSelectedUser(user);
+    setModalOpen(true);
+  };
+
+  const openDeleteModal = (user: UsersDetailsDto) => {
+    setSelectedUser(user);
+    //setConfirmDeleteModal(true);
   };
 
   return (
@@ -55,12 +94,17 @@ export function ClientManagementPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
-          <h2 className="mb-2">Client management</h2>
-          <p className="text-muted-foreground">
-            Total clients: {usersDetails.length}
-          </p>
+          <h2>Total clients: {usersDetails.length}</h2>
         </div>
-        <AddNewClientModal onSave={handleSaveUser} />
+        <AddNewClientModal
+          addUser={handleAddUser}
+          mode={modalMode}
+          updateUser={handleUpdateUser}
+          user={selectedUser ?? ({} as UsersDetailsDto)}
+          onOpenAdd={openAddModal}
+          isOpen={isModalOpen}
+          onClose={() => setModalOpen(false)}
+        />
       </div>
 
       {/* Search */}
@@ -80,8 +124,9 @@ export function ClientManagementPage() {
           <Card key={client.userId} className="p-6 hover:shadow-lg transition-all">
             <div className="flex items-start gap-4 mb-4">
               <Avatar className="size-12">
-                <AvatarImage src={client.profileImageUrl} />
-                <AvatarFallback>{client.firstName!.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                <AvatarImage src={"src/resources/profile.png"} />
+                <AvatarFallback>{client.firstName!.split(' ').map(n => n[0]).join('') 
+                + client.lastName!.split(' ').map(n => n[0]).join('')}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <h4 className="mb-1">{client.firstName + " " + client.lastName}</h4>
@@ -113,7 +158,7 @@ export function ClientManagementPage() {
                 <Eye className="size-4 mr-1" />
                 Overview
               </Button>
-              <Button variant="outline" className="flex-1" size="sm">
+              <Button variant="outline" className="flex-1" size="sm" onClick={() => openEditModal(client)}>
                 <Edit className="size-4 mr-1" />
                 Edit
               </Button>

@@ -35,7 +35,7 @@ public class UserManagementController(IUserManagementService userManagementServi
     [HttpPut]
     [Authorize(Policy = "AdminOnly")]
     [Route(UpdateUserRoute)]
-    public async Task<ActionResult<UpdateResponseDto>> UpdateUser(
+    public async Task<ActionResult<UsersDetailsDto>> UpdateUser(
         [FromBody] UpdateRequestDto dto,
         [FromServices] IValidator<UpdateRequestDto> validator)
     {

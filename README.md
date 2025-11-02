@@ -16,16 +16,16 @@
 - [ ] Unit tests for repository + service layer
 
 **Frontend**
-- [ ] Create `/admin/clients` page
+- [x] Create `/admin/clients` page
   - [ ] Display table with users (search + filter)
-  - [ ] Show status (active/inactive)
+  - [x] Show status (active/inactive)
   - [x] Add “Add Client” modal
   - [ ] Add “Edit Client” modal
   - [ ] Add “Deactivate Client” button (soft delete)
-- [ ] Integrate with API via React Query
-- [ ] Add success/error toasts
-- [ ] Add validation feedback (missing fields, invalid email)
-- [ ] Add UI language toggle (UA / EN)
+- [x] Integrate with API via React Query
+- [x] Add success/error toasts
+- [x] Add validation feedback (missing fields, invalid email)
+- [x] Add UI language toggle (UA / EN)
 
 ---
 

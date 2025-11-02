@@ -26,8 +26,6 @@ constructor() {
     private createHttpClient() {
         const jwt = localStorage.getItem('auth_jwt');
 
-        console.log("JWT on HTTP Client: " + jwt);
-
         return {
             fetch: (url: RequestInfo, init?: RequestInit) => {
                 // Add auth headers if JWT exists and URL is to our API

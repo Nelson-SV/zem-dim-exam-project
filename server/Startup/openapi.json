@@ -280,7 +280,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdateResponseDto"
+                  "$ref": "#/components/schemas/UsersDetailsDto"
                 }
               }
             }
@@ -563,46 +563,6 @@
           },
           "language": {
             "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "UpdateResponseDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "profileImageUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "language": {
-            "type": "string",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "isDeleted": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
             "nullable": true
           }
         }

@@ -368,7 +368,7 @@ export class UserManagementClient {
         return Promise.resolve<UsersDetailsDto>(null as any);
     }
 
-    updateUser(dto: UpdateRequestDto): Promise<UpdateResponseDto> {
+    updateUser(dto: UpdateRequestDto): Promise<UsersDetailsDto> {
         let url_ = this.baseUrl + "/api/admin/usermanagement/UpdateUser";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -388,13 +388,13 @@ export class UserManagementClient {
         });
     }
 
-    protected processUpdateUser(response: Response): Promise<UpdateResponseDto> {
+    protected processUpdateUser(response: Response): Promise<UsersDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as UpdateResponseDto;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as UsersDetailsDto;
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -402,7 +402,7 @@ export class UserManagementClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<UpdateResponseDto>(null as any);
+        return Promise.resolve<UsersDetailsDto>(null as any);
     }
 
     deleteUser(userId: string | undefined): Promise<FileResponse> {
@@ -540,18 +540,6 @@ export interface RegisterRequestDto {
     phoneNumber: string;
     profileImageUrl?: string | undefined;
     language?: string | undefined;
-}
-
-export interface UpdateResponseDto {
-    email?: string;
-    firstName?: string;
-    lastName?: string;
-    phoneNumber?: string | undefined;
-    profileImageUrl?: string | undefined;
-    language?: string | undefined;
-    isActive?: boolean | undefined;
-    isDeleted?: boolean | undefined;
-    createdAt?: Date | undefined;
 }
 
 export interface UpdateRequestDto {
