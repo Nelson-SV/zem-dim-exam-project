@@ -32,6 +32,7 @@ export function Navigation({
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'projects', label: 'Projects' },
     { id: 'clients', label: 'Clients' },
+    { id: 'messages', label: 'Messages' },
     { id: 'analytics', label: 'Analytics' },
   ];
 

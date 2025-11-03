@@ -170,6 +170,7 @@ CREATE TABLE users (
     updatedat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
     lastloginat timestamp without time zone,
     mustchangepassword boolean DEFAULT FALSE,
+    isdeleted boolean DEFAULT FALSE,
     CONSTRAINT users_pkey PRIMARY KEY (id)
 );
 
@@ -237,10 +238,10 @@ CREATE TABLE messages (
     receiverid uuid NOT NULL,
     content text NOT NULL,
     isread boolean DEFAULT FALSE,
-    readat timestamp without time zone,
+    readat timestamptz,
     attachmenturl character varying(500),
     attachmenttype character varying(50),
-    createdat timestamp with time zone DEFAULT (now()),
+    createdat timestamptz DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT messages_pkey PRIMARY KEY (id),
     CONSTRAINT messages_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
     CONSTRAINT messages_receiverid_fkey FOREIGN KEY (receiverid) REFERENCES users (id),

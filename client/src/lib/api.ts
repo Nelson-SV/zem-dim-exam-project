@@ -1,3 +1,5 @@
+import type { ProjectDto, ProjectParticipantsDto } from './types';
+
 import {
     AuthClient,
     UserManagementClient,
@@ -13,13 +15,13 @@ export const messagesClient = new MessagesClient(API_URL);
 export const projectsClient = new ProjectsClient(API_URL);
 export const userManagementClient = new UserManagementClient(API_URL);
 
-// Допоміжне: розпарсити FileResponse у JSON
+
 async function readJson<T>(fr: FileResponse): Promise<T> {
     const txt = await fr.data.text();
     return JSON.parse(txt) as T;
 }
 
-/** Типи, які ми очікуємо від API (звузив до головного) */
+
 export type User = {
     id: string;
     email: string;
@@ -27,14 +29,8 @@ export type User = {
     jwt: string;
 };
 
-export type Project = {
-    id: string;
-    title: string;
-    status?: string;
-    progressPercentage?: number;
-    clientId: string;
-    clientName: string;
-};
+
+export type Project = ProjectDto;
 
 export type Message = {
     id: string;
@@ -47,7 +43,6 @@ export type Message = {
     isRead: boolean;
     createdAt: string;
 };
-
 
 export function setupAuthHeader(token: string) {
     const authHttp = {
@@ -63,17 +58,28 @@ export function setupAuthHeader(token: string) {
     (messagesClient as any)['http'] = authHttp;
     (projectsClient as any)['http'] = authHttp;
 }
-export async function getUserProjects(userId: string): Promise<Project[]> {
+
+export async function getUserProjects(userId: string): Promise<ProjectDto[]> {
     const fr = await projectsClient.getUserProjects(userId);
-    return readJson<Project[]>(fr);
+    return readJson<ProjectDto[]>(fr);
 }
 
-export async function getProject(projectId: string): Promise<Project> {
+export async function getProject(projectId: string): Promise<ProjectDto> {
     const fr = await projectsClient.getProject(projectId);
-    return readJson<Project>(fr);
+    return readJson<ProjectDto>(fr);
 }
 
 export async function getProjectMessages(projectId: string): Promise<Message[]> {
     const fr = await messagesClient.getProjectMessages(projectId);
     return readJson<Message[]>(fr);
+}
+
+export async function getProjectById(projectId: string): Promise<ProjectDto> {
+    const fr = await projectsClient.getProject(projectId);
+    return readJson<ProjectDto>(fr);
+}
+
+export async function getProjectParticipants(projectId: string): Promise<ProjectParticipantsDto> {
+    const fr = await projectsClient.getProjectParticipants(projectId);
+    return readJson<ProjectParticipantsDto>(fr);
 }

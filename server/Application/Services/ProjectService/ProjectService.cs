@@ -25,14 +25,12 @@ public class ProjectService : IProjectService
 
         List<Core.Domain.Entities.Project> projects;
 
-        if (user.Role == "Admin")
+        if (user.Role?.Equals("Admin", StringComparison.OrdinalIgnoreCase) == true)
         {
-            // Admin бачить всі проєкти
             projects = await _projectRepository.GetAllAsync();
         }
         else
         {
-            // Client бачить тільки свої проєкти
             projects = await _projectRepository.GetByClientIdAsync(userId);
         }
 

@@ -77,3 +77,29 @@ export interface Activity {
   timestamp: string;
   icon: string;
 }
+export interface ProjectDto {
+  id: string;
+  clientId: string;
+  clientName: string;
+  title: string;
+  description?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  status: string;
+  startDate: string;
+  plannedEndDate?: string;
+  actualEndDate?: string;
+  totalArea?: number;
+  budget?: number;
+  progressPercentage: number;
+  thumbnailUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ProjectParticipantsDto {
+  projectId: string;
+  clientId: string;
+  adminId: string;
+}
