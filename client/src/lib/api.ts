@@ -83,3 +83,18 @@ export async function getProjectParticipants(projectId: string): Promise<Project
     const fr = await projectsClient.getProjectParticipants(projectId);
     return readJson<ProjectParticipantsDto>(fr);
 }
+export async function getTotalUnreadCount(): Promise<number> {
+    const fr = await messagesClient.getTotalUnreadCount();
+    const data = await readJson<{ count: number }>(fr);
+    return data.count;
+}
+
+export async function getProjectUnreadCount(projectId: string): Promise<number> {
+    const fr = await messagesClient.getProjectUnreadCount(projectId);
+    const data = await readJson<{ count: number }>(fr);
+    return data.count;
+}
+
+export async function markMessageAsRead(messageId: string): Promise<void> {
+    await messagesClient.markAsRead(messageId);
+}

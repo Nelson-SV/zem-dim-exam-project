@@ -1,11 +1,17 @@
 import { Building2, Moon, Sun, Globe } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
-
 import { useAuth } from '../contexts/useAuth';
-
+import { useEffect, useState } from 'react';
+import { getTotalUnreadCount } from '../lib/api';
 
 interface NavigationProps {
   userRole: 'admin' | 'client';
@@ -27,12 +33,48 @@ export function Navigation({
                              onLanguageChange,
                            }: NavigationProps) {
   const { user, logout } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+
+  const loadUnreadCount = async () => {
+    try {
+      const count = await getTotalUnreadCount();
+      setUnreadCount(count);
+    } catch (err) {
+      console.error('Failed to load unread count:', err);
+    }
+  };
+
+  // 1) Load the number of unread messages when mounting + every 30 seconds
+  useEffect(() => {
+    if (!user?.id) return;
+
+    loadUnreadCount();
+
+    const interval = setInterval(loadUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
+
+  // 2) Listen to an internal event to force an update after reading/sending
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const onRefresh = () => loadUnreadCount();
+    window.addEventListener('messages:refreshCounts', onRefresh);
+    return () => window.removeEventListener('messages:refreshCounts', onRefresh);
+  }, [user?.id]);
+
+  // 3) If you opened the Messages tab, we also update it
+  useEffect(() => {
+    if (!user?.id) return;
+    if (activeTab === 'messages') loadUnreadCount();
+  }, [activeTab, user?.id]);
 
   const adminTabs = [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'projects', label: 'Projects' },
     { id: 'clients', label: 'Clients' },
-    { id: 'messages', label: 'Messages' },
+    { id: 'messages', label: 'Messages', badge: unreadCount },
     { id: 'analytics', label: 'Analytics' },
   ];
 
@@ -40,7 +82,7 @@ export function Navigation({
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'gallery', label: 'Gallery' },
     { id: '3d', label: '3D Scans' },
-    { id: 'messages', label: 'Messages', badge: 2 },
+    { id: 'messages', label: 'Messages', badge: unreadCount },
     { id: 'documents', label: 'Documents' },
     { id: 'calculator', label: 'Calculator' },
   ];
@@ -66,7 +108,7 @@ export function Navigation({
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-1">
-              {tabs.map(tab => (
+              {tabs.map((tab) => (
                   <Button
                       key={tab.id}
                       variant={activeTab === tab.id ? 'default' : 'ghost'}
@@ -74,8 +116,8 @@ export function Navigation({
                       className={activeTab === tab.id ? 'bg-[#F97316] hover:bg-[#F97316]/90' : ''}
                   >
                     {tab.label}
-                    {'badge' in tab && tab.badge ? (
-                        <Badge className="ml-2 bg-destructive">{tab.badge}</Badge>
+                    {tab.badge && tab.badge > 0 ? (
+                        <Badge className="ml-2 bg-red-600">{tab.badge}</Badge>
                     ) : null}
                   </Button>
               ))}
@@ -117,9 +159,7 @@ export function Navigation({
                                 : 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex'
                           }
                       />
-                      <AvatarFallback>
-                        {userRole === 'admin' ? 'AD' : 'OK'}
-                      </AvatarFallback>
+                      <AvatarFallback>{userRole === 'admin' ? 'AD' : 'OK'}</AvatarFallback>
                     </Avatar>
                     <span className="hidden sm:inline">
                     {userRole === 'admin' ? 'Manager' : 'Oleksandr'}
@@ -142,17 +182,19 @@ export function Navigation({
 
           {/* Mobile Navigation */}
           <div className="lg:hidden flex gap-1 overflow-x-auto pb-2 -mx-4 px-4">
-            {tabs.map(tab => (
+            {tabs.map((tab) => (
                 <Button
                     key={tab.id}
                     variant={activeTab === tab.id ? 'default' : 'ghost'}
                     onClick={() => onTabChange(tab.id)}
-                    className={`whitespace-nowrap ${activeTab === tab.id ? 'bg-[#F97316] hover:bg-[#F97316]/90' : ''}`}
+                    className={`whitespace-nowrap ${
+                        activeTab === tab.id ? 'bg-[#F97316] hover:bg-[#F97316]/90' : ''
+                    }`}
                     size="sm"
                 >
                   {tab.label}
-                  {'badge' in tab && tab.badge ? (
-                      <Badge className="ml-2 bg-destructive">{tab.badge}</Badge>
+                  {tab.badge && tab.badge > 0 ? (
+                      <Badge className="ml-2 bg-red-600">{tab.badge}</Badge>
                   ) : null}
                 </Button>
             ))}
@@ -160,7 +202,9 @@ export function Navigation({
 
           {/* User info */}
           <div className="flex items-center gap-4">
-            <span>{user?.firstName} {user?.lastName}</span>
+          <span>
+            {user?.firstName} {user?.lastName}
+          </span>
             <span className="text-muted-foreground">({user?.role})</span>
           </div>
         </div>

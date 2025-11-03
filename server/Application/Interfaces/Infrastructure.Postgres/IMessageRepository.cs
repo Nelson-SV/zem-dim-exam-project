@@ -11,4 +11,6 @@ public interface IMessageRepository
     Task<int> GetUnreadCountAsync(Guid userId, Guid projectId);
     Task<Message> MarkAsReadAsync(Guid messageId);
     Task<List<Message>> GetRecentMessagesAsync(Guid userId, int count = 50);
+    Task<int> GetTotalUnreadCountAsync(Guid userId);
+    
 }

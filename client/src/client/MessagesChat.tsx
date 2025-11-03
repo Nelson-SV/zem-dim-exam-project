@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { chatService } from '../lib/chatService';
-import { getProjectMessages } from '../lib/api';
+import { getProjectMessages, markMessageAsRead } from '../lib/api';
 import { useAuth } from '../contexts/useAuth';
 
 type Props = {
@@ -29,23 +29,23 @@ export function MessagesChat({ projectId, receiverId, receiverName }: Props) {
     createdAt: string;
   }>>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+
   const listRef = useRef<HTMLDivElement>(null);
   const joinedProjectRef = useRef<string | null>(null);
 
+  // ⛔️ Anti-duplicate: store all received message ids
+  const receivedIdsRef = useRef<Set<string>>(new Set());
 
+  // 1) Loading history + marking unread as read for the current user
   useEffect(() => {
     if (!projectId) return;
 
     (async () => {
       try {
         setLoadingHistory(true);
-        console.log('📜 Loading message history for project:', projectId);
-
         const history = await getProjectMessages(projectId);
-        console.log('✅ Loaded messages:', history.length);
 
-        // Конвертуємо API відповідь в наш формат
-        const formattedMessages = history.map(msg => ({
+        const formatted = history.map(msg => ({
           id: msg.id,
           projectId: msg.projectId,
           senderId: msg.senderId,
@@ -56,16 +56,29 @@ export function MessagesChat({ projectId, receiverId, receiverName }: Props) {
           createdAt: msg.createdAt,
         }));
 
-        setMessages(formattedMessages);
+        // populate the id cache for anti-duplicate
+        receivedIdsRef.current = new Set(formatted.map(m => m.id));
+
+        setMessages(formatted);
+
+        // mark unread for me
+        if (user) {
+          const unreadForMe = history.filter(m => m.receiverId === user.id && !m.isRead);
+          if (unreadForMe.length) {
+            await Promise.all(unreadForMe.map(m => markMessageAsRead(m.id)));
+            // update badges (Navigation listens to this event)
+            window.dispatchEvent(new CustomEvent('messages:refreshCounts'));
+          }
+        }
       } catch (err) {
         console.error('❌ Failed to load message history:', err);
       } finally {
         setLoadingHistory(false);
       }
     })();
-  }, [projectId]);
+  }, [projectId, user?.id]);
 
-  // WebSocket
+  // 2) WebSocket subscription
   useEffect(() => {
     if (!token || !receiverId) return;
     if (joinedProjectRef.current === projectId) return;
@@ -74,41 +87,48 @@ export function MessagesChat({ projectId, receiverId, receiverName }: Props) {
 
     (async () => {
       if (joinedProjectRef.current && joinedProjectRef.current !== projectId) {
-        await chatService.leaveProject(joinedProjectRef.current);
+        await chatService.leaveProject(joinedProjectRef.current).catch(() => {});
       }
       await chatService.joinProject(projectId);
       joinedProjectRef.current = projectId;
     })();
 
-    off = chatService.onMessage((m) => {
-      if (m.projectId === projectId) {
+    off = chatService.onMessage(async (m) => {
+      if (m.projectId !== projectId) return;
 
-        setMessages((prev) => {
-          const exists = prev.some(msg => msg.id === m.id);
-          if (exists) {
-            console.log('⚠️ Duplicate message prevented:', m.id);
-            return prev;
-          }
 
-          console.log('✉️ New message received:', m.content);
-          return [...prev, {
-            id: m.id,
-            projectId: m.projectId,
-            senderId: m.senderId,
-            senderName: m.senderName,
-            senderRole: m.senderRole,
-            receiverId: m.receiverId,
-            content: m.content,
-            createdAt: m.createdAt,
-          }];
-        });
+      if (receivedIdsRef.current.has(m.id)) {
+        // console.debug('⚠️ Duplicate message prevented:', m.id);
+        return;
+      }
+      receivedIdsRef.current.add(m.id);
+
+      setMessages((prev) => [...prev, {
+        id: m.id,
+        projectId: m.projectId,
+        senderId: m.senderId,
+        senderName: m.senderName,
+        senderRole: m.senderRole,
+        receiverId: m.receiverId,
+        content: m.content,
+        createdAt: m.createdAt,
+      }]);
+
+      // if this is incoming for me - immediately mark as read
+      if (user && m.receiverId === user.id) {
+        try {
+          await markMessageAsRead(m.id);
+          window.dispatchEvent(new CustomEvent('messages:refreshCounts'));
+        } catch (e) {
+          console.error('markMessageAsRead failed', e);
+        }
       }
     });
 
     return () => { off?.(); };
-  }, [token, projectId, receiverId]);
+  }, [token, projectId, receiverId, user?.id]);
 
-  // Cleanup при unmount
+  // 3) Cleanup when unmounting
   useEffect(() => {
     return () => {
       if (joinedProjectRef.current) {
@@ -118,7 +138,7 @@ export function MessagesChat({ projectId, receiverId, receiverName }: Props) {
     };
   }, []);
 
-
+  // 4) autoscroll
   useEffect(() => {
     if (!loadingHistory) {
       listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
@@ -133,6 +153,7 @@ export function MessagesChat({ projectId, receiverId, receiverName }: Props) {
     if (!text || !user || !receiverId) return;
 
     try {
+      // without optimistic addition (to avoid duplication, the server will send with id)
       await chatService.sendMessage(projectId, receiverId, text);
       setNewMessage('');
     } catch (err) {
