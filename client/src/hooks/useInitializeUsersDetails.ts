@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import { http } from "../lib/apiV2";
 import { toast } from "sonner";
 
-export function useInitializeUsersDetails({ page = 1, pageSize = 9, search = "" }) {
+export function useInitializeUsersDetails({ page = 1, pageSize = 9, search = "", filter = false }) {
 
     const [, setUsersDetails] = useAtom(UsersDetailsAtom);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
-        http.userManagement.getAllUsers(page, pageSize, search)
+        http.userManagement.getAllUsers(page, pageSize, search, filter)
             .then((response) => {
                 setUsersDetails(response.items || []);
                 setTotalItems(response.totalItems!);
@@ -24,6 +24,6 @@ export function useInitializeUsersDetails({ page = 1, pageSize = 9, search = "" 
                 const message = e.response?.data?.message || "An unexpected error occurred.";
                 toast.error(`Error: ${message}`);
             });
-    }, [page, pageSize, search, setUsersDetails]);
+    }, [page, pageSize, search, filter, setUsersDetails]);
     return { totalItems, totalPages };
 }

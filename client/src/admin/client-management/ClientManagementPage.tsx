@@ -17,6 +17,8 @@ import { UsersDetailsAtom } from '../../atoms/admin/UsersDetailsAtom';
 import { useAtom } from 'jotai';
 import ConfirmationWindowModal from '../../components/ConfirmationWindowModal';
 import { PaginationComponent } from '../../components/PaginationComponent';
+import { Label } from '../../components/ui/label';
+import { Switch } from '../../components/ui/switch';
 
 export function ClientManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,6 +26,7 @@ export function ClientManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [modalMode, setModalMode] = useState("");
   const [isModalOpen, setModalOpen] = useState(false);
+  const [isActiveFilter, setisActiveFilter] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UsersDetailsDto | null>(null);
   const [usersDetails, setUsersDetails] = useAtom(UsersDetailsAtom);
   const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false);
@@ -32,11 +35,12 @@ export function ClientManagementPage() {
     page: currentPage,
     pageSize: 9,
     search: debouncedSearch,
+    filter: isActiveFilter
   });
 
   useEffect(() => {
     setCurrentPage(1); //reset to first page when starting a new search
-  }, [debouncedSearch]);
+  }, [debouncedSearch, isActiveFilter]);
 
   const handleAddUser = async (userData: RegisterRequestDto) => {
     try {
@@ -130,10 +134,47 @@ export function ClientManagementPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div>
-          <h2>Total clients: {totalItems}</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4">
+          {/* 🔍 Search box */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-8 w-64"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </div>
+
+          {/* 🧩 Filter toggle */}
+          <div className="flex items-center gap-2">
+            <Label htmlFor="user-active" className="text-sm text-muted-foreground">
+              Status:
+            </Label>
+            <Switch
+              id="user-active"
+              checked={isActiveFilter}
+              onCheckedChange={(checked) => setisActiveFilter(checked)}
+            />
+            <span
+              className={`text-sm font-medium ${isActiveFilter ? "text-green-600" : "text-gray-500"
+                }`}
+            >
+              {isActiveFilter ? "Active" : "Inactive"}
+            </span>
+          </div>
         </div>
+
+        {/* ➕ Add new client button */}
         <AddNewClientModal
           addUser={handleAddUser}
           mode={modalMode}
@@ -143,25 +184,6 @@ export function ClientManagementPage() {
           isOpen={isModalOpen}
           onClose={() => setModalOpen(false)}
         />
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-        <Input
-          placeholder="Search clients by name or email..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 pr-10"
-        />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            <X />
-          </button>
-        )}
       </div>
 
 

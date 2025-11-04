@@ -8,11 +8,27 @@ namespace Infrastructure.Postgres.Repositories.Admin.UserManagement;
 
 public class UserManagementRepository(AppDbContext ctx) : IUserManagementRepository
 {
-    public List<User> GetAllUsers(int page, int pageSize, out int totalUsers, string? search = null)
+    public List<User> GetAllUsers(
+        int page, 
+        int pageSize, 
+        out int totalUsers, 
+        string? search = null, 
+        bool? showActiveOnly = true)
     {
         var query = ctx.Users
             .Include(u => u.Projects)
-            .Where(u => u.Isdeleted == false && u.Role == Roles.UserRole);
+            .Where(u => u.Role == Roles.UserRole);
+
+        if (string.IsNullOrWhiteSpace(search))
+        {
+            if (showActiveOnly.HasValue)
+            {
+                if (showActiveOnly.Value)
+                    query = query.Where(u => u.Isdeleted == false);
+                else
+                    query = query.Where(u => u.Isdeleted == true);
+            }
+        }
         
         if (!string.IsNullOrWhiteSpace(search))
         {

@@ -69,9 +69,10 @@ public class UserManagementController(IUserManagementService userManagementServi
     public async Task<ActionResult<GetAllUsersResponseDto>> GetAllUsers(
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 9,
-        [FromQuery] string? search = null)
+        [FromQuery] string? search = null,
+        [FromQuery] bool? filterIsActive = null)
     {
-        var response = await userManagementService.GetAllUsers(page, pageSize, search);
+        var response = await userManagementService.GetAllUsers(page, pageSize, search, filterIsActive);
         return Ok(response);
     }
 }

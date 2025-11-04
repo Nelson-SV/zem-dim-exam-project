@@ -442,7 +442,7 @@ export class UserManagementClient {
         return Promise.resolve<DeleteResponseDto>(null as any);
     }
 
-    getAllUsers(page: number | undefined, pageSize: number | undefined, search: string | null | undefined): Promise<GetAllUsersResponseDto> {
+    getAllUsers(page: number | undefined, pageSize: number | undefined, search: string | null | undefined, filterIsActive: boolean | null | undefined): Promise<GetAllUsersResponseDto> {
         let url_ = this.baseUrl + "/api/admin/usermanagement/GetAllUsers?";
         if (page === null)
             throw new globalThis.Error("The parameter 'page' cannot be null.");
@@ -454,6 +454,8 @@ export class UserManagementClient {
             url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
         if (search !== undefined && search !== null)
             url_ += "search=" + encodeURIComponent("" + search) + "&";
+        if (filterIsActive !== undefined && filterIsActive !== null)
+            url_ += "filterIsActive=" + encodeURIComponent("" + filterIsActive) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {

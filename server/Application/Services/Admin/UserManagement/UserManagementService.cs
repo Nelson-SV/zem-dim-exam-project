@@ -140,9 +140,9 @@ public class UserManagementService(
         return DeleteResponseDto.FromObjects(success, SuccessMessages.GetMessage(SuccessCode.UserDeletedSuccess));
     }
 
-    public async Task<GetAllUsersResponseDto> GetAllUsers(int page, int pageSize, string? search)
+    public async Task<GetAllUsersResponseDto> GetAllUsers(int page, int pageSize, string? search, bool? filterIsActive)
     {
-        var users = managementRepository.GetAllUsers(page, pageSize, out int totalUsers, search);
+        var users = managementRepository.GetAllUsers(page, pageSize, out int totalUsers, search, filterIsActive);
         
         if (users.Count == 0)
         {

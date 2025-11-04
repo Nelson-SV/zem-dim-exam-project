@@ -232,14 +232,14 @@
 ## 🔒 COMMON FEATURES
 
 **Both**
-- [ ] Authentication (JWT Login)
+- [x] Authentication (JWT Login)
 - [ ] Role-based route protection
 - [ ] Refresh token handling
 - [ ] Multi-language support (UA / EN)
 - [ ] Responsive design (desktop/tablet/mobile)
-- [ ] Dark mode toggle
+- [x] Dark mode toggle
 - [ ] Global error handling
-- [ ] Toast notifications for all actions
+- [x] Toast notifications for all actions
 
 ---
 
