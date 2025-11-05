@@ -12,7 +12,7 @@ public interface ISecurityService
     public string GenerateJwt(JwtClaims claims);
     public AuthResponseDto Login(AuthRequestDto dto);
     public JwtClaims VerifyJwtOrThrow(string jwt);
-    //Dictionary<string, object> VerifyJwtOrThrow(string jwt);
     public string GenerateRandomPassword(int length);
+    Task<ResetPasswordResponseDto> ResetPasswordAsync(Guid userId, string newPassword);
 
 }

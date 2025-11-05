@@ -27,7 +27,12 @@ export function Login() {
             navigate(user?.role === 'admin' ? '/admin' : '/client', { replace: true });
             toast.success('Successfully logged in!');
         } catch (error: unknown) {
-            toast.error(error instanceof Error ? error.message : 'Login failed. Please check your credentials.');
+            if (error.message === 'mustChangePassword') {
+                toast('You must change your password before continuing.');
+                navigate('/reset-password');
+            } else {
+                toast.error('Login failed. Please check your credentials.');
+            }
         } finally {
             setIsLoginLoading(false);
         }

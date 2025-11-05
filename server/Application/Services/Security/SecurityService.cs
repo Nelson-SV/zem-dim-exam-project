@@ -4,9 +4,12 @@ using System.Security.Authentication;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Application.Interfaces.Auth;
 using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
 using Application.Interfaces.Security;
+using Application.Models;
 using Application.Models.Dtos.Auth;
+using Application.Models.Dtos.UserManagement;
 using Application.Models.Security;
 using JWT;
 using JWT.Algorithms;
@@ -19,11 +22,13 @@ namespace Application.Services.Security;
 
 public class SecurityService(
     IOptionsMonitor<AppOptions> optionsMonitor,
-    IUserManagementRepository managementRepository) : ISecurityService
+    IUserManagementRepository managementRepository,
+    IAuthRepository authRepository) : ISecurityService
 {
     public AuthResponseDto Login(AuthRequestDto dto)
     {
-        var user = managementRepository.GetUserByEmailOrNull(dto.Email) ?? throw new ValidationException("User email not found");
+        var user = managementRepository.GetUserByEmailOrNull(dto.Email) 
+                   ?? throw new ValidationException("User email not found");
 
         if (user.Isactive != true)
             throw new ValidationException("User is inactive");
@@ -42,9 +47,28 @@ public class SecurityService(
                 Email = dto.Email,
                 FirstName = user.Firstname,
                 LastName = user.Lastname,
-            })
+            }),
+            MustChangePassword = user.Mustchangepassword ?? false
         };
-        
+    }
+    
+    public async Task<ResetPasswordResponseDto> ResetPasswordAsync(Guid userId, string newPassword)
+    {
+        var user = await managementRepository.GetByIdAsync(userId)
+                   ?? throw new ValidationException("User not found");
+
+        var salt = GenerateSalt();
+        var hash = HashPassword(newPassword + salt);
+
+        user.Salt = salt;
+        user.Passwordhash = hash;
+        user.Mustchangepassword = false; 
+
+        var success = await authRepository.SavePasswordFromResetAsync(user);
+        if (!success)
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
+
+        return ResetPasswordResponseDto.FromObjects(success, SuccessMessages.GetMessage(SuccessCode.UserResetPasswordSuccess));
     }
     
     /// <summary>

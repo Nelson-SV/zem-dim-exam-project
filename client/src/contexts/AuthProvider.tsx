@@ -68,7 +68,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const login = async (email: string, password: string) => {
-        const { jwt } = await authClient.login({ email, password });
+        const { jwt, mustChangePassword } = await authClient.login({ email, password });
+
+        if (mustChangePassword) {
+            localStorage.setItem('temp_auth_jwt', jwt);
+            throw new Error('mustChangePassword'); // we’ll handle this in Login page
+        }
+
         const payload = decodeJwt<any>(jwt);
         const userData = mapUserFromPayload(payload);
 

@@ -6,6 +6,7 @@ import { Login } from './pages/Login';
 import { RoleRedirect } from './navigation/RoleRedirect';
 import { AdminNavigation } from './navigation/AdminNavigation';
 import { ClientNavigation } from './navigation/ClientNavigation';
+import { ResetPassword } from './client/ResetPassword';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Routes>
           {/* Public route */}
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Protected Admin area */}
           <Route

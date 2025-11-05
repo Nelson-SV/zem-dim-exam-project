@@ -224,6 +224,38 @@
         }
       }
     },
+    "/api/auth/ResetPassword": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Auth_ResetPassword",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetPasswordResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/usermanagement/RegisterUser": {
       "post": {
         "tags": [
@@ -406,12 +438,16 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "jwt"
+          "jwt",
+          "mustChangePassword"
         ],
         "properties": {
           "jwt": {
             "type": "string",
             "minLength": 1
+          },
+          "mustChangePassword": {
+            "type": "boolean"
           }
         }
       },
@@ -430,6 +466,31 @@
           "password": {
             "type": "string",
             "minLength": 4
+          }
+        }
+      },
+      "ResetPasswordResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
           }
         }
       },

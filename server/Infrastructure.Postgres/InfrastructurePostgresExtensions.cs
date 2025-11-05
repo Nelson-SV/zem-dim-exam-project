@@ -1,12 +1,14 @@
 
 
 using Application;
+using Application.Interfaces.Auth;
 using Application.Interfaces.Infrastructure.Postgres;
 using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
 using Application.Interfaces.Infrastructure.Postgres.DatabaseTransactions;
 using Infrastructure.Postgres.DatabaseTransactions;
 using Infrastructure.Postgres.Repositories;
 using Infrastructure.Postgres.Repositories.Admin.UserManagement;
+using Infrastructure.Postgres.Repositories.Auth;
 using Infrastructure.Postgres.Scaffolding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +33,7 @@ public static class InfrastructurePostgresExtensions
         services.AddScoped<Seeder.Seeder>();
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IProjectRepository, ProjectRepository>();
+        services.AddScoped<IAuthRepository, AuthRepository>();
 
         return services;
     }
