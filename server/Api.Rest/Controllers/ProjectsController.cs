@@ -14,9 +14,7 @@ public class ProjectsController : ControllerBase
         _projectService = projectService;
     }
 
-    /// <summary>
-    /// Отримати проєкти користувача (для Client - його проєкти, для Admin - всі)
-    /// </summary>
+    
     [HttpGet("user/{userId}")]
     public async Task<IActionResult> GetUserProjects(Guid userId)
     {
@@ -35,9 +33,7 @@ public class ProjectsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Отримати деталі проєкту
-    /// </summary>
+    
     [HttpGet("{projectId}")]
     public async Task<IActionResult> GetProject(Guid projectId)
     {
@@ -55,9 +51,7 @@ public class ProjectsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Отримати учасників проєкту (Client + Admin)
-    /// </summary>
+    
     [HttpGet("{projectId}/participants")]
     public async Task<IActionResult> GetProjectParticipants(Guid projectId)
     {
