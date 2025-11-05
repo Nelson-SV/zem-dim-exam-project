@@ -4,16 +4,14 @@ import type { User } from './auth-types';
 import { authClient } from '../lib/api';
 import { chatService } from '../lib/chatService';
 
-const ROLE_CLAIM = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
-
 
 function decodeJwt<T = any>(jwt: string): T {
     const [, payload] = jwt.split('.');
 
     const base64 = payload
-    .replace(/-/g, '+')
-    .replace(/_/g, '/')
-    .padEnd(Math.ceil(payload.length / 4) * 4, '=');
+        .replace(/-/g, '+')
+        .replace(/_/g, '/')
+        .padEnd(Math.ceil(payload.length / 4) * 4, '=');
 
     return JSON.parse(atob(base64));
 }
@@ -25,12 +23,13 @@ function normalizeRole(r?: string): 'admin' | 'client' {
 
 
 function mapUserFromPayload(payload: any): User {
+    const ROLE_CLAIM = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
     return {
-        id: payload.sub ?? payload.nameid ?? payload.Id ?? '',
-        email: payload.email ?? payload.Email ?? '',
-        role: normalizeRole(payload[ROLE_CLAIM] ?? payload.role ?? payload.Role),
-        firstName: payload.given_name ?? payload.FirstName ?? '',
-        lastName: payload.family_name ?? payload.LastName ?? '',
+        id: payload.sub ?? '',
+        email: payload.email ?? '',
+        role: normalizeRole(payload[ROLE_CLAIM] ?? ''),
+        firstName: payload.given_name ?? '',
+        lastName: payload.family_name ?? '',
     };
 }
 
@@ -91,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setUser(null);
         setToken(null);
-        
+
         chatService.disconnect();
         setConnectedToken(null);
     };
