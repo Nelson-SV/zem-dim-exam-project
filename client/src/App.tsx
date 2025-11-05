@@ -18,8 +18,8 @@ import { AdminSettings } from './admin/AdminSettings';
 import { AdminDashboard } from './admin/AdminDashboard';
 import { PhotoGallery } from './client/PhotoGallery';
 import { Viewer3D } from './client/Viewer3D';
-import { Messages } from './client/MessagesWithSignalR';
 import { Documents } from './client/Documents';
+import { MessagesPage } from './client/MessagesPage';
 
 function RoleRedirect() {
   const { user } = useAuth();
@@ -56,8 +56,6 @@ function AppContent() {
     setSelectedProjectId(null);
   };
 
-
-
   const renderContent = () => {
     if (!user) return null;
 
@@ -72,6 +70,8 @@ function AppContent() {
           return <AdminProjectsList onViewProject={handleViewProject} />;
         case 'clients':
           return <ClientManagement />;
+        case 'messages':
+          return <MessagesPage />;
         case 'analytics':
           return <AdminAnalytics />;
         case 'settings':
@@ -87,14 +87,7 @@ function AppContent() {
         case '3d':
           return <Viewer3D />;
         case 'messages':
-          // Replace with actual project and receiver IDs from your data
-          return (
-              <Messages
-                  projectId="project-1"
-                  receiverId="admin-1"
-                  receiverName="Project Manager"
-              />
-          );
+          return <MessagesPage />;
         case 'documents':
           return <Documents />;
         case 'calculator':

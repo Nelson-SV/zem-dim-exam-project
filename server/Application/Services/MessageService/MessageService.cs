@@ -39,6 +39,7 @@ public class MessageService : IMessageService
             Isread = false,
             Attachmenturl = dto.AttachmentUrl,
             Attachmenttype = dto.AttachmentType,
+            // ✅ Для timestamptz ПОТРІБНО UTC!
             Createdat = DateTime.UtcNow
         };
 
@@ -71,7 +72,10 @@ public class MessageService : IMessageService
     {
         return await _messageRepository.GetUnreadCountAsync(userId, projectId);
     }
-
+    public async Task<int> GetTotalUnreadCountAsync(Guid userId)
+    {
+        return await _messageRepository.GetTotalUnreadCountAsync(userId);
+    }
     private MessageDto MapToDto(Message message)
     {
         return new MessageDto

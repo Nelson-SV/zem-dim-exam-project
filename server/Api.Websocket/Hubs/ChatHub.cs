@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
-
 namespace Api.Websocket.Hubs;
 
 [Authorize] 
@@ -22,15 +21,8 @@ public class ChatHub : Hub
         var group = $"Project_{projectId}";
         await Groups.AddToGroupAsync(Context.ConnectionId, group);
         Console.WriteLine($"✅ {GetUserName()} ({GetUserId()}) joined {group}");
-
-        // 1) confirmation only for the person who entered
-        await Clients.Caller.SendAsync("System", $"Joined {group}");
-
-        // 2) broadcast message to the group (will be seen by everyone in the room, including the Caller)
-        await Clients.Group(group).SendAsync("System", $"{GetUserName()} joined {group}");
     }
 
-    // 🔧 Bypassing the service: sending raw text to the group for diagnostics
     public async Task SendRaw(string projectId, string text)
     {
         var group = $"Project_{projectId}";
@@ -40,19 +32,18 @@ public class ChatHub : Hub
             text,
             from = GetUserName(),
             fromId = GetUserId().ToString(),
+            // ✅ Для timestamptz ПОТРІБНО UTC!
             at = DateTime.UtcNow
         });
         Console.WriteLine($"📨 RAW by {GetUserName()} to {group}: {text}");
     }
 
-     
     public Task WhoAmI()
-        => Clients.Caller.SendAsync("System", new {
+        => Clients.Caller.SendAsync("WhoAmIResponse", new {
             name = GetUserName(),
             id = GetUserId().ToString(),
             role = GetUserRole()
         });
-
 
     public async Task LeaveProject(string projectId)
     {
@@ -120,15 +111,12 @@ public class ChatHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    // Helper methods for retrieving data from JWT
     private Guid GetUserId()
     {
-         
         var userIdClaim = Context.User?.FindFirst("Id")?.Value          
                           ?? Context.User?.FindFirst("sub")?.Value         
                           ?? Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
     
-         
         if (Context.User?.Claims != null)
         {
             Console.WriteLine("🔍 Available claims:");

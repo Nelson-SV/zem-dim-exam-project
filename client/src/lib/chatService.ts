@@ -1,14 +1,10 @@
+// src/lib/chatService.ts
 import * as signalR from '@microsoft/signalr';
 
 export interface Message {
-    id: string;
-    projectId: string;
-    senderId: string;
-    senderName: string;
-    senderRole: string;
-    receiverId: string;
-    content: string;
-    isRead: boolean;
+    id: string; projectId: string;
+    senderId: string; senderName: string; senderRole: string;
+    receiverId: string; content: string; isRead: boolean;
     createdAt: string;
 }
 
@@ -17,10 +13,7 @@ export class ChatService {
     private messageCallbacks: ((message: Message) => void)[] = [];
 
     async connect(jwt: string) {
-        // Якщо вже підключено - відключитись спочатку
-        if (this.connection) {
-            await this.disconnect();
-        }
+        if (this.connection) await this.disconnect();
 
         this.connection = new signalR.HubConnectionBuilder()
             .withUrl(`http://localhost:5001/hubs/chat?access_token=${jwt}`)
@@ -29,85 +22,55 @@ export class ChatService {
             .build();
 
         this.connection.on('ReceiveMessage', (message: Message) => {
-            console.log('📨 Received message:', message);
-            this.messageCallbacks.forEach((callback) => callback(message));
+            this.messageCallbacks.forEach(cb => cb(message));
         });
 
-        try {
-            await this.connection.start();
-            console.log('✅ WebSocket connected');
-        } catch (error) {
-            console.error('❌ WebSocket connection failed:', error);
-            throw error;
-        }
+        await this.connection.start();
+        console.log('✅ WebSocket connected');
     }
 
     async disconnect() {
         if (this.connection) {
-            try {
-                await this.connection.stop();
-                this.messageCallbacks = []; // Очистити callbacks
-                console.log('❌ WebSocket disconnected');
-            } catch (error) {
-                console.error('Error disconnecting:', error);
-            }
+            await this.connection.stop();
+            this.messageCallbacks = [];
+            this.connection = null;
+            console.log('❌ WebSocket disconnected');
         }
-    }
-
-    async joinProject(projectId: string) {
-        if (this.connection && this.connection.state === signalR.HubConnectionState.Connected) {
-            try {
-                await this.connection.invoke('JoinProjectChat', projectId);
-                console.log(`✅ Joined project: ${projectId}`);
-            } catch (error) {
-                console.error('Failed to join project:', error);
-            }
-        }
-    }
-
-    async leaveProject(projectId: string) {
-        if (this.connection && this.connection.state === signalR.HubConnectionState.Connected) {
-            try {
-                await this.connection.invoke('LeaveProjectChat', projectId);
-                console.log(`❌ Left project: ${projectId}`);
-            } catch (error) {
-                console.error('Failed to leave project:', error);
-            }
-        }
-    }
-
-    async sendMessage(projectId: string, receiverId: string, content: string) {
-        if (this.connection && this.connection.state === signalR.HubConnectionState.Connected) {
-            try {
-                await this.connection.invoke(
-                    'SendMessage',
-                    receiverId,
-                    projectId,
-                    content,
-                    null, // attachmentUrl
-                    null  // attachmentType
-                );
-                console.log('📤 Message sent');
-            } catch (error) {
-                console.error('Failed to send message:', error);
-                throw error;
-            }
-        } else {
-            throw new Error('Not connected to chat service');
-        }
-    }
-
-    onMessage(callback: (message: Message) => void) {
-        this.messageCallbacks.push(callback);
-    }
-
-    clearCallbacks() {
-        this.messageCallbacks = [];
     }
 
     isConnected(): boolean {
         return this.connection?.state === signalR.HubConnectionState.Connected;
     }
+
+    async joinProject(projectId: string) {
+        if (this.isConnected()) {
+            await this.connection!.invoke('JoinProject', projectId);
+            console.log(`✅ Joined project: ${projectId}`);
+        }
+    }
+
+    async leaveProject(projectId: string) {
+        if (this.isConnected()) {
+            await this.connection!.invoke('LeaveProject', projectId);
+            console.log(`❌ Left project: ${projectId}`);
+        }
+    }
+
+    async sendMessage(projectId: string, receiverId: string, content: string) {
+        if (!this.isConnected()) throw new Error('Not connected to chat service');
+        await this.connection!.invoke('SendMessage', {
+            projectId, receiverId, content,
+            attachmentUrl: null, attachmentType: null,
+        });
+        console.log('📤 Message sent');
+    }
+
+    onMessage(callback: (message: Message) => void) {
+        this.messageCallbacks.push(callback);
+        return () => { this.messageCallbacks = this.messageCallbacks.filter(cb => cb !== callback); };
+    }
+
+    clearCallbacks() { this.messageCallbacks = []; }
 }
 
 export const chatService = new ChatService();

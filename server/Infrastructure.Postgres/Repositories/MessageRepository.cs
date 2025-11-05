@@ -30,7 +30,12 @@ public class MessageRepository : IMessageRepository
         
         return message;
     }
-
+    public async Task<int> GetTotalUnreadCountAsync(Guid userId)
+    {
+        return await _context.Messages
+            .Where(m => m.Receiverid == userId && m.Isread == false)
+            .CountAsync();
+    }
     public async Task<Message?> GetMessageByIdAsync(Guid messageId)
     {
         return await _context.Messages
@@ -72,14 +77,19 @@ public class MessageRepository : IMessageRepository
 
     public async Task<Message> MarkAsReadAsync(Guid messageId)
     {
-        var message = await GetMessageByIdAsync(messageId);
+        var message = await _context.Messages
+            .Include(m => m.Sender)
+            .Include(m => m.Receiver)
+            .FirstOrDefaultAsync(m => m.Id == messageId);
+    
         if (message == null)
-            throw new KeyNotFoundException($"Message with ID {messageId} not found");
-
+            throw new KeyNotFoundException("Message not found");
+    
         message.Isread = true;
         message.Readat = DateTime.UtcNow;
-        
+    
         await _context.SaveChangesAsync();
+    
         return message;
     }
 
