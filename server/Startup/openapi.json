@@ -311,6 +311,38 @@
         }
       }
     },
+    "/api/auth/ResetPassword": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Auth_ResetPassword",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetPasswordResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/usermanagement/RegisterUser": {
       "post": {
         "tags": [
@@ -335,7 +367,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RegisterResponseDto"
+                  "$ref": "#/components/schemas/UsersDetailsDto"
                 }
               }
             }
@@ -367,7 +399,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdateResponseDto"
+                  "$ref": "#/components/schemas/UsersDetailsDto"
                 }
               }
             }
@@ -395,10 +427,69 @@
           "200": {
             "description": "",
             "content": {
-              "application/octet-stream": {
+              "application/json": {
                 "schema": {
-                  "type": "string",
-                  "format": "binary"
+                  "$ref": "#/components/schemas/DeleteResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/usermanagement/GetAllUsers": {
+      "get": {
+        "tags": [
+          "UserManagement"
+        ],
+        "operationId": "UserManagement_GetAllUsers",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            },
+            "x-position": 1
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 9
+            },
+            "x-position": 2
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
+            "name": "filterIsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 4
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetAllUsersResponseDto"
                 }
               }
             }
@@ -434,12 +525,16 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "jwt"
+          "jwt",
+          "mustChangePassword"
         ],
         "properties": {
           "jwt": {
             "type": "string",
             "minLength": 1
+          },
+          "mustChangePassword": {
+            "type": "boolean"
           }
         }
       },
@@ -461,31 +556,49 @@
           }
         }
       },
-      "RegisterResponseDto": {
+      "ResetPasswordResponseDto": {
         "type": "object",
         "additionalProperties": false,
-        "required": [
-          "email",
-          "firstName",
-          "lastName"
-        ],
         "properties": {
-          "email": {
-            "type": "string",
-            "format": "email",
-            "minLength": 1
+          "status": {
+            "type": "boolean"
           },
-          "firstName": {
-            "type": "string",
-            "minLength": 2
-          },
-          "lastName": {
-            "type": "string",
-            "minLength": 2
-          },
-          "phoneNumber": {
+          "message": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          }
+        }
+      },
+      "UsersDetailsDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
           },
           "profileImageUrl": {
             "type": "string",
@@ -495,7 +608,106 @@
             "type": "string",
             "nullable": true
           },
+          "isActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "mustChangePassword": {
+            "type": "boolean",
+            "nullable": true
+          },
           "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectDto"
+            }
+          }
+        }
+      },
+      "ProjectDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "clientId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "postalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "plannedEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "actualEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "totalArea": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "budget": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
             "type": "string",
             "format": "date-time",
             "nullable": true
@@ -508,7 +720,8 @@
         "required": [
           "email",
           "firstName",
-          "lastName"
+          "lastName",
+          "phoneNumber"
         ],
         "properties": {
           "email": {
@@ -518,63 +731,25 @@
           },
           "firstName": {
             "type": "string",
+            "maxLength": 50,
             "minLength": 2
           },
           "lastName": {
             "type": "string",
+            "maxLength": 50,
             "minLength": 2
           },
           "phoneNumber": {
             "type": "string",
-            "nullable": true
-          },
-          "profileImageUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "language": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "UpdateResponseDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "email",
-          "firstName",
-          "lastName"
-        ],
-        "properties": {
-          "email": {
-            "type": "string",
-            "format": "email",
+            "format": "phone",
             "minLength": 1
           },
-          "firstName": {
-            "type": "string",
-            "minLength": 2
-          },
-          "lastName": {
-            "type": "string",
-            "minLength": 2
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
           "profileImageUrl": {
             "type": "string",
             "nullable": true
           },
           "language": {
             "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
             "nullable": true
           }
         }
@@ -617,6 +792,51 @@
           "language": {
             "type": "string",
             "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "nullable": true
+          }
+        }
+      },
+      "DeleteResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "GetAllUsersResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsersDetailsDto"
+            }
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

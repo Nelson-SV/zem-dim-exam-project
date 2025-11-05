@@ -13,11 +13,12 @@ public class UserManagementController(IUserManagementService userManagementServi
     public const string RegisterUserRoute = ControllerRoute + nameof(RegisterUser);
     public const string UpdateUserRoute = ControllerRoute + nameof(UpdateUser);
     public const string DeleteUserRoute = ControllerRoute + nameof(DeleteUser);
+    public const string GetAllUsersRoute = ControllerRoute + nameof(GetAllUsers);
     
     [HttpPost]
     [Authorize(Policy = "AdminOnly")]
     [Route(RegisterUserRoute)]
-    public async Task<ActionResult<RegisterResponseDto>> RegisterUser(
+    public async Task<ActionResult<UsersDetailsDto>> RegisterUser(
         [FromBody] RegisterRequestDto dto,
         [FromServices] IValidator<RegisterRequestDto> validator)
     {
@@ -34,7 +35,7 @@ public class UserManagementController(IUserManagementService userManagementServi
     [HttpPut]
     [Authorize(Policy = "AdminOnly")]
     [Route(UpdateUserRoute)]
-    public async Task<ActionResult<UpdateResponseDto>> UpdateUser(
+    public async Task<ActionResult<UsersDetailsDto>> UpdateUser(
         [FromBody] UpdateRequestDto dto,
         [FromServices] IValidator<UpdateRequestDto> validator)
     {
@@ -51,7 +52,7 @@ public class UserManagementController(IUserManagementService userManagementServi
     [HttpDelete]
     [Authorize(Policy = "AdminOnly")]
     [Route(DeleteUserRoute)]
-    public async Task<ActionResult> DeleteUser([FromQuery] string userId)
+    public async Task<ActionResult<DeleteResponseDto>> DeleteUser([FromQuery] string userId)
     {
         var deleteResponseDto = await userManagementService.SoftDelete(userId); 
         if (!deleteResponseDto.Status)
@@ -60,5 +61,18 @@ public class UserManagementController(IUserManagementService userManagementServi
         }
         
         return Ok(deleteResponseDto);
+    }
+    
+    [HttpGet]
+    [Authorize(Policy = "AdminOnly")]
+    [Route(GetAllUsersRoute)]
+    public async Task<ActionResult<GetAllUsersResponseDto>> GetAllUsers(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 9,
+        [FromQuery] string? search = null,
+        [FromQuery] bool? filterIsActive = null)
+    {
+        var response = await userManagementService.GetAllUsers(page, pageSize, search, filterIsActive);
+        return Ok(response);
     }
 }

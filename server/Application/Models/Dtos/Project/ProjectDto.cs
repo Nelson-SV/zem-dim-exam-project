@@ -1,4 +1,6 @@
 namespace Application.Models.Dtos.Project;
+using Core.Domain.Entities;
+
 
 public class ProjectDto
 {
@@ -20,6 +22,25 @@ public class ProjectDto
     public string? ThumbnailUrl { get; set; }
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    public static ProjectDto FromEntity(Project project)
+    {
+        return new ProjectDto
+        {
+            Id = project.Id,
+
+        };
+    }
+   
+
+    public static List<ProjectDto> FromEntityToList(List<Project> projects)
+    {
+        return projects.Select(u =>
+        {
+            var projectDto = FromEntity(u);
+            return projectDto;
+        }).ToList();
+    }
 }
 
 public class ProjectParticipantsDto
@@ -28,3 +49,4 @@ public class ProjectParticipantsDto
     public Guid ClientId { get; set; }
     public Guid AdminId { get; set; }
 }
+

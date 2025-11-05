@@ -3,6 +3,7 @@ namespace Application.Models;
 public enum SuccessCode
 {
     UserDeletedSuccess,
+    UserResetPasswordSuccess,
 }
 
 public static class SuccessMessages
@@ -10,6 +11,8 @@ public static class SuccessMessages
     private static readonly Dictionary<SuccessCode, string> _successMessages = new()
     {
         { SuccessCode.UserDeletedSuccess, "User deleted  successfully." },
+        { SuccessCode.UserResetPasswordSuccess, "User password reset made successfully." },
+
     };
     
     public static string GetMessage(SuccessCode code)

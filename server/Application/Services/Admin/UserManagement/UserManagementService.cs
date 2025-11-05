@@ -21,19 +21,20 @@ public class UserManagementService(
     IDbUnitOfWork unitOfWork,
     ILogger<UserManagementService> logger) : IUserManagementService
 {
-    public List<User> GetAll()
-    {
-        throw new NotImplementedException();
-    }
-
-    public User? GetUserById(string email)
-    {
-        throw new NotImplementedException();
-    }
     
-    public async Task<RegisterResponseDto> RegisterUser(RegisterRequestDto dto)
+    public async Task<UsersDetailsDto> RegisterUser(RegisterRequestDto dto)
     {
-        var existing = managementRepository.GetUserByEmailOrNull(dto.Email);
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+        var firstName = dto.FirstName.Trim();
+        var lastName = dto.LastName.Trim();
+        var phone = dto.PhoneNumber.Trim();
+        
+        if (string.IsNullOrWhiteSpace(normalizedEmail) || string.IsNullOrWhiteSpace(firstName) ||
+            string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(phone))
+            throw new ValidationException(ErrorMessages.GetMessage(ErrorCode.InvalidUserData));
+        
+        
+        var existing = managementRepository.GetUserByEmailOrNull(normalizedEmail);
         if (existing is not null) throw new ValidationException(ErrorMessages.GetMessage(ErrorCode.UserAlreadyExists));
 
         var password = securityService.GenerateRandomPassword(12);
@@ -46,14 +47,14 @@ public class UserManagementService(
             var insertedUser = await managementRepository.AddUser(new User
             {
                 Id = Guid.NewGuid(),
-                Email = dto.Email,
-                Firstname = dto.FirstName,
-                Lastname = dto.LastName,
-                Phonenumber = dto.PhoneNumber,
+                Email = normalizedEmail.ToLower(),
+                Firstname = firstName,
+                Lastname = lastName,
+                Phonenumber = phone,
                 Role = Roles.UserRole,
                 Isactive = true,
                 Profileimageurl = dto.ProfileImageUrl ?? "https://example.com/default-avatar.png",
-                Language = dto.Language ?? "en",
+                Language = dto.Language ?? "ENG",
                 Createdat = DateTime.Now,
                 Salt = salt,
                 Passwordhash = hash,
@@ -68,7 +69,7 @@ public class UserManagementService(
             await emailService.SendEmailAsync(dto.Email, "Your account has been created", body);
             await unitOfWork.CommitAsync();
             
-            return RegisterResponseDto.FromEntity(insertedUser);
+            return UsersDetailsDto.FromEntity(insertedUser);
         }
         catch (Exception ex)
         {
@@ -78,27 +79,46 @@ public class UserManagementService(
         }
     }
 
-    public async Task<UpdateResponseDto> UpdateUser(UpdateRequestDto dto)
+    public async Task<UsersDetailsDto> UpdateUser(UpdateRequestDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email))
-            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.InvalidUserEmail));
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+        var firstName = dto.FirstName.Trim();
+        var lastName = dto.LastName.Trim();
+        var phone = dto.PhoneNumber.Trim();
+        
+        if (string.IsNullOrWhiteSpace(normalizedEmail) || string.IsNullOrWhiteSpace(firstName) ||
+            string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(phone))
+            throw new ValidationException(ErrorMessages.GetMessage(ErrorCode.InvalidUserData));
 
         try
         {
-            var existingUser = managementRepository.GetUserByIdOrNull(Guid.Parse(dto.Id));
+            if (!Guid.TryParse(dto.Id, out var userId))
+                throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserIdRequired));
+
+            var existingUser = await managementRepository.GetByIdAsync(userId);
             if (existingUser is null)
                 throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
-            existingUser.Email = dto.Email;
-            existingUser.Firstname = dto.FirstName;
-            existingUser.Lastname = dto.LastName;
-            existingUser.Phonenumber = dto.PhoneNumber;
+            
+            if (!string.Equals(existingUser.Email, normalizedEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailOwner = managementRepository.GetUserByEmailOrNull(normalizedEmail);
+                if (emailOwner is not null && emailOwner.Id != existingUser.Id)
+                    throw new ValidationException(ErrorMessages.GetMessage(ErrorCode.UserEmailAlreadyExists));
+                existingUser.Email = normalizedEmail.ToLower();
+            }
+            
+            existingUser.Firstname = firstName;
+            existingUser.Lastname = lastName;
+            existingUser.Phonenumber = phone;
             existingUser.Profileimageurl = dto.ProfileImageUrl ?? existingUser.Profileimageurl;
             existingUser.Language = dto.Language ?? existingUser.Language;
+            existingUser.Isactive = dto.IsActive ?? existingUser.Isactive;
+            existingUser.Isdeleted = dto.IsDeleted ??  existingUser.Isdeleted;
             existingUser.Updatedat = DateTime.Now; 
             
             var updatedUser = await managementRepository.UpdateUser(existingUser);
 
-            return UpdateResponseDto.FromEntity(updatedUser);
+            return UsersDetailsDto.FromEntity(updatedUser);
         }
         catch (Exception ex)
         {
@@ -118,5 +138,35 @@ public class UserManagementService(
             throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
 
         return DeleteResponseDto.FromObjects(success, SuccessMessages.GetMessage(SuccessCode.UserDeletedSuccess));
+    }
+
+    public async Task<GetAllUsersResponseDto> GetAllUsers(int page, int pageSize, string? search, bool? filterIsActive)
+    {
+        var users = managementRepository.GetAllUsers(page, pageSize, out int totalUsers, search, filterIsActive);
+        
+        if (users.Count == 0)
+        {
+            return new GetAllUsersResponseDto
+            {
+                Items = new List<UsersDetailsDto>(),
+                TotalItems = 0,
+                Page = page,
+                PageSize = 1
+            };
+        }
+
+        var mappedUsers = users.Select(u =>
+        {
+            var detailedUser = UsersDetailsDto.FromEntity(u);
+            return detailedUser;
+        }).ToList();
+
+        return new GetAllUsersResponseDto()
+        {
+            Items = mappedUsers,
+            TotalItems = totalUsers,
+            Page = page,
+            PageSize = pageSize,
+        };
     }
 }

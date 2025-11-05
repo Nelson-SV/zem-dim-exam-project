@@ -21,14 +21,6 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
         return <Navigate to="/login" replace />;
     }
 
-    /*
-    if (requiredRole && user.role !== requiredRole) {
-        // Redirect to appropriate dashboard based on role
-        const redirectPath = user.role === 'Admin' ? '/admin/dashboard' : '/client/dashboard';
-        return <Navigate to={redirectPath} replace />;
-    }
-
-     */
     const role = (user.role as string).toLowerCase() as 'admin' | 'client';
 
     if (requiredRole && role !== requiredRole) {

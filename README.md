@@ -7,25 +7,25 @@
   - [x] Validate required fields (email, first name, last name, password)
   - [x] Hash password + store salt
   - [x] Default role = “Client”
-- [ ] Edit User — `PUT /api/users/{id}`
-  - [ ] Update name, phone, email, language, and active status
-- [ ] Soft Delete User — `DELETE /api/users/{id}`
-  - [ ] Set `IsActive = false` instead of removing
-- [ ] Get Users List — `GET /api/users` (paginated, filter by `IsActive`)
-- [ ] Get User Details — `GET /api/users/{id}`
+- [x] Edit User — `PUT /api/users/{id}`
+  - [x] Update name, phone, email, language, and active status
+- [x] Soft Delete User — `DELETE /api/users/{id}`
+  - [x] Set `IsActive = false` instead of removing
+- [x] Get Users List — `GET /api/users` (paginated, filter by `IsActive`)
+- [x] Get User Details — `GET /api/users/{id}`
 - [ ] Unit tests for repository + service layer
 
 **Frontend**
-- [ ] Create `/admin/clients` page
-  - [ ] Display table with users (search + filter)
-  - [ ] Show status (active/inactive)
-  - [ ] Add “Add Client” modal
-  - [ ] Add “Edit Client” modal
-  - [ ] Add “Deactivate Client” button (soft delete)
-- [ ] Integrate with API via React Query
-- [ ] Add success/error toasts
-- [ ] Add validation feedback (missing fields, invalid email)
-- [ ] Add UI language toggle (UA / EN)
+- [x] Create `/admin/clients` page
+  - [x] Display table with users (search)
+  - [x] Show status (active/inactive)
+  - [x] Add “Add Client” modal
+  - [x] Add “Edit Client” modal
+  - [x] Add “Deactivate Client” button (soft delete)
+- [x] Integrate with API via React Query
+- [x] Add success/error toasts
+- [x] Add validation feedback (missing fields, invalid email)
+- [x] Add UI language toggle (UA / EN)
 
 ---
 
@@ -232,14 +232,14 @@
 ## 🔒 COMMON FEATURES
 
 **Both**
-- [ ] Authentication (JWT Login)
+- [x] Authentication (JWT Login)
 - [ ] Role-based route protection
 - [ ] Refresh token handling
 - [ ] Multi-language support (UA / EN)
 - [ ] Responsive design (desktop/tablet/mobile)
-- [ ] Dark mode toggle
+- [x] Dark mode toggle
 - [ ] Global error handling
-- [ ] Toast notifications for all actions
+- [x] Toast notifications for all actions
 
 ---
 
@@ -256,5 +256,5 @@
 
 ---
 
-> ✅ Tip: To mark progress, edit this file and change `[ ]` → `[x]` next to completed tasks.  
+> To mark progress, edit this file and change `[ ]` → `[x]` next to completed tasks.  
 > GitHub will automatically render interactive checkboxes.
