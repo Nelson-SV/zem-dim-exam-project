@@ -1,7 +1,8 @@
+// src/contexts/AuthProvider.tsx
 import { useEffect, useState, type ReactNode } from 'react';
 import { AuthContext } from './AuthContext';
 import type { User } from './auth-types';
-import { authClient } from '../lib/api';
+import { authClient, setupAuthHeader } from '../lib/api';
 import { chatService } from '../lib/chatService';
 
 
@@ -15,13 +16,10 @@ function decodeJwt<T = any>(jwt: string): T {
 
     return JSON.parse(atob(base64));
 }
-
 function normalizeRole(r?: string): 'admin' | 'client' {
     const v = (r ?? '').toLowerCase();
     return v === 'admin' ? 'admin' : 'client';
 }
-
-
 function mapUserFromPayload(payload: any): User {
     const ROLE_CLAIM = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
     return {
@@ -37,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [connectedToken, setConnectedToken] = useState<string | null>(null); // guard SignalR dup
+    const [connectedToken, setConnectedToken] = useState<string | null>(null);
 
     useEffect(() => {
         const storedToken = localStorage.getItem('auth_jwt');
@@ -56,6 +54,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 setUser(parsed);
                 setToken(storedToken);
+                setupAuthHeader(storedToken);
+                
                 if (!chatService.isConnected() || connectedToken !== storedToken) {
                     chatService.connect(storedToken).then(() => setConnectedToken(storedToken)).catch(console.error);
                 }

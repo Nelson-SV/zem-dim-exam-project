@@ -8,4 +8,5 @@ public interface IMessageService
     Task<List<MessageDto>> GetProjectMessagesAsync(Guid projectId);
     Task<MessageDto> MarkMessageAsReadAsync(Guid userId, Guid messageId);
     Task<int> GetUnreadCountAsync(Guid userId, Guid projectId);
+    Task<int> GetTotalUnreadCountAsync(Guid userId);
 }
