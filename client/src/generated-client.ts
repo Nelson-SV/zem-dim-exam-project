@@ -17,7 +17,7 @@ export class MessagesClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    getProjectUnreadCount(projectId: string): Promise<FileResponse> {
+    getProjectUnreadCount(projectId: string): Promise<number> {
         let url_ = this.baseUrl + "/api/Messages/project/{projectId}/unread-count";
         if (projectId === undefined || projectId === null)
             throw new globalThis.Error("The parameter 'projectId' must be defined.");
@@ -27,7 +27,7 @@ export class MessagesClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
-                "Accept": "application/octet-stream"
+                "Accept": "application/json"
             }
         };
 
@@ -36,36 +36,31 @@ export class MessagesClient {
         });
     }
 
-    protected processGetProjectUnreadCount(response: Response): Promise<FileResponse> {
+    protected processGetProjectUnreadCount(response: Response): Promise<number> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as number;
+            return result200;
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<FileResponse>(null as any);
+        return Promise.resolve<number>(null as any);
     }
 
-    getTotalUnreadCount(): Promise<FileResponse> {
+    getTotalUnreadCount(): Promise<number> {
         let url_ = this.baseUrl + "/api/Messages/unread-count";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
             method: "GET",
             headers: {
-                "Accept": "application/octet-stream"
+                "Accept": "application/json"
             }
         };
 
@@ -74,29 +69,24 @@ export class MessagesClient {
         });
     }
 
-    protected processGetTotalUnreadCount(response: Response): Promise<FileResponse> {
+    protected processGetTotalUnreadCount(response: Response): Promise<number> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as number;
+            return result200;
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<FileResponse>(null as any);
+        return Promise.resolve<number>(null as any);
     }
 
-    markAsRead(messageId: string): Promise<FileResponse> {
+    markAsRead(messageId: string): Promise<MessageDto> {
         let url_ = this.baseUrl + "/api/Messages/{messageId}/mark-read";
         if (messageId === undefined || messageId === null)
             throw new globalThis.Error("The parameter 'messageId' must be defined.");
@@ -106,7 +96,7 @@ export class MessagesClient {
         let options_: RequestInit = {
             method: "POST",
             headers: {
-                "Accept": "application/octet-stream"
+                "Accept": "application/json"
             }
         };
 
@@ -115,29 +105,24 @@ export class MessagesClient {
         });
     }
 
-    protected processMarkAsRead(response: Response): Promise<FileResponse> {
+    protected processMarkAsRead(response: Response): Promise<MessageDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as MessageDto;
+            return result200;
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<FileResponse>(null as any);
+        return Promise.resolve<MessageDto>(null as any);
     }
 
-    sendMessage(request: SendMessageRequest): Promise<FileResponse> {
+    sendMessage(request: SendMessageRequest): Promise<MessageDto> {
         let url_ = this.baseUrl + "/api/Messages/send";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -148,7 +133,7 @@ export class MessagesClient {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Accept": "application/octet-stream"
+                "Accept": "application/json"
             }
         };
 
@@ -157,29 +142,24 @@ export class MessagesClient {
         });
     }
 
-    protected processSendMessage(response: Response): Promise<FileResponse> {
+    protected processSendMessage(response: Response): Promise<MessageDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as MessageDto;
+            return result200;
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<FileResponse>(null as any);
+        return Promise.resolve<MessageDto>(null as any);
     }
 
-    getProjectMessages(projectId: string): Promise<FileResponse> {
+    getProjectMessages(projectId: string): Promise<MessageDto[]> {
         let url_ = this.baseUrl + "/api/Messages/project/{projectId}";
         if (projectId === undefined || projectId === null)
             throw new globalThis.Error("The parameter 'projectId' must be defined.");
@@ -189,7 +169,7 @@ export class MessagesClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
-                "Accept": "application/octet-stream"
+                "Accept": "application/json"
             }
         };
 
@@ -198,26 +178,21 @@ export class MessagesClient {
         });
     }
 
-    protected processGetProjectMessages(response: Response): Promise<FileResponse> {
+    protected processGetProjectMessages(response: Response): Promise<MessageDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as MessageDto[];
+            return result200;
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<FileResponse>(null as any);
+        return Promise.resolve<MessageDto[]>(null as any);
     }
 }
 
@@ -231,7 +206,7 @@ export class ProjectsClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    getUserProjects(userId: string): Promise<FileResponse> {
+    getUserProjects(userId: string): Promise<ProjectDto[]> {
         let url_ = this.baseUrl + "/api/Projects/user/{userId}";
         if (userId === undefined || userId === null)
             throw new globalThis.Error("The parameter 'userId' must be defined.");
@@ -241,7 +216,7 @@ export class ProjectsClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
-                "Accept": "application/octet-stream"
+                "Accept": "application/json"
             }
         };
 
@@ -250,29 +225,24 @@ export class ProjectsClient {
         });
     }
 
-    protected processGetUserProjects(response: Response): Promise<FileResponse> {
+    protected processGetUserProjects(response: Response): Promise<ProjectDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProjectDto[];
+            return result200;
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<FileResponse>(null as any);
+        return Promise.resolve<ProjectDto[]>(null as any);
     }
 
-    getProject(projectId: string): Promise<FileResponse> {
+    getProject(projectId: string): Promise<ProjectDto> {
         let url_ = this.baseUrl + "/api/Projects/{projectId}";
         if (projectId === undefined || projectId === null)
             throw new globalThis.Error("The parameter 'projectId' must be defined.");
@@ -282,7 +252,7 @@ export class ProjectsClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
-                "Accept": "application/octet-stream"
+                "Accept": "application/json"
             }
         };
 
@@ -291,29 +261,24 @@ export class ProjectsClient {
         });
     }
 
-    protected processGetProject(response: Response): Promise<FileResponse> {
+    protected processGetProject(response: Response): Promise<ProjectDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProjectDto;
+            return result200;
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<FileResponse>(null as any);
+        return Promise.resolve<ProjectDto>(null as any);
     }
 
-    getProjectParticipants(projectId: string): Promise<FileResponse> {
+    getProjectParticipants(projectId: string): Promise<ProjectParticipantsDto> {
         let url_ = this.baseUrl + "/api/Projects/{projectId}/participants";
         if (projectId === undefined || projectId === null)
             throw new globalThis.Error("The parameter 'projectId' must be defined.");
@@ -323,7 +288,7 @@ export class ProjectsClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
-                "Accept": "application/octet-stream"
+                "Accept": "application/json"
             }
         };
 
@@ -332,26 +297,21 @@ export class ProjectsClient {
         });
     }
 
-    protected processGetProjectParticipants(response: Response): Promise<FileResponse> {
+    protected processGetProjectParticipants(response: Response): Promise<ProjectParticipantsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200 || status === 206) {
-            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
-            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
-            if (fileName) {
-                fileName = decodeURIComponent(fileName);
-            } else {
-                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
-                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
-            }
-            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProjectParticipantsDto;
+            return result200;
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<FileResponse>(null as any);
+        return Promise.resolve<ProjectParticipantsDto>(null as any);
     }
 }
 
@@ -645,11 +605,53 @@ export class UserManagementClient {
     }
 }
 
+export interface MessageDto {
+    id?: string;
+    projectId?: string;
+    senderId?: string;
+    senderName?: string;
+    senderRole?: string;
+    receiverId?: string;
+    content?: string;
+    isRead?: boolean;
+    attachmentUrl?: string | undefined;
+    attachmentType?: string | undefined;
+    createdAt?: Date;
+    readAt?: Date | undefined;
+}
+
 export interface SendMessageRequest {
     senderId?: string;
     projectId?: string;
     receiverId?: string;
     content?: string;
+}
+
+export interface ProjectDto {
+    id?: string;
+    clientId?: string;
+    clientName?: string;
+    title?: string;
+    description?: string | undefined;
+    address?: string | undefined;
+    city?: string | undefined;
+    postalCode?: string | undefined;
+    status?: string;
+    startDate?: Date;
+    plannedEndDate?: Date | undefined;
+    actualEndDate?: Date | undefined;
+    totalArea?: number | undefined;
+    budget?: number | undefined;
+    progressPercentage?: number;
+    thumbnailUrl?: string | undefined;
+    createdAt?: Date | undefined;
+    updatedAt?: Date | undefined;
+}
+
+export interface ProjectParticipantsDto {
+    projectId?: string;
+    clientId?: string;
+    adminId?: string;
 }
 
 export interface AuthResponseDto {
@@ -684,27 +686,6 @@ export interface UsersDetailsDto {
     mustChangePassword?: boolean | undefined;
     createdAt?: Date | undefined;
     projects?: ProjectDto[];
-}
-
-export interface ProjectDto {
-    id?: string;
-    clientId?: string;
-    clientName?: string;
-    title?: string;
-    description?: string | undefined;
-    address?: string | undefined;
-    city?: string | undefined;
-    postalCode?: string | undefined;
-    status?: string;
-    startDate?: Date;
-    plannedEndDate?: Date | undefined;
-    actualEndDate?: Date | undefined;
-    totalArea?: number | undefined;
-    budget?: number | undefined;
-    progressPercentage?: number;
-    thumbnailUrl?: string | undefined;
-    createdAt?: Date | undefined;
-    updatedAt?: Date | undefined;
 }
 
 export interface RegisterRequestDto {

@@ -1,7 +1,7 @@
 import { useAtom } from "jotai";
 import { UsersDetailsAtom } from "../atoms/admin/UsersDetailsAtom";
 import { useEffect, useState } from "react";
-import { http } from "../lib/apiV2";
+import { http } from "../lib/api";
 import { toast } from "sonner";
 
 export function useInitializeUsersDetails({ page = 1, pageSize = 9, search = "", filter = false, reloadFlag = 0 }) {

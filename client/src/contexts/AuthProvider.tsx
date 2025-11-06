@@ -2,8 +2,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { AuthContext } from './AuthContext';
 import type { LoginResult, User } from './auth-types';
-import { authClient, setupAuthHeader } from '../lib/api';
 import { chatService } from '../lib/chatService';
+import { http } from '../lib/api';
 
 
 function decodeJwt<T = any>(jwt: string): T {
@@ -56,7 +56,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 setUser(parsed);
                 setToken(storedToken);
-                setupAuthHeader(storedToken);
 
                 if (!chatService.isConnected() || connectedToken !== storedToken) {
                     chatService.connect(storedToken).then(() => setConnectedToken(storedToken)).catch(console.error);
@@ -70,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const login = async (email: string, password: string): Promise<LoginResult> => {
-        const { jwt, mustChangePassword } = await authClient.login({ email, password });
+        const { jwt, mustChangePassword } = await http.auth.login({ email, password });
 
         if (mustChangePassword) {
             localStorage.setItem('temp_auth_jwt', jwt);

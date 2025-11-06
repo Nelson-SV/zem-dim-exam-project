@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
-import { http } from '../lib/apiV2';
+import { http } from '../lib/api';
 import { useAuth } from '../contexts/useAuth';
 
 export function ResetPassword() {

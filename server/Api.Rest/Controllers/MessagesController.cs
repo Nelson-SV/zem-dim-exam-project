@@ -20,13 +20,13 @@ public class MessagesController : ControllerBase
 
     // GET: /api/Messages/project/{projectId}/unread-count
     [HttpGet("project/{projectId:guid}/unread-count")]
-    public async Task<IActionResult> GetProjectUnreadCount(Guid projectId)
+    public async Task<ActionResult<int>> GetProjectUnreadCount(Guid projectId)
     {
         try
         {
             var userId = GetUserId();
             var count = await _messageService.GetUnreadCountAsync(userId, projectId);
-            return Ok(new { count });
+            return Ok(count);
         }
         catch (Exception ex)
         {
@@ -36,13 +36,13 @@ public class MessagesController : ControllerBase
 
     // GET: /api/Messages/unread-count
     [HttpGet("unread-count")]
-    public async Task<IActionResult> GetTotalUnreadCount()
+    public async Task<ActionResult<int>> GetTotalUnreadCount()
     {
         try
         {
             var userId = GetUserId();
             var count = await _messageService.GetTotalUnreadCountAsync(userId);
-            return Ok(new { count });
+            return Ok(count);
         }
         catch (Exception ex)
         {
@@ -52,7 +52,7 @@ public class MessagesController : ControllerBase
 
     // POST: /api/Messages/{messageId}/mark-read
     [HttpPost("{messageId:guid}/mark-read")]
-    public async Task<IActionResult> MarkAsRead(Guid messageId)
+    public async Task<ActionResult<MessageDto>> MarkAsRead(Guid messageId)
     {
         try
         {
@@ -68,7 +68,7 @@ public class MessagesController : ControllerBase
 
     // POST: /api/Messages/send
     [HttpPost("send")]
-    public async Task<IActionResult> SendMessage([FromBody] SendMessageRequest request)
+    public async Task<ActionResult<MessageDto>> SendMessage([FromBody] SendMessageRequest request)
     {
         try
         {
@@ -91,7 +91,7 @@ public class MessagesController : ControllerBase
 
     // GET: /api/Messages/project/{projectId}
     [HttpGet("project/{projectId:guid}")]
-    public async Task<IActionResult> GetProjectMessages(Guid projectId)
+    public async Task<ActionResult<List<MessageDto>>> GetProjectMessages(Guid projectId)
     {
         var messages = await _messageService.GetProjectMessagesAsync(projectId);
         return Ok(messages);

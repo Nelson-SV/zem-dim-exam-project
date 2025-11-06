@@ -38,19 +38,12 @@ public class AuthController(ISecurityService securityService) : ControllerBase
     [Route(ResetPasswordRoute)]
     public async Task<ActionResult<ResetPasswordResponseDto>> ResetPassword([FromBody] ResetPasswordDto dto)
     {
-        //I am trying this solution, if it does not work, need to add in GenerateJwt in SecurityService the claim!
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
-        Console.WriteLine("HERE 1: " + userId);
-        
-        Console.WriteLine("HERE 1.1: " + string.IsNullOrEmpty(userId));
         
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
         var resetPasswordResponseDto = await securityService.ResetPasswordAsync(Guid.Parse(userId), dto.password);
-        
-        Console.WriteLine("HERE 2: " + resetPasswordResponseDto.Status);
         
         if (!resetPasswordResponseDto.Status)
         {

@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { useDebounce } from "use-debounce";
 import { AddNewClientModal } from './AddNewClientModal';
 import type { RegisterRequestDto, UpdateRequestDto, UsersDetailsDto } from '../../generated-client';
-import { http } from '../../lib/apiV2';
+import { http } from '../../lib/api';
 import { useInitializeUsersDetails } from '../../hooks/useInitializeUsersDetails';
 import { UsersDetailsAtom } from '../../atoms/admin/UsersDetailsAtom';
 import { useAtom } from 'jotai';
