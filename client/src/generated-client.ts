@@ -669,7 +669,6 @@ export interface ResetPasswordResponseDto {
 
 export interface ResetPasswordDto {
     password?: string;
-    userId?: string;
 }
 
 export interface UsersDetailsDto {

@@ -81,6 +81,7 @@ public static class RestStartupExtensions
         services.AddAuthorization(options =>
         {
             options.AddPolicy("AdminOnly", policy => policy.RequireRole(Roles.AdminRole));
+            options.AddPolicy("ClientOnly", policy => policy.RequireRole(Roles.UserRole));
         });
 
 

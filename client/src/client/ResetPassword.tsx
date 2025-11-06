@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
+import { http } from '../lib/apiV2';
+import { useAuth } from '../contexts/useAuth';
 
 export function ResetPassword() {
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { login, user } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -18,22 +21,30 @@ export function ResetPassword() {
         }
         setLoading(true);
         try {
-            const token = localStorage.getItem('temp_auth_jwt');
-            const res = await fetch('/api/client/reset-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ newPassword: password }),
-            });
-            if (!res.ok) throw new Error('Failed to reset password');
-            localStorage.removeItem('temp_auth_jwt');
-            toast.success('Password changed successfully. Please log in again.');
-            navigate('/login');
+            const response = await http.auth.resetPassword({ password });
+            if (!response.status) {
+                toast.error(response.message ?? 'Error resetting password. Please try again.');
+                return;
+            }
+
+            const result = await login(user?.email!, password);
+
+            if (result.mustChangePassword) {
+                toast.error('Unexpected issue: account still requires password change.');
+                navigate('/reset-password');
+                return;
+            }
+
+            toast.success('Password changed successfully!');
+            navigate(result.role === 'admin' ? '/admin' : '/client', { replace: true });
+
         } catch (err) {
-            toast.error('Something went wrong');
+            console.error(err);
+            toast.error('Something went wrong while resetting password.');
+
         } finally {
+            localStorage.removeItem('temp_auth_jwt');
+            localStorage.removeItem('temp_auth_user');
             setLoading(false);
         }
     };

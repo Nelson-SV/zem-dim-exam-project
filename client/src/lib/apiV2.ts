@@ -19,27 +19,33 @@ export class ApiClient {
     private _auth: AuthClient | null = null;
 
 
-constructor() {
-        this.baseUrl = url ;
+    constructor() {
+        this.baseUrl = url;
     }
 
     private createHttpClient() {
-        const jwt = localStorage.getItem('auth_jwt');
-
         return {
             fetch: (url: RequestInfo, init?: RequestInit) => {
-                // Add auth headers if JWT exists and URL is to our API
-                if (jwt && url.toString().startsWith(this.baseUrl)) {
-                    return fetch(url, {
+                const u = typeof url === 'string' ? url : url.toString();
+
+                // If the call is for reset-password, prefer the temp token
+                const temp = localStorage.getItem('temp_auth_jwt');
+                const auth = localStorage.getItem('auth_jwt');
+
+                const isResetPassword = u.toLowerCase().includes('/api/auth/resetpassword');
+                const jwt = (isResetPassword && temp) ? temp : auth;
+
+                if (jwt && u.startsWith(this.baseUrl)) {
+                    return fetch(u, {
                         ...init,
                         headers: {
                             ...init?.headers,
-                            'Authorization': `Bearer ${jwt}`
-                        }
+                            'Authorization': `Bearer ${jwt}`,
+                        },
                     });
                 }
-                return fetch(url, init);
-            }
+                return fetch(u, init);
+            },
         };
     }
 

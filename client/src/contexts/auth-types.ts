@@ -6,10 +6,15 @@ export interface User {
     lastName: string;
 }
 
+export type LoginResult = {
+  mustChangePassword: boolean;
+  role?: 'admin' | 'client'; // present when not mustChangePassword
+};
+
 export interface AuthContextType {
     user: User | null;
     isLoading: boolean;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<LoginResult>;
     logout: () => void;
     token: string | null;
 }

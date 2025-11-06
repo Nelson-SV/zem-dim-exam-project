@@ -30,12 +30,14 @@ export function ClientManagementPage() {
   const [selectedUser, setSelectedUser] = useState<UsersDetailsDto | null>(null);
   const [usersDetails, setUsersDetails] = useAtom(UsersDetailsAtom);
   const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false);
+  const [reloadFlag, setReloadFlag] = useState(0);
 
   const { totalPages, totalItems } = useInitializeUsersDetails({
     page: currentPage,
     pageSize: 9,
     search: debouncedSearch,
-    filter: isActiveFilter
+    filter: isActiveFilter,
+    reloadFlag
   });
 
   useEffect(() => {
@@ -48,7 +50,7 @@ export function ClientManagementPage() {
       await http.userManagement.registerUser(userData).then(r => {
         if (r !== null || r !== undefined) {
           setCurrentPage(1);
-          //setUsersDetails((prevUsers) => [...prevUsers, r]);
+          setReloadFlag(prev => prev + 1);
           toast.success("User added successfully.");
 
         } else {
