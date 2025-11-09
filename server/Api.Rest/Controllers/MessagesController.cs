@@ -105,11 +105,9 @@ public class MessagesController : ControllerBase
         foreach (var c in User?.Claims ?? Enumerable.Empty<Claim>())
             Console.WriteLine($"{c.Type}: {c.Value}");
 #endif
-        var userIdClaim =
-            User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? // ← у твоїх логах це є
-            User.FindFirst("Id")?.Value ??
-            User.FindFirst("sub")?.Value ??
-            User.FindFirst("nameid")?.Value;
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
+        Console.WriteLine("JWT USER ID HERE: " + userIdClaim);
 
         if (string.IsNullOrWhiteSpace(userIdClaim))
             throw new UnauthorizedAccessException("User ID not found in token");

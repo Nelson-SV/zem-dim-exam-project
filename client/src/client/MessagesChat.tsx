@@ -104,6 +104,8 @@ export function MessagesChat({ projectId, receiverId, receiverName }: Props) {
     off = chatService.onMessage(async (m) => {
       if (m.projectId !== projectId) return;
 
+      console.log("SENDER: " + m.senderId);
+      console.log("RECEIVER: " + m.receiverId);
 
       if (receivedIdsRef.current.has(m.id)) {
         // console.debug('⚠️ Duplicate message prevented:', m.id);

@@ -29,6 +29,7 @@ export default function Navigation({ role, links }: NavigationProps) {
     const loadUnreadCount = async () => {
         try {
             const count = await http.messages.getTotalUnreadCount();
+            console.log("UNREAD NUMBER: " + count);
             setUnreadCount(count);
         } catch (err) {
             console.error('Failed to load unread count:', err);
@@ -37,6 +38,8 @@ export default function Navigation({ role, links }: NavigationProps) {
 
     // 1) Load the number of unread messages when mounting + every 30 seconds
     useEffect(() => {
+        console.log("USER FRONTEND: " + user?.id);
+        console.log("TOKEN FRONTEND: " + token);
         if (!user?.id || !token) return;
         
         loadUnreadCount();
