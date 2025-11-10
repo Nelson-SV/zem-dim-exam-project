@@ -5,30 +5,14 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
+import RoomViewer from '../components/3d-files/RoomViewer';
 
 export function Viewer3D() {
-  const [rotation, setRotation] = useState(0);
-  const [zoom, setZoom] = useState(1);
-
   const scans = [
     {
       id: '1',
-      name: 'Living Room',
-      area: '45 m²',
-      date: '2025-01-05',
-      stage: 'Finishing Works'
-    },
-    {
-      id: '2',
-      name: 'Kitchen',
-      area: '25 m²',
-      date: '2025-01-05',
-      stage: 'Finishing Works'
-    },
-    {
-      id: '3',
-      name: 'Primary Bedroom',
-      area: '35 m²',
+      name: 'Room 1',
+      area: '123 m²',
       date: '2025-01-06',
       stage: 'Finishing Works'
     }
@@ -47,19 +31,11 @@ export function Viewer3D() {
         {/* 3D Viewer */}
         <Card className="lg:col-span-3 overflow-hidden">
           {/* Canvas */}
-          <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 relative flex items-center justify-center">
+          <div className="aspect-video bg-linear-to-br from-muted to-muted/50 relative flex items-center justify-center">
             {/* Placeholder 3D visualization */}
-            <div 
-              className="w-64 h-64 bg-gradient-to-br from-[#F97316] to-[#F59E0B] opacity-20 transition-all"
-              style={{
-                transform: `rotate(${rotation}deg) scale(${zoom})`,
-              }}
-            >
-              <div className="absolute inset-4 border-4 border-white/30" />
-              <div className="absolute inset-8 border-4 border-white/30" />
-              <div className="absolute inset-12 border-4 border-white/30" />
-            </div>
-            
+
+            <RoomViewer />
+
             <div className="absolute top-4 left-4">
               <Badge className="bg-white/90 text-foreground">
                 {selectedScan.name}
@@ -133,11 +109,10 @@ export function Viewer3D() {
               <button
                 key={scan.id}
                 onClick={() => setSelectedScan(scan)}
-                className={`w-full p-4 rounded-lg border text-left transition-all ${
-                  selectedScan.id === scan.id
-                    ? 'bg-primary/10 border-primary'
-                    : 'hover:bg-muted/50'
-                }`}
+                className={`w-full p-4 rounded-lg border text-left transition-all ${selectedScan.id === scan.id
+                  ? 'bg-primary/10 border-primary'
+                  : 'hover:bg-muted/50'
+                  }`}
               >
                 <p className="mb-1">{scan.name}</p>
                 <p className="text-muted-foreground">{scan.area}</p>
@@ -153,7 +128,7 @@ export function Viewer3D() {
       </div>
 
       {/* Info Card */}
-      <Card className="p-6 bg-gradient-to-r from-[#3B82F6]/10 to-[#F97316]/10 border-[#3B82F6]/20">
+      <Card className="p-6 bg-linear-to-r from-[#3B82F6]/10 to-[#F97316]/10 border-[#3B82F6]/20">
         <div className="flex items-start gap-4">
           <div className="p-3 rounded-lg bg-[#3B82F6]/10">
             <Ruler className="size-6 text-[#3B82F6]" />
