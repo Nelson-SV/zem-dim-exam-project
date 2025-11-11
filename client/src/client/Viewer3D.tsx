@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RotateCw, ZoomIn, ZoomOut, Download, Maximize2, Ruler } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -19,6 +19,8 @@ export function Viewer3D() {
   ];
 
   const [selectedScan, setSelectedScan] = useState(scans[0]);
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
 
   return (
     <div className="space-y-6">
@@ -30,11 +32,14 @@ export function Viewer3D() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* 3D Viewer */}
         <Card className="lg:col-span-3 overflow-hidden">
-          {/* Canvas */}
           <div className="aspect-video bg-linear-to-br from-muted to-muted/50 relative flex items-center justify-center">
-            {/* Placeholder 3D visualization */}
-
-            <RoomViewer />
+            <RoomViewer
+              zoom={zoom}
+              rotation={rotation}
+              onZoomIn={() => setZoom(z => Math.min(2, z + 0.1))}
+              onZoomOut={() => setZoom(z => Math.max(0.5, z - 0.1))}
+              onRotate={() => setRotation(r => r + 45)}
+            />
 
             <div className="absolute top-4 left-4">
               <Badge className="bg-white/90 text-foreground">
@@ -42,35 +47,6 @@ export function Viewer3D() {
               </Badge>
             </div>
 
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-center gap-2">
-              <Button
-                variant="secondary"
-                size="icon"
-                onClick={() => setRotation(r => r - 45)}
-              >
-                <RotateCw className="size-4" />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
-              >
-                <ZoomOut className="size-4" />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                onClick={() => setZoom(z => Math.min(2, z + 0.1))}
-              >
-                <ZoomIn className="size-4" />
-              </Button>
-              <Button variant="secondary" size="icon">
-                <Ruler className="size-4" />
-              </Button>
-              <Button variant="secondary" size="icon">
-                <Maximize2 className="size-4" />
-              </Button>
-            </div>
           </div>
 
           {/* Details */}
@@ -102,8 +78,14 @@ export function Viewer3D() {
         </Card>
 
         {/* Scans List */}
-        <Card className="p-4">
-          <h4 className="mb-4">Available scans</h4>
+        <Card className="pl-4 pr-4">
+          <div className="pb-4 border-b">
+            <p className="text-muted-foreground mb-2">Total scans</p>
+            <p className="text-2xl">{scans.length}</p>
+          </div>
+
+          <h4>Available scans</h4>
+
           <div className="space-y-2">
             {scans.map(scan => (
               <button
@@ -119,29 +101,8 @@ export function Viewer3D() {
               </button>
             ))}
           </div>
-
-          <div className="mt-6 pt-4 border-t">
-            <p className="text-muted-foreground mb-2">Total scans</p>
-            <p className="text-2xl">{scans.length}</p>
-          </div>
         </Card>
       </div>
-
-      {/* Info Card */}
-      <Card className="p-6 bg-linear-to-r from-[#3B82F6]/10 to-[#F97316]/10 border-[#3B82F6]/20">
-        <div className="flex items-start gap-4">
-          <div className="p-3 rounded-lg bg-[#3B82F6]/10">
-            <Ruler className="size-6 text-[#3B82F6]" />
-          </div>
-          <div>
-            <h4 className="mb-1">How to use the 3D scans?</h4>
-            <p className="text-muted-foreground">
-              Use the rotate and zoom tools to inspect each room in detail.
-              Select the measurement tool to get accurate element dimensions.
-            </p>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }
