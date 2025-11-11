@@ -26,7 +26,6 @@ export function Viewer3D() {
     <div className="space-y-6">
       <div>
         <h2 className="mb-1">3D Room Scans</h2>
-        <p className="text-muted-foreground">Interactive models of your home</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

@@ -5,7 +5,7 @@ import { PerspectiveCamera, MathUtils } from 'three';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import RoomModel from './RoomModel';
 import { Button } from '../ui/button';
-import { Maximize2, RotateCw, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { Maximize2, Minimize2, RotateCw, X, ZoomIn, ZoomOut } from 'lucide-react';
 
 interface RoomViewerProps {
     zoom: number;
@@ -57,20 +57,40 @@ const RoomViewer = ({
         if (!elem) return;
 
         if (!document.fullscreenElement) {
+            setIsFullscreen(true);
             await elem.requestFullscreen?.();
         } else {
+            setIsFullscreen(false);
             await document.exitFullscreen?.();
         }
+
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
     };
 
 
-    // Keep internal state in sync + fix R3F resize
+    // Handle fullscreen changes properly (fix stretching after exit)
     useEffect(() => {
         const handleFullscreenChange = () => {
             const active = !!document.fullscreenElement;
             setIsFullscreen(active);
-            // Force resize for R3F
-            window.dispatchEvent(new Event('resize'));
+
+            // Force React Three Fiber to recalc
+            const event = new Event('resize');
+            window.dispatchEvent(event);
+
+            // Also manually resize the canvas to container size
+            const container = containerRef.current;
+            const canvas = container?.querySelector('canvas');
+            if (container && canvas) {
+                const { width, height } = container.getBoundingClientRect();
+                canvas.style.width = `${width}px`;
+                canvas.style.height = `${height}px`;
+            }
+
+            // Add a small delay to ensure proper recalculation after fullscreen exit
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+            }, 300);
         };
 
         document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -83,7 +103,8 @@ const RoomViewer = ({
     return (
         <div
             ref={containerRef}
-            className="w-full h-full relative rounded-xl overflow-hidden"
+            className={`relative bg-black rounded-xl overflow-hidden transition-all duration-300 
+                ${isFullscreen ? 'fixed inset-0 z-50' : 'w-full aspect-video'}`}
         >
             <Canvas
                 camera={{ position: [0, 2, 5], fov: 50 }}
@@ -109,7 +130,7 @@ const RoomViewer = ({
                     <ZoomIn className="size-4" />
                 </Button>
                 <Button size="icon" onClick={toggleFullscreen}>
-                    <Maximize2 className="size-4" />
+                    {isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
                 </Button>
             </div>
         </div >
