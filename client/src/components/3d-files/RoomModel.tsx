@@ -1,7 +1,7 @@
 import { useGLTF } from '@react-three/drei'
 
-const RoomModel = () => {
-    const { scene } = useGLTF('https://trrlwsxkumccntdwasqa.supabase.co/storage/v1/object/public/3d-files/8.10.2025.glb')
+const RoomModel = ({ url }: { url: string }) => {
+    const { scene } = useGLTF(url);
     return <primitive object={scene} scale={1} />
 }
 

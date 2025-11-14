@@ -5,7 +5,7 @@ import { PerspectiveCamera, MathUtils } from 'three';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import RoomModel from './RoomModel';
 import { Button } from '../ui/button';
-import { Maximize2, Minimize2, RotateCw, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { Maximize2, Minimize2, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 
 interface RoomViewerProps {
     zoom: number;
@@ -13,6 +13,7 @@ interface RoomViewerProps {
     onZoomIn: () => void;
     onZoomOut: () => void;
     onRotate: () => void;
+    modelUrl: string;
 }
 
 const RoomViewer = ({
@@ -21,6 +22,7 @@ const RoomViewer = ({
     onZoomIn,
     onZoomOut,
     onRotate,
+    modelUrl,
 }: RoomViewerProps) => {
 
     const controlsRef = useRef<ThreeOrbitControls | null>(null);
@@ -113,7 +115,7 @@ const RoomViewer = ({
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[10, 10, 5]} intensity={1} />
                 <Suspense fallback={null}>
-                    <RoomModel />
+                    <RoomModel url={modelUrl} />
                     <Environment preset="city" />
                 </Suspense>
                 <OrbitControls ref={controlsRef} enablePan enableZoom />

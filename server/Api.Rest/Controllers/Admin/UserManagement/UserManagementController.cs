@@ -1,6 +1,7 @@
 using Application.Interfaces.Admin.UserManagement;
 using Application.Models;
 using Application.Models.Dtos.UserManagement;
+using Application.Models.Enums;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,7 @@ public class UserManagementController(IUserManagementService userManagementServi
     public const string GetAllUsersRoute = ControllerRoute + nameof(GetAllUsers);
     
     [HttpPost]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = AuthorizationRoles.Admin)]
     [Route(RegisterUserRoute)]
     public async Task<ActionResult<UsersDetailsDto>> RegisterUser(
         [FromBody] RegisterRequestDto dto,
@@ -33,7 +34,7 @@ public class UserManagementController(IUserManagementService userManagementServi
     }
     
     [HttpPut]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = AuthorizationRoles.Admin)]
     [Route(UpdateUserRoute)]
     public async Task<ActionResult<UsersDetailsDto>> UpdateUser(
         [FromBody] UpdateRequestDto dto,
@@ -50,7 +51,7 @@ public class UserManagementController(IUserManagementService userManagementServi
     }
     
     [HttpDelete]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = AuthorizationRoles.Admin)]
     [Route(DeleteUserRoute)]
     public async Task<ActionResult<DeleteResponseDto>> DeleteUser([FromQuery] string userId)
     {
@@ -64,7 +65,7 @@ public class UserManagementController(IUserManagementService userManagementServi
     }
     
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Policy = AuthorizationRoles.Admin)]
     [Route(GetAllUsersRoute)]
     public async Task<ActionResult<GetAllUsersResponseDto>> GetAllUsers(
         [FromQuery] int page = 1, 

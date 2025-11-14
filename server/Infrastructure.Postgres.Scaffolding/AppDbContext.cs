@@ -107,66 +107,57 @@ public partial class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<Message>(entity =>
-{
-    entity.HasKey(e => e.Id).HasName("messages_pkey");
+        {
+            entity.HasKey(e => e.Id).HasName("messages_pkey");
 
-    entity.ToTable("messages");
+            entity.ToTable("messages");
 
-    entity.HasIndex(e => e.Createdat, "idx_messages_date").IsDescending();
-    entity.HasIndex(e => e.Projectid, "idx_messages_project");
-    entity.HasIndex(e => e.Receiverid, "idx_messages_receiver");
-    entity.HasIndex(e => e.Senderid, "idx_messages_sender");
-    entity.HasIndex(e => new { e.Receiverid, e.Isread }, "idx_messages_unread")
-        .HasFilter("(isread = false)");
+            entity.HasIndex(e => e.Createdat, "idx_messages_date").IsDescending();
 
-    entity.Property(e => e.Id)
-        .HasDefaultValueSql("gen_random_uuid()")
-        .HasColumnName("id");
-    
-    entity.Property(e => e.Attachmenttype)
-        .HasMaxLength(50)
-        .HasColumnName("attachmenttype");
-    
-    entity.Property(e => e.Attachmenturl)
-        .HasMaxLength(500)
-        .HasColumnName("attachmenturl");
-    
-    entity.Property(e => e.Content).HasColumnName("content");
-    
-    // ✅ ВИПРАВЛЕНО: використовуємо timestamptz (timestamp WITH time zone)
-    entity.Property(e => e.Createdat)
-        .HasDefaultValueSql("CURRENT_TIMESTAMP")
-        .HasColumnType("timestamptz")  // ← ЗМІНЕНО
-        .HasColumnName("createdat");
-    
-    entity.Property(e => e.Isread)
-        .HasDefaultValue(false)
-        .HasColumnName("isread");
-    
-    entity.Property(e => e.Projectid).HasColumnName("projectid");
-    
-    // ✅ ВИПРАВЛЕНО: також для readat
-    entity.Property(e => e.Readat)
-        .HasColumnType("timestamptz")  // ← ЗМІНЕНО
-        .HasColumnName("readat");
-    
-    entity.Property(e => e.Receiverid).HasColumnName("receiverid");
-    entity.Property(e => e.Senderid).HasColumnName("senderid");
+            entity.HasIndex(e => e.Projectid, "idx_messages_project");
 
-    entity.HasOne(d => d.Project).WithMany(p => p.Messages)
-        .HasForeignKey(d => d.Projectid)
-        .HasConstraintName("messages_projectid_fkey");
+            entity.HasIndex(e => e.Receiverid, "idx_messages_receiver");
 
-    entity.HasOne(d => d.Receiver).WithMany(p => p.MessageReceivers)
-        .HasForeignKey(d => d.Receiverid)
-        .OnDelete(DeleteBehavior.ClientSetNull)
-        .HasConstraintName("messages_receiverid_fkey");
+            entity.HasIndex(e => e.Senderid, "idx_messages_sender");
 
-    entity.HasOne(d => d.Sender).WithMany(p => p.MessageSenders)
-        .HasForeignKey(d => d.Senderid)
-        .OnDelete(DeleteBehavior.ClientSetNull)
-        .HasConstraintName("messages_senderid_fkey");
-});
+            entity.HasIndex(e => new { e.Receiverid, e.Isread }, "idx_messages_unread").HasFilter("(isread = false)");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id");
+            entity.Property(e => e.Attachmenttype)
+                .HasMaxLength(50)
+                .HasColumnName("attachmenttype");
+            entity.Property(e => e.Attachmenturl)
+                .HasMaxLength(500)
+                .HasColumnName("attachmenturl");
+            entity.Property(e => e.Content).HasColumnName("content");
+            entity.Property(e => e.Createdat)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnName("createdat");
+            entity.Property(e => e.Isread)
+                .HasDefaultValue(false)
+                .HasColumnName("isread");
+            entity.Property(e => e.Projectid).HasColumnName("projectid");
+            entity.Property(e => e.Readat).HasColumnName("readat");
+            entity.Property(e => e.Receiverid).HasColumnName("receiverid");
+            entity.Property(e => e.Senderid).HasColumnName("senderid");
+
+            entity.HasOne(d => d.Project).WithMany(p => p.Messages)
+                .HasForeignKey(d => d.Projectid)
+                .HasConstraintName("messages_projectid_fkey");
+
+            entity.HasOne(d => d.Receiver).WithMany(p => p.MessageReceivers)
+                .HasForeignKey(d => d.Receiverid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("messages_receiverid_fkey");
+
+            entity.HasOne(d => d.Sender).WithMany(p => p.MessageSenders)
+                .HasForeignKey(d => d.Senderid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("messages_senderid_fkey");
+        });
+
         modelBuilder.Entity<Milestone>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("milestones_pkey");
@@ -335,6 +326,8 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => new { e.Startdate, e.Plannedenddate }, "idx_projects_dates");
 
+            entity.HasIndex(e => e.Isdeleted, "idx_projects_isdeleted").HasFilter("(isdeleted = false)");
+
             entity.HasIndex(e => e.Status, "idx_projects_status");
 
             entity.Property(e => e.Id)
@@ -356,6 +349,9 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdat");
             entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Isdeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("isdeleted");
             entity.Property(e => e.Latitude)
                 .HasPrecision(10, 8)
                 .HasColumnName("latitude");

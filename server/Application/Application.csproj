@@ -28,8 +28,8 @@
 
   <ItemGroup>
     <Folder Include="Interfaces\Dtos\" />
-    <Folder Include="Interfaces\User\" />
-    <Folder Include="Services\User\" />
+    <Folder Include="Interfaces\Users\" />
+    <Folder Include="Services\Users\" />
 
   </ItemGroup>
 

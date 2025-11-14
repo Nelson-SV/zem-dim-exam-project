@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import Navigation from "./Navigation";
 import { AdminDashboard } from "../admin/AdminDashboard";
 import { AdminProjectsList } from "../admin/AdminProjectsList";
@@ -17,15 +17,26 @@ const adminLinks = [
   { to: "settings", label: "Settings" },
 ];
 
+function ProjectDetailsWrapper() {
+  const navigate = useNavigate();
+  return <ProjectDetails projectId="1" onBack={() => navigate("/admin/projects")} />;
+}
+
 export function AdminNavigation() {
+  const navigate = useNavigate();
+
+  const handleViewProject = (projectId: string) => {
+    navigate(`/admin/projects/${projectId}`);
+  };
+
   return (
     <>
       <Navigation role="admin" links={adminLinks} />
       <Routes>
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="projects" element={<AdminProjectsList />} />
-        <Route path="projects/:id" element={<ProjectDetails projectId="1" onBack={() => { <Navigate to="projects" replace /> }} />} />
+        <Route path="dashboard" element={<AdminDashboard onViewProject={handleViewProject} />} />
+        <Route path="projects" element={<AdminProjectsList onViewProject={handleViewProject} />} />
+        <Route path="projects/:id" element={<ProjectDetailsWrapper />} />
         <Route path="clients" element={<ClientManagementPage />} />
         <Route path="messages" element={<MessagesPage />} />
         <Route path="analytics" element={<AdminAnalytics />} />

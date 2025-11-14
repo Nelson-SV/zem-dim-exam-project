@@ -195,6 +195,7 @@ CREATE TABLE projects (
     thumbnailurl character varying(500),
     createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
     updatedat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    isdeleted boolean DEFAULT FALSE,
     CONSTRAINT projects_pkey PRIMARY KEY (id),
     CONSTRAINT projects_clientid_fkey FOREIGN KEY (clientid) REFERENCES users (id) ON DELETE CASCADE
 );
@@ -238,10 +239,10 @@ CREATE TABLE messages (
     receiverid uuid NOT NULL,
     content text NOT NULL,
     isread boolean DEFAULT FALSE,
-    readat timestamptz,
+    readat timestamp with time zone,
     attachmenturl character varying(500),
     attachmenttype character varying(50),
-    createdat timestamptz DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT messages_pkey PRIMARY KEY (id),
     CONSTRAINT messages_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
     CONSTRAINT messages_receiverid_fkey FOREIGN KEY (receiverid) REFERENCES users (id),
@@ -412,6 +413,9 @@ CREATE INDEX idx_projects_client ON projects (clientid);
 
 
 CREATE INDEX idx_projects_dates ON projects (startdate, plannedenddate);
+
+
+CREATE INDEX idx_projects_isdeleted ON projects (isdeleted) WHERE (isdeleted = false);
 
 
 CREATE INDEX idx_projects_status ON projects (status);
