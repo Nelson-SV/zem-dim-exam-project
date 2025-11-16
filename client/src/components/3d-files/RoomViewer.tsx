@@ -105,7 +105,7 @@ const RoomViewer = ({
     return (
         <div
             ref={containerRef}
-            className={`relative bg-black rounded-xl overflow-hidden transition-all duration-300 
+            className={`relative bg-gray-800 rounded-xl overflow-hidden transition-all duration-300 
                 ${isFullscreen ? 'fixed inset-0 z-50' : 'w-full aspect-video'}`}
         >
             <Canvas
