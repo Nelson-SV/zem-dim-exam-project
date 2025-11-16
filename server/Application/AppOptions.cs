@@ -11,4 +11,7 @@ public sealed class AppOptions
     public int WS_PORT { get; set; } = 8181;
     public int REST_PORT { get; set; } = 5001;
     public string SendGridApiKey { get; set; }
+    [Required] public string SupabaseUrl { get; set; } = string.Empty!;
+    [Required] public string SupabaseKey { get; set; } = string.Empty!;
+
 }
