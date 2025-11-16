@@ -10,6 +10,7 @@ public class User3DScanDto
     public DateTime? ScannedAt { get; set; }
     public string FileUrl { get; set; } = string.Empty;
     public string FileFormat { get; set; } = string.Empty;
+    public Guid ProjectId { get; set; }
     public string ProjectTitle { get; set; } = string.Empty;
     public string? Notes { get; set; }
 
@@ -23,6 +24,7 @@ public class User3DScanDto
             ScannedAt = scan.Scannedat,
             FileUrl = scan.Fileurl,
             FileFormat = scan.Fileformat!,
+            ProjectId = scan.Projectid,
             ProjectTitle = scan.Project?.Title ?? "",
             Notes = scan.Notes
         };

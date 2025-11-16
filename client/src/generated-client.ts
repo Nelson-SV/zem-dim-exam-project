@@ -707,6 +707,7 @@ export interface User3DScanDto {
     scannedAt?: Date | undefined;
     fileUrl?: string;
     fileFormat?: string;
+    projectId?: string;
     projectTitle?: string;
     notes?: string | undefined;
 }

@@ -582,6 +582,10 @@
           "fileFormat": {
             "type": "string"
           },
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
           "projectTitle": {
             "type": "string"
           },
