@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/useAuth';
-import { getUserProjects, getProjectParticipants } from '../lib/api';
 import { ProjectsSidebar } from './ProjectsSidebar';
 import { MessagesChat } from './MessagesChat';
-import type { ProjectDto, ProjectParticipantsDto } from '../lib/types';
 import { Card } from '../components/ui/card';
 import { MessageSquare, Loader2 } from 'lucide-react';
+import { http } from '../lib/api';
+import type { ProjectDto, ProjectParticipantsDto } from '../generated-client';
 
 export function MessagesPage() {
   const { user } = useAuth();
@@ -18,7 +18,7 @@ export function MessagesPage() {
     if (!user) return;
     (async () => {
       try {
-        const data = await getUserProjects(user.id);
+        const data = await http.projects.getUserProjects(user.id);
         setProjects(data ?? []);
       } catch (err) {
         console.error('Failed to load projects:', err);
@@ -38,7 +38,7 @@ export function MessagesPage() {
 
     (async () => {
       try {
-        const data = await getProjectParticipants(selectedProjectId);
+        const data = await http.projects.getProjectParticipants(selectedProjectId);
         setParticipants(data);
       } catch (err) {
         console.error('❌ Failed to load participants:', err);

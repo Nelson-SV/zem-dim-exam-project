@@ -247,7 +247,7 @@ export function Calculator() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-r from-[#F97316] to-[#F59E0B] rounded-lg text-white">
+                  <div className="p-4 bg-linear-to-r from-[#F97316] to-[#F59E0B] rounded-lg text-white">
                     <p className="text-white/80 mb-1">Estimated cost</p>
                     <h2 className="mb-1">
                       {result.min.toLocaleString()} - {result.max.toLocaleString()} ₴

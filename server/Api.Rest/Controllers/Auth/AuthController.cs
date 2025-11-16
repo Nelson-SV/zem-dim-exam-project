@@ -3,7 +3,9 @@ using Api.Rest.AuthExtensions;
 using Application.Interfaces.Security;
 using Application.Models;
 using Application.Models.Dtos.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Api.Rest.Controllers.Auth;
 
@@ -32,14 +34,16 @@ public class AuthController(ISecurityService securityService) : ControllerBase
     }
     
     [HttpPost]
+    [Authorize(Policy = "ClientOnly")]
     [Route(ResetPasswordRoute)]
     public async Task<ActionResult<ResetPasswordResponseDto>> ResetPassword([FromBody] ResetPasswordDto dto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
 
-        var resetPasswordResponseDto = await securityService.ResetPasswordAsync(Guid.Parse(dto.userId), dto.password);
+        var resetPasswordResponseDto = await securityService.ResetPasswordAsync(Guid.Parse(userId), dto.password);
         
         if (!resetPasswordResponseDto.Status)
         {

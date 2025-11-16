@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 
 export function Login() {
     const navigate = useNavigate();
-    const { login, user } = useAuth();
+    const { login } = useAuth();
 
     // Login form state
     const [loginEmail, setLoginEmail] = useState('');
@@ -23,16 +23,20 @@ export function Login() {
         e.preventDefault();
         setIsLoginLoading(true);
         try {
-            await login(loginEmail, loginPassword);
-            navigate(user?.role === 'admin' ? '/admin' : '/client', { replace: true });
+
+            const result = await login(loginEmail, loginPassword);
+
+            if (result.mustChangePassword) {
+                toast('You must change your password before continuing.');
+                navigate('/reset-password', { replace: true });
+                return;
+            }
+
+            navigate(result.role === 'admin' ? '/admin' : '/client', { replace: true });
             toast.success('Successfully logged in!');
         } catch (error: unknown) {
-            if (error.message === 'mustChangePassword') {
-                toast('You must change your password before continuing.');
-                navigate('/reset-password');
-            } else {
-                toast.error('Login failed. Please check your credentials.');
-            }
+            toast.error(error instanceof Error ? error.message : 'Login failed. Please check your credentials.');
+
         } finally {
             setIsLoginLoading(false);
         }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Bell, Mail, Shield, Users, Building, Palette } from 'lucide-react';
+import { Save, Bell, Shield, Users, Building } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Card } from '../components/ui/card';

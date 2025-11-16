@@ -9,7 +9,6 @@ using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
 using Application.Interfaces.Security;
 using Application.Models;
 using Application.Models.Dtos.Auth;
-using Application.Models.Dtos.UserManagement;
 using Application.Models.Security;
 using JWT;
 using JWT.Algorithms;
