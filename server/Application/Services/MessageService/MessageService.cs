@@ -43,7 +43,7 @@ public class MessageService : IMessageService
             Isread = false,
             Attachmenturl = dto.AttachmentUrl,
             Attachmenttype = dto.AttachmentType,
-            // ✅ Для timestamptz ПОТРІБНО UTC!
+            // ✅ UTC is REQUIRED for timestamptz!
             Createdat = DateTime.UtcNow
         };
 

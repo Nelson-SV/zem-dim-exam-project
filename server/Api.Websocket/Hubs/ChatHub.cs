@@ -32,7 +32,7 @@ public class ChatHub : Hub
             text,
             from = GetUserName(),
             fromId = GetUserId().ToString(),
-            // ✅ Для timestamptz ПОТРІБНО UTC!
+            // ✅ UTC is REQUIRED for timestamptz!
             at = DateTime.UtcNow
         });
         Console.WriteLine($"📨 RAW by {GetUserName()} to {group}: {text}");

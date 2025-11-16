@@ -28,7 +28,7 @@ public class ChatSeeder
         var adminSalt = GenerateSalt();
         var clientSalt = GenerateSalt();
         
-        var now = DateTime.Now; // ← Використовуємо DateTime.Now замість UtcNow
+        var now = DateTime.Now; // ← Use DateTime.Now instead of UtcNow
 
         // Admin
         var admin = new User

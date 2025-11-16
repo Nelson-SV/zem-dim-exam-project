@@ -100,7 +100,7 @@ export class ApiClient {
     async uploadProjectImage(file: File): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
         const endpoint = `${this.baseUrl}/api/FileUpload/project-thumbnail`;
         const form = new FormData();
-        form.append("file", file); // ключ МАЄ бути "file"
+        form.append("file", file); // Key MUST be "file"
 
         const client = this.createHttpClient();
         const res = await client.fetch(endpoint, {

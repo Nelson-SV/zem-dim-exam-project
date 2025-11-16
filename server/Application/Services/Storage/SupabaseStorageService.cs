@@ -1,11 +1,11 @@
-using Application.Interfaces.Services;   // інтерфейс IStorageService тепер тут
+using Application.Interfaces.Services;   // The IStorageService interface now lives here
 using Supabase;
 
 namespace Application.Services.Storage;
 
 public class SupabaseStorageService : IStorageService
 {
-    // чітко вказуємо тип, щоб не було конфлікту з Supabase.Storage.Client
+    // Explicitly specify the type to avoid conflicts with Supabase.Storage.Client
     private readonly Supabase.Client _supabaseClient;
     private const string BUCKET_NAME = "Projects"; 
 
@@ -22,12 +22,12 @@ public class SupabaseStorageService : IStorageService
             var uniqueFileName = $"{Guid.NewGuid()}{extension}";
             var filePath = $"thumbnails/{uniqueFileName}";
 
-            // читаємо стрім у байти
+            // Read the incoming stream into bytes
             using var ms = new MemoryStream();
             await fileStream.CopyToAsync(ms);
             var bytes = ms.ToArray();
 
-            // ВАЖЛИВО: сигнатура Upload(path, bytes, options)
+            // IMPORTANT: the signature is Upload(path, bytes, options)
             await _supabaseClient
                 .Storage
                 .From(BUCKET_NAME)
@@ -52,7 +52,7 @@ public class SupabaseStorageService : IStorageService
     {
         try
         {
-            // Витягаємо відносний шлях у бакеті з публічного URL
+            // Extract the object path within the bucket from the public URL
             var uri = new Uri(fileUrl);
             var prefix = $"/storage/v1/object/public/{BUCKET_NAME}/";
             var fullPath = Uri.UnescapeDataString(uri.AbsolutePath);
@@ -60,9 +60,9 @@ public class SupabaseStorageService : IStorageService
             if (!fullPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 return false;
 
-            var filePath = fullPath.Substring(prefix.Length); // напр. "thumbnails/xxx.webp"
+            var filePath = fullPath.Substring(prefix.Length); // e.g. "thumbnails/xxx.webp"
 
-            // ВАЖЛИВО: Remove приймає IEnumerable<string>
+            // IMPORTANT: Remove expects IEnumerable<string>
             await _supabaseClient
                 .Storage
                 .From(BUCKET_NAME)
