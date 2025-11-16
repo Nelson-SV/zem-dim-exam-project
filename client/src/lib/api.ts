@@ -97,6 +97,24 @@ export class ApiClient {
         this._auth = null;
         this._user3DScans = null;
     }
+    async uploadProjectImage(file: File): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
+        const endpoint = `${this.baseUrl}/api/FileUpload/project-thumbnail`;
+        const form = new FormData();
+        form.append("file", file); // ключ МАЄ бути "file"
+
+        const client = this.createHttpClient();
+        const res = await client.fetch(endpoint, {
+            method: "POST",
+            body: form,
+            headers: { Accept: "application/json" },
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Upload failed (${res.status}): ${text}`);
+        }
+        return (await res.json()) as { url: string; fileName?: string; contentType?: string; size?: number };
+    }
 }
 
 // Create and export a singleton instance

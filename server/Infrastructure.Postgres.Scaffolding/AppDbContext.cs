@@ -346,7 +346,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Clientid).HasColumnName("clientid");
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdat");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Isdeleted)
@@ -381,7 +380,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("totalarea");
             entity.Property(e => e.Updatedat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("updatedat");
 
             entity.HasOne(d => d.Client).WithMany(p => p.Projects)
