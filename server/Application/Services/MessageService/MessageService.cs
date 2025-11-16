@@ -28,6 +28,10 @@ public class MessageService : IMessageService
         var receiver = await _userRepository.GetByIdAsync(dto.ReceiverId);
         if (receiver == null)
             throw new ArgumentException("Receiver not found");
+        
+        Console.WriteLine("SENDER: " + senderId);
+        
+        Console.WriteLine("RECEIVER: " + dto.ReceiverId);
 
         var message = new Message
         {

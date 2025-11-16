@@ -1,10 +1,10 @@
 import { useAtom } from "jotai";
 import { UsersDetailsAtom } from "../atoms/admin/UsersDetailsAtom";
 import { useEffect, useState } from "react";
-import { http } from "../lib/apiV2";
+import { http } from "../lib/api";
 import { toast } from "sonner";
 
-export function useInitializeUsersDetails({ page = 1, pageSize = 9, search = "", filter = false }) {
+export function useInitializeUsersDetails({ page = 1, pageSize = 9, search = "", filter = false, reloadFlag = 0 }) {
 
     const [, setUsersDetails] = useAtom(UsersDetailsAtom);
     const [totalItems, setTotalItems] = useState(0);
@@ -24,6 +24,6 @@ export function useInitializeUsersDetails({ page = 1, pageSize = 9, search = "",
                 const message = e.response?.data?.message || "An unexpected error occurred.";
                 toast.error(`Error: ${message}`);
             });
-    }, [page, pageSize, search, filter, setUsersDetails]);
+    }, [page, pageSize, search, filter, setUsersDetails, reloadFlag]);
     return { totalItems, totalPages };
 }

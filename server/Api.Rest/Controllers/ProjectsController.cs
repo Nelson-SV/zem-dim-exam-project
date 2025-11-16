@@ -1,4 +1,5 @@
 using Application.Interfaces.Services;
+using Application.Models.Dtos.Project;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Rest.Controllers;
@@ -16,7 +17,7 @@ public class ProjectsController : ControllerBase
 
     
     [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetUserProjects(Guid userId)
+    public async Task<ActionResult<List<ProjectDto>>> GetUserProjects(Guid userId)
     {
         try
         {
@@ -35,7 +36,7 @@ public class ProjectsController : ControllerBase
 
     
     [HttpGet("{projectId}")]
-    public async Task<IActionResult> GetProject(Guid projectId)
+    public async Task<ActionResult<ProjectDto>> GetProject(Guid projectId)
     {
         try
         {
@@ -53,7 +54,7 @@ public class ProjectsController : ControllerBase
 
     
     [HttpGet("{projectId}/participants")]
-    public async Task<IActionResult> GetProjectParticipants(Guid projectId)
+    public async Task<ActionResult<ProjectParticipantsDto>> GetProjectParticipants(Guid projectId)
     {
         try
         {

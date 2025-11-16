@@ -2,8 +2,8 @@ import { NavLink, useLocation } from "react-router-dom";
 import { NavigationBar } from "./NavigationBar";
 import { Badge } from "../components/ui/badge";
 import { useEffect, useState } from "react";
-import { getTotalUnreadCount, setupAuthHeader } from "../lib/api";
 import { useAuth } from "../contexts/useAuth";
+import { http } from "../lib/api";
 
 interface NavLinkItem {
     to: string;
@@ -28,7 +28,8 @@ export default function Navigation({ role, links }: NavigationProps) {
 
     const loadUnreadCount = async () => {
         try {
-            const count = await getTotalUnreadCount();
+            const count = await http.messages.getTotalUnreadCount();
+            console.log("UNREAD NUMBER: " + count);
             setUnreadCount(count);
         } catch (err) {
             console.error('Failed to load unread count:', err);
@@ -37,9 +38,9 @@ export default function Navigation({ role, links }: NavigationProps) {
 
     // 1) Load the number of unread messages when mounting + every 30 seconds
     useEffect(() => {
+        console.log("USER FRONTEND: " + user?.id);
+        console.log("TOKEN FRONTEND: " + token);
         if (!user?.id || !token) return;
-
-        setupAuthHeader(token);
         
         loadUnreadCount();
 

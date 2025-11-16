@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { Badge } from '../components/ui/badge';
-import { getProjectUnreadCount } from '../lib/api';
-import type { ProjectDto } from '../lib/types';
 import { useAuth } from '../contexts/useAuth';
+import { http } from '../lib/api';
+import type { ProjectDto } from '../generated-client';
 interface Props {
     projects: ProjectDto[];
     selectedProjectId: string | null;
@@ -23,8 +23,8 @@ export function ProjectsSidebar({ projects, selectedProjectId, onSelectProject }
             await Promise.all(
                 projects.map(async (project) => {
                     try {
-                        const count = await getProjectUnreadCount(project.id);
-                        counts[project.id] = count;
+                        const count = await http.messages.getProjectUnreadCount(project.id!);
+                        counts[project.id!] = count;
                     } catch (err) {
                         console.error(`Failed to load unread count for ${project.id}:`, err);
                     }
@@ -54,16 +54,16 @@ export function ProjectsSidebar({ projects, selectedProjectId, onSelectProject }
 
             <div className="overflow-y-auto h-[calc(100vh-12rem)]">
                 {projects.map((project) => {
-                    const unreadCount = unreadCounts[project.id] || 0;
+                    const unreadCount = unreadCounts[project.id!] || 0;
                     const isSelected = selectedProjectId === project.id;
 
                     return (
                         <button
                             key={project.id}
                             onClick={() => {
-                                onSelectProject(project.id);
-                                if ((unreadCounts[project.id] || 0) > 0) {
-                                    setUnreadCounts(prev => ({ ...prev, [project.id]: 0 }));
+                                onSelectProject(project.id!);
+                                if ((unreadCounts[project.id!] || 0) > 0) {
+                                    setUnreadCounts(prev => ({ ...prev, [project.id!]: 0 }));
                                 }
                             }}
                             className={`w-full p-4 border-b hover:bg-muted/50 transition-colors text-left relative ${
@@ -74,7 +74,7 @@ export function ProjectsSidebar({ projects, selectedProjectId, onSelectProject }
                                 <div className="relative">
                                     <Avatar className="size-10">
                                         <AvatarFallback className="bg-[#F97316] text-white">
-                                            {project.title.substring(0, 2).toUpperCase()}
+                                            {project.title!.substring(0, 2).toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
 

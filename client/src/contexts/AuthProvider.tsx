@@ -1,9 +1,9 @@
 // src/contexts/AuthProvider.tsx
 import { useEffect, useState, type ReactNode } from 'react';
 import { AuthContext } from './AuthContext';
-import type { User } from './auth-types';
-import { authClient, setupAuthHeader } from '../lib/api';
+import type { LoginResult, User } from './auth-types';
 import { chatService } from '../lib/chatService';
+import { http } from '../lib/api';
 
 
 function decodeJwt<T = any>(jwt: string): T {
@@ -16,10 +16,12 @@ function decodeJwt<T = any>(jwt: string): T {
 
     return JSON.parse(atob(base64));
 }
+
 function normalizeRole(r?: string): 'admin' | 'client' {
     const v = (r ?? '').toLowerCase();
     return v === 'admin' ? 'admin' : 'client';
 }
+
 function mapUserFromPayload(payload: any): User {
     const ROLE_CLAIM = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
     return {
@@ -54,8 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 setUser(parsed);
                 setToken(storedToken);
-                setupAuthHeader(storedToken);
-                
+
                 if (!chatService.isConnected() || connectedToken !== storedToken) {
                     chatService.connect(storedToken).then(() => setConnectedToken(storedToken)).catch(console.error);
                 }
@@ -67,12 +68,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
     }, []);
 
-    const login = async (email: string, password: string) => {
-        const { jwt, mustChangePassword } = await authClient.login({ email, password });
+    const login = async (email: string, password: string): Promise<LoginResult> => {
+        const { jwt, mustChangePassword } = await http.auth.login({ email, password });
 
         if (mustChangePassword) {
             localStorage.setItem('temp_auth_jwt', jwt);
-            throw new Error('mustChangePassword'); // we’ll handle this in Login page
+            const payload = decodeJwt<any>(jwt);
+            const userData = mapUserFromPayload(payload);
+            setUser(userData);
+            return { mustChangePassword: true };
         }
 
         const payload = decodeJwt<any>(jwt);
@@ -88,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await chatService.connect(jwt);
             setConnectedToken(jwt);
         }
+        return { mustChangePassword: false, role: userData.role };
     };
 
     const logout = () => {
