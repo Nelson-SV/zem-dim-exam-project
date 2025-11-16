@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { http } from "../lib/apiV2";
 import { toast } from "sonner";
 import type { User3DScanDto } from "../generated-client";
+import { http } from "../lib/api";
 
 export function useInitializeUser3DScans({ userId }: { userId?: string }) {
 

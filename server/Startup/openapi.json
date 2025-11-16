@@ -258,6 +258,40 @@
         }
       }
     },
+    "/api/client/3dscans/GetClientScans": {
+      "get": {
+        "tags": [
+          "User3DScans"
+        ],
+        "operationId": "User3DScans_GetClientScans",
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User3DScanDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/Login": {
       "post": {
         "tags": [
@@ -668,6 +702,46 @@
           "adminId": {
             "type": "string",
             "format": "guid"
+          }
+        }
+      },
+      "User3DScanDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomName": {
+            "type": "string"
+          },
+          "roomArea": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "scannedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "fileUrl": {
+            "type": "string"
+          },
+          "fileFormat": {
+            "type": "string"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectTitle": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
