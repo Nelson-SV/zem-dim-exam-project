@@ -22,10 +22,6 @@
   <ItemGroup>
     <None Remove="Properties\launchSettings.json" />
   </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Controllers\User\" />
-    </ItemGroup>
     
 </Project>
 

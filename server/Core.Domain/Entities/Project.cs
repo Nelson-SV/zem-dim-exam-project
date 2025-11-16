@@ -43,6 +43,8 @@ public partial class Project
 
     public DateTime? Updatedat { get; set; }
 
+    public bool? Isdeleted { get; set; }
+
     public virtual User Client { get; set; } = null!;
 
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();

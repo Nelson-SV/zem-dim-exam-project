@@ -2,7 +2,8 @@ import {
     UserManagementClient,
     ProjectsClient,
     MessagesClient,
-    AuthClient
+    AuthClient,
+    User3DScansClient
 } from '../generated-client';
 
 // const httpSchema= import.meta.env.VITE_API_HTTP_SCHEMA;
@@ -17,6 +18,8 @@ export class ApiClient {
     private _projects: ProjectsClient | null = null;
     private _messages: MessagesClient | null = null;
     private _auth: AuthClient | null = null;
+    private _user3DScans: User3DScansClient | null = null;
+
 
 
     constructor() {
@@ -79,12 +82,20 @@ export class ApiClient {
         return this._auth;
     }
 
+    get user3DScans() {
+        if (!this._user3DScans) {
+            this._user3DScans = new User3DScansClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._user3DScans;
+    }
+
     // Reset clients when authentication changes
     resetClients() {
         this._userManagement = null;
         this._projects = null;
         this._messages = null;
         this._auth = null;
+        this._user3DScans = null;
     }
 }
 

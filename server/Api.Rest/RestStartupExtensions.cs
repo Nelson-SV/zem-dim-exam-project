@@ -81,7 +81,7 @@ public static class RestStartupExtensions
         services.AddAuthorization(options =>
         {
             options.AddPolicy("AdminOnly", policy => policy.RequireRole(Roles.AdminRole));
-            options.AddPolicy("ClientOnly", policy => policy.RequireRole(Roles.UserRole));
+            options.AddPolicy("UserOnly", policy => policy.RequireRole(Roles.UserRole));
         });
 
 
@@ -91,11 +91,7 @@ public static class RestStartupExtensions
     public static WebApplication ConfigureRestApi(this WebApplication app)
     {
         app.UseExceptionHandler();
-
-        //Add authentication + authorization to the pipeline
-        app.UseAuthentication();
         app.UseMiddleware<JwtUserValidationMiddleware>();
-        app.UseAuthorization();
 
         app.MapControllers();
         app.UseCors(opts => opts.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());

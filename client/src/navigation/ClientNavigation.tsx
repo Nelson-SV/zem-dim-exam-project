@@ -10,7 +10,7 @@ import { MessagesPage } from "../client/MessagesPage";
 const clientLinks = [
   { to: "dashboard", label: "Dashboard" },
   { to: "gallery", label: "Gallery" },
-  { to: "3d", label: "3D Scans" },
+  { to: "3d", label: "Scans" },
   { to: "messages", label: "Messages" },
   { to: "documents", label: "Documents" },
   { to: "calculator", label: "Calculator" },
