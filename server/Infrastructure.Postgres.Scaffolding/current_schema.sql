@@ -193,8 +193,8 @@ CREATE TABLE projects (
     budget numeric(15,2),
     progresspercentage integer DEFAULT 0,
     thumbnailurl character varying(500),
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
-    updatedat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    updatedat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     isdeleted boolean DEFAULT FALSE,
     CONSTRAINT projects_pkey PRIMARY KEY (id),
     CONSTRAINT projects_clientid_fkey FOREIGN KEY (clientid) REFERENCES users (id) ON DELETE CASCADE

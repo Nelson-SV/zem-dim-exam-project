@@ -66,7 +66,7 @@ public class Program
         services.AddDataSourceAndRepositories();
         services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices(configuration);
-        
+        services.RegisterStorageServices(); 
         services.AddOpenApiDocument(conf =>
         {
             conf.DocumentProcessors.Add(new AddAllDerivedTypesProcessor());

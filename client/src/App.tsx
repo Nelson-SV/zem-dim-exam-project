@@ -7,12 +7,14 @@ import { RoleRedirect } from './navigation/RoleRedirect';
 import { AdminNavigation } from './navigation/AdminNavigation';
 import { ClientNavigation } from './navigation/ClientNavigation';
 import { ResetPassword } from './client/ResetPassword';
+import {Toaster} from "sonner";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
+          <Toaster position="top-right" />
+          <Routes>
           {/* Public route */}
           <Route path="/login" element={<Login />} />
           <Route path="/reset-password" element={<ResetPassword />} />

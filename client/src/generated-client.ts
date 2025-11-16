@@ -7,6 +7,137 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
+export class FileUploadClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    uploadProjectThumbnail(contentType: string | null | undefined, contentDisposition: string | null | undefined, headers: any[] | null | undefined, length: number | undefined, name: string | null | undefined, fileName: string | null | undefined): Promise<FileUploadResponseDto> {
+        let url_ = this.baseUrl + "/api/FileUpload/project-thumbnail";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (contentType !== null && contentType !== undefined)
+            content_.append("ContentType", contentType.toString());
+        if (contentDisposition !== null && contentDisposition !== undefined)
+            content_.append("ContentDisposition", contentDisposition.toString());
+        if (headers !== null && headers !== undefined)
+            headers.forEach(item_ => content_.append("Headers", item_.toString()));
+        if (length === null || length === undefined)
+            throw new globalThis.Error("The parameter 'length' cannot be null.");
+        else
+            content_.append("Length", length.toString());
+        if (name !== null && name !== undefined)
+            content_.append("Name", name.toString());
+        if (fileName !== null && fileName !== undefined)
+            content_.append("FileName", fileName.toString());
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUploadProjectThumbnail(_response);
+        });
+    }
+
+    protected processUploadProjectThumbnail(response: Response): Promise<FileUploadResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as FileUploadResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileUploadResponseDto>(null as any);
+    }
+
+    uploadProjectThumbnailAlternative(): Promise<FileUploadResponseDto> {
+        let url_ = this.baseUrl + "/api/FileUpload/project-thumbnail-alt";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUploadProjectThumbnailAlternative(_response);
+        });
+    }
+
+    protected processUploadProjectThumbnailAlternative(response: Response): Promise<FileUploadResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as FileUploadResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileUploadResponseDto>(null as any);
+    }
+
+    deleteFile(fileUrl: string | undefined): Promise<FileDeleteResponseDto> {
+        let url_ = this.baseUrl + "/api/FileUpload?";
+        if (fileUrl === null)
+            throw new globalThis.Error("The parameter 'fileUrl' cannot be null.");
+        else if (fileUrl !== undefined)
+            url_ += "fileUrl=" + encodeURIComponent("" + fileUrl) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteFile(_response);
+        });
+    }
+
+    protected processDeleteFile(response: Response): Promise<FileDeleteResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as FileDeleteResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileDeleteResponseDto>(null as any);
+    }
+}
+
 export class MessagesClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -206,6 +337,72 @@ export class ProjectsClient {
         this.baseUrl = baseUrl ?? "";
     }
 
+    getAllProjects(): Promise<ProjectDto[]> {
+        let url_ = this.baseUrl + "/api/Projects";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAllProjects(_response);
+        });
+    }
+
+    protected processGetAllProjects(response: Response): Promise<ProjectDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProjectDto[];
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ProjectDto[]>(null as any);
+    }
+
+    getMyProjects(): Promise<ProjectDto[]> {
+        let url_ = this.baseUrl + "/api/Projects/my";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMyProjects(_response);
+        });
+    }
+
+    protected processGetMyProjects(response: Response): Promise<ProjectDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProjectDto[];
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ProjectDto[]>(null as any);
+    }
+
     getUserProjects(userId: string): Promise<ProjectDto[]> {
         let url_ = this.baseUrl + "/api/Projects/user/{userId}";
         if (userId === undefined || userId === null)
@@ -278,6 +475,127 @@ export class ProjectsClient {
         return Promise.resolve<ProjectDto>(null as any);
     }
 
+    updateProject(projectId: string, dto: UpdateProjectDto): Promise<ProjectDto> {
+        let url_ = this.baseUrl + "/api/Projects/{projectId}";
+        if (projectId === undefined || projectId === null)
+            throw new globalThis.Error("The parameter 'projectId' must be defined.");
+        url_ = url_.replace("{projectId}", encodeURIComponent("" + projectId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateProject(_response);
+        });
+    }
+
+    protected processUpdateProject(response: Response): Promise<ProjectDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProjectDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ProjectDto>(null as any);
+    }
+
+    patchProject(projectId: string, dto: PatchProjectDto): Promise<ProjectDto> {
+        let url_ = this.baseUrl + "/api/Projects/{projectId}";
+        if (projectId === undefined || projectId === null)
+            throw new globalThis.Error("The parameter 'projectId' must be defined.");
+        url_ = url_.replace("{projectId}", encodeURIComponent("" + projectId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPatchProject(_response);
+        });
+    }
+
+    protected processPatchProject(response: Response): Promise<ProjectDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProjectDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ProjectDto>(null as any);
+    }
+
+    deleteProject(projectId: string): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Projects/{projectId}";
+        if (projectId === undefined || projectId === null)
+            throw new globalThis.Error("The parameter 'projectId' must be defined.");
+        url_ = url_.replace("{projectId}", encodeURIComponent("" + projectId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteProject(_response);
+        });
+    }
+
+    protected processDeleteProject(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+
     getProjectParticipants(projectId: string): Promise<ProjectParticipantsDto> {
         let url_ = this.baseUrl + "/api/Projects/{projectId}/participants";
         if (projectId === undefined || projectId === null)
@@ -312,6 +630,205 @@ export class ProjectsClient {
             });
         }
         return Promise.resolve<ProjectParticipantsDto>(null as any);
+    }
+
+    createProject(dto: CreateProjectDto): Promise<ProjectDto> {
+        let url_ = this.baseUrl + "/api/Projects/api/Projects";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateProject(_response);
+        });
+    }
+
+    protected processCreateProject(response: Response): Promise<ProjectDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            result201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProjectDto;
+            return result201;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ProjectDto>(null as any);
+    }
+
+    updateProjectStatus(projectId: string, dto: UpdateProjectStatusDto): Promise<ProjectDto> {
+        let url_ = this.baseUrl + "/api/Projects/{projectId}/status";
+        if (projectId === undefined || projectId === null)
+            throw new globalThis.Error("The parameter 'projectId' must be defined.");
+        url_ = url_.replace("{projectId}", encodeURIComponent("" + projectId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateProjectStatus(_response);
+        });
+    }
+
+    protected processUpdateProjectStatus(response: Response): Promise<ProjectDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProjectDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ProjectDto>(null as any);
+    }
+
+    updateProjectProgress(projectId: string, dto: UpdateProjectProgressDto): Promise<ProjectDto> {
+        let url_ = this.baseUrl + "/api/Projects/{projectId}/progress";
+        if (projectId === undefined || projectId === null)
+            throw new globalThis.Error("The parameter 'projectId' must be defined.");
+        url_ = url_.replace("{projectId}", encodeURIComponent("" + projectId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateProjectProgress(_response);
+        });
+    }
+
+    protected processUpdateProjectProgress(response: Response): Promise<ProjectDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ProjectDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ProjectDto>(null as any);
+    }
+
+    restoreProject(projectId: string): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Projects/{projectId}/restore";
+        if (projectId === undefined || projectId === null)
+            throw new globalThis.Error("The parameter 'projectId' must be defined.");
+        url_ = url_.replace("{projectId}", encodeURIComponent("" + projectId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreProject(_response);
+        });
+    }
+
+    protected processRestoreProject(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+
+    permanentDeleteProject(projectId: string): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Projects/{projectId}/permanent";
+        if (projectId === undefined || projectId === null)
+            throw new globalThis.Error("The parameter 'projectId' must be defined.");
+        url_ = url_.replace("{projectId}", encodeURIComponent("" + projectId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPermanentDeleteProject(_response);
+        });
+    }
+
+    protected processPermanentDeleteProject(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
     }
 }
 
@@ -653,6 +1170,17 @@ export class UserManagementClient {
     }
 }
 
+export interface FileUploadResponseDto {
+    url?: string;
+    fileName?: string;
+    contentType?: string;
+    size?: number;
+}
+
+export interface FileDeleteResponseDto {
+    message?: string;
+}
+
 export interface MessageDto {
     id?: string;
     projectId?: string;
@@ -684,6 +1212,8 @@ export interface ProjectDto {
     address?: string | undefined;
     city?: string | undefined;
     postalCode?: string | undefined;
+    latitude?: number | undefined;
+    longitude?: number | undefined;
     status?: string;
     startDate?: Date;
     plannedEndDate?: Date | undefined;
@@ -694,12 +1224,75 @@ export interface ProjectDto {
     thumbnailUrl?: string | undefined;
     createdAt?: Date | undefined;
     updatedAt?: Date | undefined;
+    isDeleted?: boolean;
 }
 
 export interface ProjectParticipantsDto {
     projectId?: string;
     clientId?: string;
     adminId?: string;
+}
+
+export interface CreateProjectDto {
+    clientId: string;
+    title: string;
+    description?: string | undefined;
+    address?: string | undefined;
+    city?: string | undefined;
+    postalCode?: string | undefined;
+    latitude?: number | undefined;
+    longitude?: number | undefined;
+    status: string;
+    startDate: Date;
+    plannedEndDate?: Date | undefined;
+    totalArea?: number | undefined;
+    budget?: number | undefined;
+    progressPercentage?: number;
+    thumbnailUrl?: string | undefined;
+}
+
+export interface UpdateProjectDto {
+    title: string;
+    description?: string | undefined;
+    address?: string | undefined;
+    city?: string | undefined;
+    postalCode?: string | undefined;
+    latitude?: number | undefined;
+    longitude?: number | undefined;
+    status: string;
+    startDate: Date;
+    plannedEndDate?: Date | undefined;
+    actualEndDate?: Date | undefined;
+    totalArea?: number | undefined;
+    budget?: number | undefined;
+    progressPercentage?: number;
+    thumbnailUrl?: string | undefined;
+}
+
+export interface PatchProjectDto {
+    title?: string | undefined;
+    description?: string | undefined;
+    address?: string | undefined;
+    city?: string | undefined;
+    postalCode?: string | undefined;
+    latitude?: number | undefined;
+    longitude?: number | undefined;
+    status?: string | undefined;
+    startDate?: Date | undefined;
+    plannedEndDate?: Date | undefined;
+    actualEndDate?: Date | undefined;
+    totalArea?: number | undefined;
+    budget?: number | undefined;
+    progressPercentage?: number | undefined;
+    thumbnailUrl?: string | undefined;
+}
+
+export interface UpdateProjectStatusDto {
+    status: string;
+}
+
+export interface UpdateProjectProgressDto {
+    progressPercentage: number;
 }
 
 export interface User3DScanDto {

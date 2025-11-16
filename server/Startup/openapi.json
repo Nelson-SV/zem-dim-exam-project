@@ -6,6 +6,111 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/FileUpload/project-thumbnail": {
+      "post": {
+        "tags": [
+          "FileUpload"
+        ],
+        "operationId": "FileUpload_UploadProjectThumbnail",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "ContentType": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "ContentDisposition": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "Headers": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": {}
+                  },
+                  "Length": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "Name": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "FileName": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileUploadResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/FileUpload/project-thumbnail-alt": {
+      "post": {
+        "tags": [
+          "FileUpload"
+        ],
+        "operationId": "FileUpload_UploadProjectThumbnailAlternative",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileUploadResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/FileUpload": {
+      "delete": {
+        "tags": [
+          "FileUpload"
+        ],
+        "operationId": "FileUpload_DeleteFile",
+        "parameters": [
+          {
+            "name": "fileUrl",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileDeleteResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Messages/project/{projectId}/unread-count": {
       "get": {
         "tags": [
@@ -159,6 +264,52 @@
         }
       }
     },
+    "/api/Projects": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_GetAllProjects",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/my": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_GetMyProjects",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Projects/user/{userId}": {
       "get": {
         "tags": [
@@ -224,6 +375,121 @@
             }
           }
         }
+      },
+      "put": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_UpdateProject",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_PatchProject",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchProjectDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_DeleteProject",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/Projects/{projectId}/participants": {
@@ -251,6 +517,192 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProjectParticipantsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/api/Projects": {
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_CreateProject",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/{projectId}/status": {
+      "patch": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_UpdateProjectStatus",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectStatusDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/{projectId}/progress": {
+      "patch": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_UpdateProjectProgress",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectProgressDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/{projectId}/restore": {
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_RestoreProject",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/{projectId}/permanent": {
+      "delete": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_PermanentDeleteProject",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -534,6 +986,34 @@
   },
   "components": {
     "schemas": {
+      "FileUploadResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "FileDeleteResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
       "MessageDto": {
         "type": "object",
         "additionalProperties": false,
@@ -640,6 +1120,16 @@
             "type": "string",
             "nullable": true
           },
+          "latitude": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
           "status": {
             "type": "string"
           },
@@ -684,6 +1174,9 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean"
           }
         }
       },
@@ -702,6 +1195,311 @@
           "adminId": {
             "type": "string",
             "format": "guid"
+          }
+        }
+      },
+      "CreateProjectDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "clientId",
+          "title",
+          "status",
+          "startDate"
+        ],
+        "properties": {
+          "clientId": {
+            "type": "string",
+            "format": "guid",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 300,
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true
+          },
+          "postalCode": {
+            "type": "string",
+            "maxLength": 20,
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "decimal",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "decimal",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "minLength": 1
+          },
+          "plannedEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "totalArea": {
+            "type": "number",
+            "format": "decimal",
+            "minimum": 0.0,
+            "nullable": true
+          },
+          "budget": {
+            "type": "number",
+            "format": "decimal",
+            "minimum": 0.0,
+            "nullable": true
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 100.0,
+            "minimum": 0.0
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          }
+        }
+      },
+      "UpdateProjectDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "status",
+          "startDate"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 300,
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true
+          },
+          "postalCode": {
+            "type": "string",
+            "maxLength": 20,
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "decimal",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "decimal",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "minLength": 1
+          },
+          "plannedEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "actualEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "totalArea": {
+            "type": "number",
+            "format": "decimal",
+            "minimum": 0.0,
+            "nullable": true
+          },
+          "budget": {
+            "type": "number",
+            "format": "decimal",
+            "minimum": 0.0,
+            "nullable": true
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 100.0,
+            "minimum": 0.0
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          }
+        }
+      },
+      "PatchProjectDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 300,
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true
+          },
+          "postalCode": {
+            "type": "string",
+            "maxLength": 20,
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "decimal",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "decimal",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 50,
+            "nullable": true
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "plannedEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "actualEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "totalArea": {
+            "type": "number",
+            "format": "decimal",
+            "minimum": 0.0,
+            "nullable": true
+          },
+          "budget": {
+            "type": "number",
+            "format": "decimal",
+            "minimum": 0.0,
+            "nullable": true
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "nullable": true
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "nullable": true
+          }
+        }
+      },
+      "UpdateProjectStatusDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1
+          }
+        }
+      },
+      "UpdateProjectProgressDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "progressPercentage"
+        ],
+        "properties": {
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 100.0,
+            "minimum": 0.0
           }
         }
       },
