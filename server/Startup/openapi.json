@@ -990,47 +990,16 @@
         ],
         "operationId": "Admin3DScans_Upload3DScan",
         "requestBody": {
+          "x-name": "form",
           "content": {
-            "multipart/form-data": {
+            "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "File": {
-                    "type": "string",
-                    "format": "binary",
-                    "nullable": true
-                  },
-                  "ProjectId": {
-                    "type": "string",
-                    "format": "guid"
-                  },
-                  "MilestoneId": {
-                    "type": "string",
-                    "format": "guid",
-                    "nullable": true
-                  },
-                  "RoomName": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "RoomArea": {
-                    "type": "number",
-                    "format": "decimal",
-                    "nullable": true
-                  },
-                  "ScannedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "nullable": true
-                  },
-                  "Notes": {
-                    "type": "string",
-                    "nullable": true
-                  }
-                }
+                "$ref": "#/components/schemas/UploadThreeDScanForm"
               }
             }
-          }
+          },
+          "required": true,
+          "x-position": 1
         },
         "responses": {
           "200": {
@@ -1046,7 +1015,69 @@
         }
       }
     },
-    "/{scanId}": {
+    "/api/admin/3dscans/Get3DScan": {
+      "get": {
+        "tags": [
+          "Admin3DScans"
+        ],
+        "operationId": "Admin3DScans_Get3DScan",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "milestoneId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            },
+            "x-position": 3
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "x-position": 4
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationItemsResponseOfAdminThreeDScanDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/3dscans/Get3DScanById": {
       "get": {
         "tags": [
           "Admin3DScans"
@@ -1055,8 +1086,7 @@
         "parameters": [
           {
             "name": "scanId",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "guid"
@@ -1076,7 +1106,9 @@
             }
           }
         }
-      },
+      }
+    },
+    "/api/admin/3dscans/Delete3DScan": {
       "delete": {
         "tags": [
           "Admin3DScans"
@@ -1085,8 +1117,7 @@
         "parameters": [
           {
             "name": "scanId",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "guid"
@@ -1966,6 +1997,79 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          }
+        }
+      },
+      "UploadThreeDScanForm": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UploadThreeDScanRequestDto"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        ]
+      },
+      "UploadThreeDScanRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "milestoneId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "roomName": {
+            "type": "string"
+          },
+          "roomArea": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "scannedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "PaginationItemsResponseOfAdminThreeDScanDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminThreeDScanDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

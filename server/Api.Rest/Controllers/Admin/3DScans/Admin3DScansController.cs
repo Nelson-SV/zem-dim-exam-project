@@ -15,6 +15,9 @@ public class Admin3DScansController(IAdmin3DScanService service) : ControllerBas
 {
     public const string ControllerRoute = "api/admin/3dscans/";
     public const string Upload3dFile = ControllerRoute + nameof(Upload3DScan);
+    public const string Get3DScans = ControllerRoute + nameof(Get3DScan);
+    public const string GetProject3DScanById = ControllerRoute + nameof(Get3DScanById);
+    public const string DeleteProject3DScan = ControllerRoute + nameof(Delete3DScan);
     
     private const long MaxGlbSize = 200 * 1024 * 1024;
     private static readonly string[] AllowedContentTypes = { "model/gltf-binary", "application/octet-stream" };
@@ -25,7 +28,7 @@ public class Admin3DScansController(IAdmin3DScanService service) : ControllerBas
     [Authorize(Policy = AuthorizationRoles.Admin)]
     [Route(Upload3dFile)]
     public async Task<ActionResult<AdminThreeDScanDto>> Upload3DScan(
-        [FromForm] UploadThreeDScanForm form,
+        [FromBody] UploadThreeDScanForm form,
         [FromServices] IValidator<UploadThreeDScanRequestDto> validator,
         CancellationToken ct)
     {
@@ -51,14 +54,25 @@ public class Admin3DScansController(IAdmin3DScanService service) : ControllerBas
     }
 
     [HttpGet]
-    public async Task<ActionResult<PaginationItemsResponse<AdminThreeDScanDto>>> Get3DScan(Guid? projectId, Guid? milestoneId, int page = 1, int pageSize = 20, CancellationToken ct = default)
-        => Ok(await service.GetAsync(projectId, milestoneId, page, pageSize, ct));
+    [Authorize(Policy = AuthorizationRoles.Admin)]
+    [Route(Get3DScans)]
+    public async Task<ActionResult<PaginationItemsResponse<AdminThreeDScanDto>>> Get3DScan(Guid? projectId,
+        Guid? milestoneId, int page = 1, int pageSize = 20, CancellationToken ct = default)
+    {
+        return Ok(await service.GetAsync(projectId, milestoneId, page, pageSize, ct));
+    }
 
-    [HttpGet("{scanId:guid}")]
+    [HttpGet]
+    [Authorize(Policy = AuthorizationRoles.Admin)]
+    [Route(GetProject3DScanById)]
     public async Task<ActionResult<AdminThreeDScanDto>> Get3DScanById(Guid scanId, CancellationToken ct)
-        => await service.GetByIdAsync(scanId, ct) is { } dto ? Ok(dto) : NotFound();
-
-    [HttpDelete("{scanId:guid}")]
+    {
+        return await service.GetByIdAsync(scanId, ct) is { } dto ? Ok(dto) : NotFound();
+    }
+    
+    [HttpDelete]
+    [Authorize(Policy = AuthorizationRoles.Admin)]
+    [Route(DeleteProject3DScan)]
     public async Task<ActionResult<DeleteResponseDto>> Delete3DScan(Guid scanId, CancellationToken ct)
     {
         var adminId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);

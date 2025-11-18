@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { 
+import {
   ArrowLeft, Calendar, MapPin, User, Plus, Upload, Download,
   FileText, MessageSquare, Camera, Box, CheckCircle2, Clock, TrendingUp
 } from 'lucide-react';
@@ -18,6 +18,7 @@ import { mockProjects, mockPhotos, mockDocuments, mockMessages } from '../lib/mo
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { Admin3DScansView } from './3d-scans/Admin3DScansView';
 
 interface ProjectDetailsProps {
   projectId: string;
@@ -79,7 +80,7 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
                 </div>
               </div>
             </div>
-            <Badge 
+            <Badge
               variant={project.status === 'active' ? 'default' : 'secondary'}
               className="shrink-0"
             >
@@ -99,7 +100,7 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
             </div>
             <Progress value={project.progress} className="h-3" />
           </div>
-          
+
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <span className="text-muted-foreground">Area</span>
@@ -244,15 +245,14 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
               <Card key={stage.id} className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="shrink-0">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      stage.status === 'completed' ? 'bg-[#10B981] text-white' :
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${stage.status === 'completed' ? 'bg-[#10B981] text-white' :
                       stage.status === 'in-progress' ? 'bg-[#F97316] text-white' :
-                      'bg-muted text-muted-foreground'
-                    }`}>
+                        'bg-muted text-muted-foreground'
+                      }`}>
                       {index + 1}
                     </div>
                   </div>
-                  
+
                   <div className="flex-1">
                     <div className="flex items-start justify-between mb-3">
                       <div>
@@ -261,12 +261,12 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
                       </div>
                       <Badge variant={
                         stage.status === 'completed' ? 'default' :
-                        stage.status === 'in-progress' ? 'secondary' :
-                        'outline'
+                          stage.status === 'in-progress' ? 'secondary' :
+                            'outline'
                       }>
                         {stage.status === 'completed' ? 'Completed' :
-                         stage.status === 'in-progress' ? 'In progress' :
-                         'Pending'}
+                          stage.status === 'in-progress' ? 'In progress' :
+                            'Pending'}
                       </Badge>
                     </div>
 
@@ -322,8 +322,8 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
                   {stagePhotos.map(photo => (
                     <Card key={photo.id} className="overflow-hidden group cursor-pointer hover:shadow-lg transition-all">
                       <div className="aspect-video relative overflow-hidden bg-muted">
-                        <img 
-                          src={photo.url} 
+                        <img
+                          src={photo.url}
                           alt={photo.description}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
@@ -344,36 +344,13 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
 
         {/* 3D Scans Tab */}
         <TabsContent value="3d" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3>3D room scans</h3>
-            <Button className="bg-[#F97316] hover:bg-[#F97316]/90">
-              <Upload className="size-4 mr-2" />
-              Upload scan
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {['Living Room', 'Kitchen', 'Bedroom 1', 'Bathroom'].map((room, index) => (
-              <Card key={index} className="p-6 hover:shadow-lg transition-all cursor-pointer">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-[#3B82F6]/10 rounded-lg">
-                    <Box className="size-6 text-[#3B82F6]" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="mb-2">{room}</h4>
-                    <div className="flex items-center gap-4 text-muted-foreground">
-                      <span>Date: {format(new Date(), 'dd MMM yyyy', { locale: enUS })}</span>
-                      <span>45 m²</span>
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <Download className="size-4" />
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <Admin3DScansView
+            projectId={project.id}
+            projectName={project.name}
+            milestones={project.stages.map(stage => ({ id: stage.id, name: stage.name }))}
+          />
         </TabsContent>
+
 
         {/* Documents Tab */}
         <TabsContent value="documents" className="space-y-4">
@@ -412,7 +389,7 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
         <TabsContent value="chat" className="space-y-4">
           <Card className="p-6">
             <h3 className="mb-6">Chat with client: {project.clientName}</h3>
-            
+
             <div className="space-y-4 mb-6 max-h-[500px] overflow-y-auto">
               {mockMessages.map(message => (
                 <div
@@ -420,19 +397,17 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
                   className={`flex gap-3 ${message.senderRole === 'admin' ? 'justify-start' : 'justify-end'}`}
                 >
                   <div className={`max-w-[70%] ${message.senderRole === 'admin' ? 'order-1' : 'order-2'}`}>
-                    <div className={`p-4 rounded-lg ${
-                      message.senderRole === 'admin' 
-                        ? 'bg-muted' 
-                        : 'bg-[#F97316] text-white'
-                    }`}>
+                    <div className={`p-4 rounded-lg ${message.senderRole === 'admin'
+                      ? 'bg-muted'
+                      : 'bg-[#F97316] text-white'
+                      }`}>
                       <p className={message.senderRole === 'admin' ? 'text-muted-foreground' : 'text-white/70'}>
                         {message.senderName}
                       </p>
                       <p className="mt-1">{message.text}</p>
                     </div>
-                    <p className={`text-muted-foreground mt-1 px-2 ${
-                      message.senderRole === 'client' ? 'text-right' : ''
-                    }`}>
+                    <p className={`text-muted-foreground mt-1 px-2 ${message.senderRole === 'client' ? 'text-right' : ''
+                      }`}>
                       {format(new Date(message.timestamp), 'HH:mm', { locale: enUS })}
                     </p>
                   </div>
