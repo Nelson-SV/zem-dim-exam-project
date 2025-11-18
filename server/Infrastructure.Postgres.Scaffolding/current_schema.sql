@@ -195,7 +195,7 @@ CREATE TABLE projects (
     thumbnailurl character varying(500),
     createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     updatedat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
-    isdeleted boolean DEFAULT FALSE,
+    isdeleted boolean NOT NULL DEFAULT FALSE,
     CONSTRAINT projects_pkey PRIMARY KEY (id),
     CONSTRAINT projects_clientid_fkey FOREIGN KEY (clientid) REFERENCES users (id) ON DELETE CASCADE
 );

@@ -13,7 +13,12 @@ public enum ErrorCode
     GettingAllUsersFailed,
     InvalidUserData,
     UserEmailAlreadyExists,
-    ResetPasswordFailed
+    ResetPasswordFailed,
+    ThreeDScanUploadFailed,
+    ThreeDScanDeleteFailed,
+    ThreeDScanNotFound,
+    ProjectNotFound,
+    MilestoneDoesNotBelongToProject
 }
 
 public static class ErrorMessages
@@ -32,6 +37,7 @@ public static class ErrorMessages
         { ErrorCode.GettingAllUsersFailed, "Failed to fetching all users, please try again later." },
         { ErrorCode.InvalidUserData, "Invalid user data." },
         { ErrorCode.UserEmailAlreadyExists, "User email already exists." },
+        { ErrorCode.ThreeDScanUploadFailed, "Failed to upload the 3D scan, please try again later." },
         
     };
     

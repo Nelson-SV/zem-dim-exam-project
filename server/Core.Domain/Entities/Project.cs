@@ -43,7 +43,7 @@ public partial class Project
 
     public DateTime? Updatedat { get; set; }
 
-    public bool? Isdeleted { get; set; }
+    public bool Isdeleted { get; set; }
 
     public virtual User Client { get; set; } = null!;
 

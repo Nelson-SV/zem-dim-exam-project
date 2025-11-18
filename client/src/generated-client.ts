@@ -1170,6 +1170,141 @@ export class UserManagementClient {
     }
 }
 
+export class Admin3DScansClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    upload3DScan(file: FileParameter | null | undefined, projectId: string | undefined, milestoneId: string | null | undefined, roomName: string | null | undefined, roomArea: number | null | undefined, scannedAt: Date | null | undefined, notes: string | null | undefined): Promise<AdminThreeDScanDto> {
+        let url_ = this.baseUrl + "/api/admin/3dscans/Upload3DScan";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file !== null && file !== undefined)
+            content_.append("File", file.data, file.fileName ? file.fileName : "File");
+        if (projectId === null || projectId === undefined)
+            throw new globalThis.Error("The parameter 'projectId' cannot be null.");
+        else
+            content_.append("ProjectId", projectId.toString());
+        if (milestoneId !== null && milestoneId !== undefined)
+            content_.append("MilestoneId", milestoneId.toString());
+        if (roomName !== null && roomName !== undefined)
+            content_.append("RoomName", roomName.toString());
+        if (roomArea !== null && roomArea !== undefined)
+            content_.append("RoomArea", roomArea.toString());
+        if (scannedAt !== null && scannedAt !== undefined)
+            content_.append("ScannedAt", scannedAt.toJSON());
+        if (notes !== null && notes !== undefined)
+            content_.append("Notes", notes.toString());
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpload3DScan(_response);
+        });
+    }
+
+    protected processUpload3DScan(response: Response): Promise<AdminThreeDScanDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as AdminThreeDScanDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdminThreeDScanDto>(null as any);
+    }
+
+    get3DScanById(scanId: string): Promise<AdminThreeDScanDto> {
+        let url_ = this.baseUrl + "/{scanId}";
+        if (scanId === undefined || scanId === null)
+            throw new globalThis.Error("The parameter 'scanId' must be defined.");
+        url_ = url_.replace("{scanId}", encodeURIComponent("" + scanId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGet3DScanById(_response);
+        });
+    }
+
+    protected processGet3DScanById(response: Response): Promise<AdminThreeDScanDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as AdminThreeDScanDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdminThreeDScanDto>(null as any);
+    }
+
+    delete3DScan(scanId: string): Promise<DeleteResponseDto> {
+        let url_ = this.baseUrl + "/{scanId}";
+        if (scanId === undefined || scanId === null)
+            throw new globalThis.Error("The parameter 'scanId' must be defined.");
+        url_ = url_.replace("{scanId}", encodeURIComponent("" + scanId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDelete3DScan(_response);
+        });
+    }
+
+    protected processDelete3DScan(response: Response): Promise<DeleteResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DeleteResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DeleteResponseDto>(null as any);
+    }
+}
+
 export interface FileUploadResponseDto {
     url?: string;
     fileName?: string;
@@ -1372,6 +1507,29 @@ export interface GetAllUsersResponseDto {
     totalItems?: number;
     page?: number;
     pageSize?: number;
+}
+
+export interface AdminThreeDScanDto {
+    id?: string;
+    projectId?: string;
+    milestoneId?: string | undefined;
+    projectTitle?: string;
+    milestoneTitle?: string | undefined;
+    roomName?: string;
+    roomArea?: number | undefined;
+    scannedAt?: Date | undefined;
+    fileUrl?: string;
+    fileName?: string;
+    fileSize?: number | undefined;
+    fileFormat?: string;
+    notes?: string | undefined;
+    uploadedBy?: string;
+    createdAt?: Date | undefined;
+}
+
+export interface FileParameter {
+    data: any;
+    fileName: string;
 }
 
 export interface FileResponse {
