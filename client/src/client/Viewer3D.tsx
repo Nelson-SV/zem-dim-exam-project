@@ -41,33 +41,33 @@ export function Viewer3D() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
         {/* 3D Viewer */}
-        <Card className="lg:col-span-3 overflow-hidden">
-          <div className="aspect-video bg-linear-to-br from-muted to-muted/50 
-                  relative flex items-center justify-center">
+        <Card className="lg:col-span-3 p-0 overflow-hidden">
+
+          {/* Viewer section (no padding at all) */}
+          <div className="w-full aspect-video bg-linear-to-br from-muted to-muted/50 
+                  flex items-center justify-center">
 
             {!selectedScan ? (
               <p className="text-muted-foreground text-lg">
                 No scan selected
               </p>
             ) : (
-              <>
-                <RoomViewer
-                  zoom={zoom}
-                  rotation={rotation}
-                  onZoomIn={() => setZoom(z => Math.min(2, z + 0.1))}
-                  onZoomOut={() => setZoom(z => Math.max(0.5, z - 0.1))}
-                  onRotate={() => setRotation(r => r + 45)}
-                  modelUrl={selectedScan.fileUrl!}
-                />
-              </>
+              <RoomViewer
+                zoom={zoom}
+                rotation={rotation}
+                onZoomIn={() => setZoom(z => Math.min(2, z + 0.1))}
+                onZoomOut={() => setZoom(z => Math.max(0.5, z - 0.1))}
+                onRotate={() => setRotation(r => r + 45)}
+                modelUrl={selectedScan.fileUrl!}
+              />
             )}
 
           </div>
 
-          {/* Only show details if a scan is selected */}
+          {/* Details — only show if a scan is selected */}
           {selectedScan && (
-            <div className="p-6 border-t">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="pb-6 px-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4">
                 <div><p>Room</p><p>{selectedScan.roomName}</p></div>
                 <div><p>Area</p><p>{selectedScan.roomArea} m²</p></div>
                 <div><p>Scan date</p><p>{format(new Date(selectedScan.scannedAt!), 'dd MMM yyyy')}</p></div>
@@ -75,10 +75,10 @@ export function Viewer3D() {
               </div>
 
               <Button
-                className="w-full mt-6 bg-[#F97316]"
+                className="mt-6 bg-[#F97316]"
                 onClick={() => window.open(selectedScan.fileUrl)}
               >
-                <Download className="size-4 mr-2" />
+                <Download className="size-4" />
                 Download 3D model
               </Button>
             </div>

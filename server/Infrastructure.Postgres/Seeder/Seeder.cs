@@ -18,7 +18,7 @@ public class Seeder(AppDbContext context) : ISeeder
             " to see.\n" +
             "" + context.Database.GenerateCreateScript());
 
-        // Додай Chat seed
+        // Add the Chat seed step
         var chatSeeder = new ChatSeeder(context);
         await chatSeeder.SeedChatData();
     }

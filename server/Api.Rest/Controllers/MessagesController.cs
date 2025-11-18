@@ -72,7 +72,7 @@ public class MessagesController : ControllerBase
     {
         try
         {
-            var senderId = GetUserId(); // ✅ беремо з токена, не з тіла
+            var senderId = GetUserId(); // ✅ Pull it from the token, not the request body
             var dto = new SendMessageDto
             {
                 ProjectId = request.ProjectId,

@@ -171,7 +171,7 @@ public class ProjectsController : ControllerBase
     /// </summary>
     [HttpPost]
     [Route("api/Projects")]
-    [ProducesResponseType(typeof(ProjectDto), 201)]  // ⬅️ ДОДАЙ ЦЕ!
+    [ProducesResponseType(typeof(ProjectDto), 201)]  // ⬅️ Make sure this stays!
      
     [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<ProjectDto>> CreateProject([FromBody] CreateProjectDto dto)

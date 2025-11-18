@@ -26,7 +26,7 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // ↓↓↓ додано для дропдауна клієнтів
+  // ↓↓↓ Added for the client dropdown
   const [clientId, setClientId] = useState<string>('');
   const [clients, setClients] = useState<Array<{ id: string; fullName: string }>>([]);
 
@@ -34,7 +34,7 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
   const [projectName, setProjectName] = useState('');
   const [projectAddress, setProjectAddress] = useState('');
   const [projectArea, setProjectArea] = useState('');
-  // clientName видалено — тепер вибір з Select
+  // clientName removed - now selection happens via the Select
 
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
@@ -53,12 +53,12 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
     return matchesSearch && matchesStatus;
   });
 
-  // завантажуємо список клієнтів при відкритті модалки
+  // Load the client list when the modal opens
   useEffect(() => {
     if (!isAddProjectOpen) return;
     (async () => {
       try {
-        // якщо фільтр активності не потрібен — прибери true
+        // If the activity filter is not needed, remove the true flag
         const page = 1, pageSize = 100;
         const res = await http.userManagement.getAllUsers(page, pageSize, null, true);
         const mapped = (res.items ?? [])
@@ -133,11 +133,11 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
       return await http.projects.createProject(dto);
     };
 
-    // ✅ toast.promise автоматично керує всіма станами
+    // ✅ toast.promise automatically handles every state
     toast.promise(createProject(), {
       loading: 'Creating project...',
       success: () => {
-        // Закриваємо модалку і скидаємо форму ПІСЛЯ успіху
+        // Close the modal and reset the form AFTER a successful call
         setIsAddProjectOpen(false);
         resetForm();
         setSubmitting(false);
@@ -208,7 +208,7 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
                     />
                   </div>
 
-                  {/* ↓↓↓ ЗАМІСТЬ текстового поля — Select клієнта */}
+                  {/* ↓↓↓ Replaced the text field with the client Select */}
                   <div className="space-y-2">
                     <Label>Client</Label>
                     <Select value={clientId} onValueChange={setClientId}>
