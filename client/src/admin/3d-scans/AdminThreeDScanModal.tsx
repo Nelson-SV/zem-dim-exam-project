@@ -57,7 +57,9 @@ export function AdminThreeDScanModal({
       roomName: scan?.roomName ?? '',
       milestoneId: scan?.milestoneId ?? undefined,
       roomArea: scan?.roomArea ?? undefined,
-      scannedAt: scan?.scannedAt ? scan.scannedAt.getDate().toString() : undefined,
+      scannedAt: scan?.scannedAt
+        ? new Date(scan.scannedAt).toISOString().substring(0, 10)
+        : undefined,
       notes: scan?.notes ?? '',
       file: undefined,
     });

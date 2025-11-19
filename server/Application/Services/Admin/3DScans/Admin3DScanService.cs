@@ -115,4 +115,38 @@ public class Admin3DScanService(IStorageService _storage, IDbUnitOfWork _unitOfW
             throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.ThreeDScanDeleteFailed), ex);
         }
     }
+
+    public async Task<AdminThreeDScanDto> UpdateAsync(Guid scanId, UpdateThreeDScanRequestDto dto, Guid performedBy, CancellationToken ct)
+    {
+        await _unitOfWork.BeginAsync();
+        try
+        {
+            var scan = await _repository.GetByIdAsync(scanId, ct)
+                       ?? throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.ThreeDScanNotFound));
+
+            if (dto.MilestoneId.HasValue)
+                await EnsureMilestoneAsync(dto.MilestoneId.Value, scan.Projectid, ct);
+
+            if (!string.IsNullOrWhiteSpace(dto.RoomName))
+                scan.Roomname = dto.RoomName.Trim();
+
+            scan.Milestoneid = dto.MilestoneId ?? scan.Milestoneid;
+            scan.Roomarea = dto.RoomArea ?? scan.Roomarea;
+            scan.Scannedat = dto.ScannedAt ?? scan.Scannedat;
+            scan.Notes = dto.Notes ?? scan.Notes;
+
+            var updated = await _repository.UpdateAsync(scan, ct);
+            await _unitOfWork.CommitAsync();
+
+            _logger.LogInformation("3D scan {ScanId} updated by {UserId}", scanId, performedBy);
+            return AdminThreeDScanDto.FromEntity(updated);
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollbackAsync();
+            _logger.LogError(ex, "Failed to update 3D scan {ScanId}", scanId);
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.ThreeDScanUpdateFailed), ex);
+        }
+    }
+
 }

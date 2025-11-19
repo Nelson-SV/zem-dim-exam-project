@@ -34,7 +34,8 @@ public class Admin3DScanRepository(AppDbContext ctx) : IAdmin3DScanRepository
 
         var total = await query.CountAsync(ct);
         var items = await query
-            .OrderByDescending(s => s.Createdat ?? s.Scannedat ?? DateTime.UtcNow)
+            .OrderByDescending(s => s.Createdat)   // primary sort
+            .ThenByDescending(s => s.Scannedat)    // secondary sort
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(ct);
@@ -53,4 +54,15 @@ public class Admin3DScanRepository(AppDbContext ctx) : IAdmin3DScanRepository
         ctx.Threedscans.Remove(entity);
         await ctx.SaveChangesAsync(ct);
     }
+
+    public async Task<Threedscan> UpdateAsync(Threedscan scan, CancellationToken ct)
+    {
+        ctx.Threedscans.Update(scan);
+        await ctx.SaveChangesAsync(ct);
+        await ctx.Entry(scan).Reference(s => s.Project).LoadAsync(ct);
+        await ctx.Entry(scan).Reference(s => s.Milestone).LoadAsync(ct);
+        await ctx.Entry(scan).Reference(s => s.Uploadedby).LoadAsync(ct);
+        return scan;
+    }
+
 }

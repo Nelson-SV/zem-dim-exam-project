@@ -18,7 +18,8 @@ public enum ErrorCode
     ThreeDScanDeleteFailed,
     ThreeDScanNotFound,
     ProjectNotFound,
-    MilestoneDoesNotBelongToProject
+    MilestoneDoesNotBelongToProject,
+    ThreeDScanUpdateFailed
 }
 
 public static class ErrorMessages
@@ -38,7 +39,8 @@ public static class ErrorMessages
         { ErrorCode.InvalidUserData, "Invalid user data." },
         { ErrorCode.UserEmailAlreadyExists, "User email already exists." },
         { ErrorCode.ThreeDScanUploadFailed, "Failed to upload the 3D scan, please try again later." },
-        
+        { ErrorCode.ThreeDScanUpdateFailed, "Failed to update the 3D scan, please try again later." },
+
     };
     
     public static string GetMessage(ErrorCode errorCode)

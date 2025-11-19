@@ -37,6 +37,7 @@ export function Admin3DScansView({ projectId, projectName, milestones }: Props) 
     try {
       setSubmitting(true);
       if (modalState.mode === 'create') {
+        console.log("MILESTONE: ", values.milestoneId);
         const payload: UploadThreeDScanForm = {
           projectId,
           milestoneId: values.milestoneId,
@@ -46,17 +47,17 @@ export function Admin3DScansView({ projectId, projectName, milestones }: Props) 
           notes: values.notes,
           file: values.file!,
         };
-        await http.admin3DScans.upload3DScan(payload);
+        await http.upload3DScanFormData(payload);
         toast.success('3D scan uploaded successfully.');
-    //   } else if (modalState.scan?.id) {
-    //     await http.admin3DScans.updateAdminThreeDScan(modalState.scan.id, {
-    //       roomName: values.roomName,
-    //       milestoneId: values.milestoneId,
-    //       roomArea: values.roomArea,
-    //       scannedAt: values.scannedAt ? new Date(values.scannedAt).toISOString() : undefined,
-    //       notes: values.notes,
-    //     });
-    //     toast.success('3D scan updated successfully.');
+      } else if (modalState.scan?.id) {
+        await http.admin3DScans.update3DScan(modalState.scan.id, {
+          roomName: values.roomName,
+          milestoneId: values.milestoneId,
+          roomArea: values.roomArea,
+          scannedAt: values.scannedAt ? new Date(values.scannedAt) : undefined,
+          notes: values.notes,
+        });
+        toast.success('3D scan updated successfully.');
       }
       closeModal();
       refresh();

@@ -4,7 +4,9 @@ import {
     MessagesClient,
     AuthClient,
     User3DScansClient,
-    Admin3DScansClient
+    Admin3DScansClient,
+    type UploadThreeDScanForm,
+    type AdminThreeDScanDto
 } from '../generated-client';
 
 // const httpSchema= import.meta.env.VITE_API_HTTP_SCHEMA;
@@ -125,6 +127,30 @@ export class ApiClient {
         }
         return (await res.json()) as { url: string; fileName?: string; contentType?: string; size?: number };
     }
+
+    async upload3DScanFormData(form: UploadThreeDScanForm): Promise<AdminThreeDScanDto> {
+        const fd = new FormData();
+        fd.append("ProjectId", form.projectId!);
+        if (form.milestoneId) fd.append("MilestoneId", form.milestoneId);
+        fd.append("RoomName", form.roomName!);
+        if (form.roomArea != null) fd.append("RoomArea", form.roomArea.toString());
+        if (form.scannedAt) fd.append("ScannedAt", form.scannedAt.toISOString());
+        if (form.notes) fd.append("Notes", form.notes);
+        fd.append("File", form.file!); 
+
+        const client = this.createHttpClient();
+        const res = await client.fetch(`${url}/api/admin/3d-scans/Upload3DScan`, {
+            method: "POST",
+            body: fd,
+            headers: {
+                "Accept": "application/json"
+            }
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+    }
+
 }
 
 // Create and export a singleton instance

@@ -344,8 +344,9 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
 
         {/* 3D Scans Tab */}
         <TabsContent value="3d" className="space-y-4">
+          {/* HARDCODING THE ID VALUE JUST FOR TESTING 5b1f102f-e757-4ca6-a671-aaa62b21553c // {project.id} */}
           <Admin3DScansView
-            projectId={project.id}
+            projectId={"5b1f102f-e757-4ca6-a671-aaa62b21553c"}
             projectName={project.name}
             milestones={project.stages.map(stage => ({ id: stage.id, name: stage.name }))}
           />
