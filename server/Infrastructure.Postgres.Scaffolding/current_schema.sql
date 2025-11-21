@@ -106,7 +106,7 @@ BEGIN
 END $EF$;
 
 
-CREATE TYPE storage.buckettype AS ENUM ('STANDARD', 'ANALYTICS');
+CREATE TYPE storage.buckettype AS ENUM ('STANDARD', 'ANALYTICS', 'VECTOR');
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'extensions') THEN
@@ -166,9 +166,9 @@ CREATE TABLE users (
     isactive boolean DEFAULT TRUE,
     profileimageurl character varying(500),
     language character varying(5) DEFAULT ('ua'::character varying),
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
-    updatedat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
-    lastloginat timestamp without time zone,
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    updatedat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    lastloginat timestamp with time zone,
     mustchangepassword boolean DEFAULT FALSE,
     isdeleted boolean DEFAULT FALSE,
     CONSTRAINT users_pkey PRIMARY KEY (id)
@@ -195,7 +195,7 @@ CREATE TABLE projects (
     thumbnailurl character varying(500),
     createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     updatedat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
-    isdeleted boolean DEFAULT FALSE,
+    isdeleted boolean NOT NULL DEFAULT FALSE,
     CONSTRAINT projects_pkey PRIMARY KEY (id),
     CONSTRAINT projects_clientid_fkey FOREIGN KEY (clientid) REFERENCES users (id) ON DELETE CASCADE
 );
@@ -205,9 +205,9 @@ CREATE TABLE refreshtokens (
     id uuid NOT NULL DEFAULT (gen_random_uuid()),
     userid uuid NOT NULL,
     token character varying(500) NOT NULL,
-    expiresat timestamp without time zone NOT NULL,
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
-    revokedat timestamp without time zone,
+    expiresat timestamp with time zone NOT NULL,
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    revokedat timestamp with time zone,
     isrevoked boolean DEFAULT FALSE,
     CONSTRAINT refreshtokens_pkey PRIMARY KEY (id),
     CONSTRAINT refreshtokens_userid_fkey FOREIGN KEY (userid) REFERENCES users (id) ON DELETE CASCADE
@@ -263,8 +263,8 @@ CREATE TABLE milestones (
     actualstartdate date,
     actualenddate date,
     notes text,
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
-    updatedat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    updatedat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT milestones_pkey PRIMARY KEY (id),
     CONSTRAINT milestones_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE
 );
@@ -278,9 +278,9 @@ CREATE TABLE notifications (
     message text NOT NULL,
     type character varying(50) NOT NULL,
     isread boolean DEFAULT FALSE,
-    readat timestamp without time zone,
+    readat timestamp with time zone,
     actionurl character varying(500),
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT notifications_pkey PRIMARY KEY (id),
     CONSTRAINT notifications_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
     CONSTRAINT notifications_userid_fkey FOREIGN KEY (userid) REFERENCES users (id) ON DELETE CASCADE
@@ -299,9 +299,9 @@ CREATE TABLE photos (
     width integer,
     height integer,
     caption text,
-    takenat timestamp without time zone,
+    takenat timestamp with time zone,
     uploadedbyid uuid NOT NULL,
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT photos_pkey PRIMARY KEY (id),
     CONSTRAINT photos_milestoneid_fkey FOREIGN KEY (milestoneid) REFERENCES milestones (id) ON DELETE SET NULL,
     CONSTRAINT photos_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
@@ -319,10 +319,10 @@ CREATE TABLE threedscans (
     filesize bigint,
     fileformat character varying(50),
     roomarea numeric(10,2),
-    scannedat timestamp without time zone,
+    scannedat timestamp with time zone,
     uploadedbyid uuid NOT NULL,
     notes text,
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT threedscans_pkey PRIMARY KEY (id),
     CONSTRAINT threedscans_milestoneid_fkey FOREIGN KEY (milestoneid) REFERENCES milestones (id) ON DELETE SET NULL,
     CONSTRAINT threedscans_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
@@ -338,7 +338,7 @@ CREATE TABLE updates (
     title character varying(200) NOT NULL,
     description text,
     createdbyid uuid NOT NULL,
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT updates_pkey PRIMARY KEY (id),
     CONSTRAINT updates_createdbyid_fkey FOREIGN KEY (createdbyid) REFERENCES users (id),
     CONSTRAINT updates_milestoneid_fkey FOREIGN KEY (milestoneid) REFERENCES milestones (id) ON DELETE SET NULL,

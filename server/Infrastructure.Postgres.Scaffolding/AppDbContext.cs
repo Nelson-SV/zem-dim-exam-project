@@ -46,7 +46,7 @@ public partial class AppDbContext : DbContext
             .HasPostgresEnum("auth", "one_time_token_type", new[] { "confirmation_token", "reauthentication_token", "recovery_token", "email_change_token_new", "email_change_token_current", "phone_change_token" })
             .HasPostgresEnum("realtime", "action", new[] { "INSERT", "UPDATE", "DELETE", "TRUNCATE", "ERROR" })
             .HasPostgresEnum("realtime", "equality_op", new[] { "eq", "neq", "lt", "lte", "gt", "gte", "in" })
-            .HasPostgresEnum("storage", "buckettype", new[] { "STANDARD", "ANALYTICS" })
+            .HasPostgresEnum("storage", "buckettype", new[] { "STANDARD", "ANALYTICS", "VECTOR" })
             .HasPostgresExtension("extensions", "pg_stat_statements")
             .HasPostgresExtension("extensions", "pgcrypto")
             .HasPostgresExtension("extensions", "uuid-ossp")
@@ -179,7 +179,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Actualstartdate).HasColumnName("actualstartdate");
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdat");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Notes).HasColumnName("notes");
@@ -199,7 +198,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("title");
             entity.Property(e => e.Updatedat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("updatedat");
 
             entity.HasOne(d => d.Project).WithMany(p => p.Milestones)
@@ -229,16 +227,13 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("actionurl");
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdat");
             entity.Property(e => e.Isread)
                 .HasDefaultValue(false)
                 .HasColumnName("isread");
             entity.Property(e => e.Message).HasColumnName("message");
             entity.Property(e => e.Projectid).HasColumnName("projectid");
-            entity.Property(e => e.Readat)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("readat");
+            entity.Property(e => e.Readat).HasColumnName("readat");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)
                 .HasColumnName("title");
@@ -277,7 +272,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Caption).HasColumnName("caption");
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdat");
             entity.Property(e => e.Filename)
                 .HasMaxLength(255)
@@ -292,9 +286,7 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("mimetype");
             entity.Property(e => e.Projectid).HasColumnName("projectid");
-            entity.Property(e => e.Takenat)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("takenat");
+            entity.Property(e => e.Takenat).HasColumnName("takenat");
             entity.Property(e => e.Thumbnailurl)
                 .HasMaxLength(500)
                 .HasColumnName("thumbnailurl");
@@ -406,17 +398,12 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdat");
-            entity.Property(e => e.Expiresat)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("expiresat");
+            entity.Property(e => e.Expiresat).HasColumnName("expiresat");
             entity.Property(e => e.Isrevoked)
                 .HasDefaultValue(false)
                 .HasColumnName("isrevoked");
-            entity.Property(e => e.Revokedat)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("revokedat");
+            entity.Property(e => e.Revokedat).HasColumnName("revokedat");
             entity.Property(e => e.Token)
                 .HasMaxLength(500)
                 .HasColumnName("token");
@@ -444,7 +431,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdat");
             entity.Property(e => e.Fileformat)
                 .HasMaxLength(50)
@@ -465,9 +451,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Roomname)
                 .HasMaxLength(100)
                 .HasColumnName("roomname");
-            entity.Property(e => e.Scannedat)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("scannedat");
+            entity.Property(e => e.Scannedat).HasColumnName("scannedat");
             entity.Property(e => e.Uploadedbyid).HasColumnName("uploadedbyid");
 
             entity.HasOne(d => d.Milestone).WithMany(p => p.Threedscans)
@@ -506,7 +490,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdat");
             entity.Property(e => e.Createdbyid).HasColumnName("createdbyid");
             entity.Property(e => e.Description).HasColumnName("description");
@@ -551,7 +534,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("id");
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("createdat");
             entity.Property(e => e.Email)
                 .HasMaxLength(255)
@@ -569,9 +551,7 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(5)
                 .HasDefaultValueSql("'ua'::character varying")
                 .HasColumnName("language");
-            entity.Property(e => e.Lastloginat)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("lastloginat");
+            entity.Property(e => e.Lastloginat).HasColumnName("lastloginat");
             entity.Property(e => e.Lastname)
                 .HasMaxLength(100)
                 .HasColumnName("lastname");
@@ -593,7 +573,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Salt).HasColumnName("salt");
             entity.Property(e => e.Updatedat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("updatedat");
         });
 

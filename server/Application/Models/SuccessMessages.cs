@@ -4,6 +4,7 @@ public enum SuccessCode
 {
     UserDeletedSuccess,
     UserResetPasswordSuccess,
+    ThreeDScanDeletedSuccess
 }
 
 public static class SuccessMessages
@@ -12,6 +13,7 @@ public static class SuccessMessages
     {
         { SuccessCode.UserDeletedSuccess, "User deleted  successfully." },
         { SuccessCode.UserResetPasswordSuccess, "User password reset made successfully." },
+        { SuccessCode.ThreeDScanDeletedSuccess, "3D scan deleted successfully." },
 
     };
     

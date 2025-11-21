@@ -1,4 +1,7 @@
-using Application.Interfaces.Services;   // The IStorageService interface now lives here
+using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
+using Application.Interfaces.Services;
+using Common.Constants; // The IStorageService interface now lives here
 using Supabase;
 
 namespace Application.Services.Storage;
@@ -7,7 +10,9 @@ public class SupabaseStorageService : IStorageService
 {
     // Explicitly specify the type to avoid conflicts with Supabase.Storage.Client
     private readonly Supabase.Client _supabaseClient;
-    private const string BUCKET_NAME = "Projects"; 
+    
+    private static readonly Regex PublicUrlRegex = new("/storage/v1/object/public/(?<bucket>[^/]+)/(?<path>.+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
 
     public SupabaseStorageService(Supabase.Client supabaseClient)
     {
@@ -30,7 +35,7 @@ public class SupabaseStorageService : IStorageService
             // IMPORTANT: the signature is Upload(path, bytes, options)
             await _supabaseClient
                 .Storage
-                .From(BUCKET_NAME)
+                .From(StorageBuckets.Projects)
                 .Upload(
                     bytes,          // first parameter - byte array
                     filePath,       // second parameter - path
@@ -48,6 +53,7 @@ public class SupabaseStorageService : IStorageService
         }
     }
 
+    /*
     public async Task<bool> DeleteFileAsync(string fileUrl)
     {
         try
@@ -75,7 +81,73 @@ public class SupabaseStorageService : IStorageService
             return false;
         }
     }
+    */
+    
+    public async Task<bool> DeleteFileAsync(string fileUrl, CancellationToken ct = default)
+    {
+        if (!TryParsePublicUrl(fileUrl, out var bucket, out var path))
+            return false;
 
+        await _supabaseClient.Storage
+            .From(bucket)
+            .Remove(new List<string> { path });
+
+        return true;
+    }
+    
+    public string GetPublicUrl(string filePath, string? bucketOverride = null)
+    {
+        var bucket = bucketOverride ?? StorageBuckets.Projects;
+        return _supabaseClient.Storage.From(bucket).GetPublicUrl(filePath);
+    }
+
+    /*
     public string GetPublicUrl(string filePath)
         => _supabaseClient.Storage.From(BUCKET_NAME).GetPublicUrl(filePath);
+        */
+
+    public async Task<string> UploadThreeDScanAsync(Stream fileStream, string fileName, Guid projectId, Guid? milestoneId, CancellationToken ct = default)
+    {
+        //_logger.LogInformation("Uploading .glb {FileName} for project {ProjectId}", fileName, projectId);
+
+        var extension = Path.GetExtension(fileName);
+        var normalizedExtension = string.IsNullOrWhiteSpace(extension) ? ".glb" : extension.ToLowerInvariant();
+        if (normalizedExtension != ".glb")
+            throw new ValidationException("Only .glb files are supported.");
+
+        var objectPath = Build3DScanPath(projectId, milestoneId, normalizedExtension);
+        await using var buffer = new MemoryStream();
+        await fileStream.CopyToAsync(buffer, ct);
+
+        await _supabaseClient.Storage
+            .From(StorageBuckets.ThreeDScans)
+            .Upload(buffer.ToArray(), objectPath, new Supabase.Storage.FileOptions
+            {
+                //CacheControl = "3600",
+                Upsert = false,
+                ContentType = "model/gltf-binary"
+            });
+
+        return GetPublicUrl(objectPath, StorageBuckets.ThreeDScans);
+    }
+    
+    private static string Build3DScanPath(Guid projectId, Guid? milestoneId, string extension)
+    {
+        var milestoneSegment = milestoneId.HasValue ? $"milestones/{milestoneId.Value}/" : string.Empty;
+        return $"{StorageBuckets.ThreeDScanPrefix}/projects/{projectId}/{milestoneSegment}{Guid.NewGuid()}{extension}";
+    }
+
+    private static bool TryParsePublicUrl(string fileUrl, out string bucket, out string path)
+    {
+        bucket = string.Empty;
+        path = string.Empty;
+
+        if (!Uri.TryCreate(fileUrl, UriKind.Absolute, out var uri)) return false;
+        var match = PublicUrlRegex.Match(uri.AbsolutePath);
+        if (!match.Success) return false;
+
+        bucket = match.Groups["bucket"].Value;
+        path = Uri.UnescapeDataString(match.Groups["path"].Value);
+        return true;
+    }
 }
