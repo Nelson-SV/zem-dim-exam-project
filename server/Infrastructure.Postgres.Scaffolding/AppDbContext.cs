@@ -61,6 +61,8 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.Uploadedbyid, "IX_documents_uploadedbyid");
 
+            entity.HasIndex(e => e.Isdeleted, "idx_documents_isdeleted");
+
             entity.HasIndex(e => e.Projectid, "idx_documents_project");
 
             entity.HasIndex(e => e.Documenttype, "idx_documents_type");
@@ -84,6 +86,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Fileurl)
                 .HasMaxLength(500)
                 .HasColumnName("fileurl");
+            entity.Property(e => e.Isdeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("isdeleted");
             entity.Property(e => e.Isvisibletoclient)
                 .HasDefaultValue(true)
                 .HasColumnName("isvisibletoclient");
@@ -164,6 +169,8 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("milestones");
 
+            entity.HasIndex(e => e.Isdeleted, "idx_milestones_isdeleted");
+
             entity.HasIndex(e => new { e.Projectid, e.Orderindex }, "idx_milestones_order");
 
             entity.HasIndex(e => e.Projectid, "idx_milestones_project");
@@ -181,6 +188,9 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("createdat");
             entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Isdeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("isdeleted");
             entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.Orderindex).HasColumnName("orderindex");
             entity.Property(e => e.Plannedenddate).HasColumnName("plannedenddate");
@@ -262,6 +272,8 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.Takenat, "idx_photos_date").IsDescending();
 
+            entity.HasIndex(e => e.Isdeleted, "idx_photos_isdeleted");
+
             entity.HasIndex(e => e.Milestoneid, "idx_photos_milestone");
 
             entity.HasIndex(e => e.Projectid, "idx_photos_project");
@@ -281,6 +293,9 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(500)
                 .HasColumnName("fileurl");
             entity.Property(e => e.Height).HasColumnName("height");
+            entity.Property(e => e.Isdeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("isdeleted");
             entity.Property(e => e.Milestoneid).HasColumnName("milestoneid");
             entity.Property(e => e.Mimetype)
                 .HasMaxLength(100)

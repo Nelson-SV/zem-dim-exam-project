@@ -226,6 +226,7 @@ CREATE TABLE documents (
     uploadedbyid uuid NOT NULL,
     isvisibletoclient boolean DEFAULT TRUE,
     createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    isdeleted boolean NOT NULL DEFAULT FALSE,
     CONSTRAINT documents_pkey PRIMARY KEY (id),
     CONSTRAINT documents_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
     CONSTRAINT documents_uploadedbyid_fkey FOREIGN KEY (uploadedbyid) REFERENCES users (id)
@@ -265,6 +266,7 @@ CREATE TABLE milestones (
     notes text,
     createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     updatedat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    isdeleted boolean NOT NULL DEFAULT FALSE,
     CONSTRAINT milestones_pkey PRIMARY KEY (id),
     CONSTRAINT milestones_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE
 );
@@ -302,6 +304,7 @@ CREATE TABLE photos (
     takenat timestamp with time zone,
     uploadedbyid uuid NOT NULL,
     createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    isdeleted boolean NOT NULL DEFAULT FALSE,
     CONSTRAINT photos_pkey PRIMARY KEY (id),
     CONSTRAINT photos_milestoneid_fkey FOREIGN KEY (milestoneid) REFERENCES milestones (id) ON DELETE SET NULL,
     CONSTRAINT photos_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
@@ -346,6 +349,9 @@ CREATE TABLE updates (
 );
 
 
+CREATE INDEX idx_documents_isdeleted ON documents (isdeleted);
+
+
 CREATE INDEX idx_documents_project ON documents (projectid);
 
 
@@ -373,6 +379,9 @@ CREATE INDEX idx_messages_sender ON messages (senderid);
 CREATE INDEX idx_messages_unread ON messages (receiverid, isread) WHERE (isread = false);
 
 
+CREATE INDEX idx_milestones_isdeleted ON milestones (isdeleted);
+
+
 CREATE INDEX idx_milestones_order ON milestones (projectid, orderindex);
 
 
@@ -398,6 +407,9 @@ CREATE INDEX "IX_notifications_projectid" ON notifications (projectid);
 
 
 CREATE INDEX idx_photos_date ON photos (takenat DESC);
+
+
+CREATE INDEX idx_photos_isdeleted ON photos (isdeleted);
 
 
 CREATE INDEX idx_photos_milestone ON photos (milestoneid);

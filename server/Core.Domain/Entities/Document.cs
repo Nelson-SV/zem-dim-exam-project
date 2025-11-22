@@ -27,6 +27,8 @@ public partial class Document
 
     public DateTime? Createdat { get; set; }
 
+    public bool Isdeleted { get; set; }
+
     public virtual Project Project { get; set; } = null!;
 
     public virtual User Uploadedby { get; set; } = null!;
