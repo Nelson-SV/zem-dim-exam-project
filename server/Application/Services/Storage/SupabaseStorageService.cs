@@ -130,11 +130,57 @@ public class SupabaseStorageService : IStorageService
 
         return GetPublicUrl(objectPath, StorageBuckets.ThreeDScans);
     }
+
+    public async Task<string> UploadPhotoAsync(Stream fileStream, string fileName, string contentType, Guid projectId, Guid? milestoneId, CancellationToken ct = default)
+    {
+        var extension = Path.GetExtension(fileName);
+        var normalizedExtension = string.IsNullOrWhiteSpace(extension) ? ".jpg" : extension.ToLowerInvariant();
+        var path = BuildPhotoPath(projectId, milestoneId, normalizedExtension);
+
+        await using var buffer = new MemoryStream();
+        await fileStream.CopyToAsync(buffer, ct);
+
+        await _supabaseClient.Storage
+            .From(StorageBuckets.Photos)
+            .Upload(buffer.ToArray(), path, new Supabase.Storage.FileOptions
+            {
+                ContentType = contentType,
+                Upsert = false
+            });
+
+        return GetPublicUrl(path, StorageBuckets.Photos);
+    }
+
+    public async Task<string> UploadDocumentAsync(Stream fileStream, string fileName, string contentType, Guid projectId, CancellationToken ct = default)
+    {
+        var extension = Path.GetExtension(fileName);
+        var normalizedExtension = string.IsNullOrWhiteSpace(extension) ? ".dat" : extension.ToLowerInvariant();
+        var path = $"documents/projects/{projectId}/{Guid.NewGuid()}{normalizedExtension}";
+
+        await using var buffer = new MemoryStream();
+        await fileStream.CopyToAsync(buffer, ct);
+
+        await _supabaseClient.Storage
+            .From(StorageBuckets.Documents)
+            .Upload(buffer.ToArray(), path, new Supabase.Storage.FileOptions
+            {
+                ContentType = contentType,
+                Upsert = false
+            });
+
+        return GetPublicUrl(path, StorageBuckets.Documents);
+    }
     
     private static string Build3DScanPath(Guid projectId, Guid? milestoneId, string extension)
     {
         var milestoneSegment = milestoneId.HasValue ? $"milestones/{milestoneId.Value}/" : string.Empty;
         return $"{StorageBuckets.ThreeDScanPrefix}/projects/{projectId}/{milestoneSegment}{Guid.NewGuid()}{extension}";
+    }
+
+    private static string BuildPhotoPath(Guid projectId, Guid? milestoneId, string extension)
+    {
+        var milestoneSegment = milestoneId.HasValue ? $"milestones/{milestoneId.Value}/" : string.Empty;
+        return $"photos/projects/{projectId}/{milestoneSegment}{Guid.NewGuid()}{extension}";
     }
 
     private static bool TryParsePublicUrl(string fileUrl, out string bucket, out string path)

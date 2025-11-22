@@ -50,6 +50,9 @@ public static class ServicesExtensions
         services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IProjectService, ProjectService>();
+        services.AddScoped<IMilestoneService, MilestoneService>();
+        services.AddScoped<IPhotoService, PhotoService>();
+        services.AddScoped<IDocumentService, DocumentService>();
         services.AddScoped<IUser3DScanService, User3DScanService>();
         services.AddScoped<IAdmin3DScanService, Admin3DScanService>();
         services.AddTransient<EmailService>();

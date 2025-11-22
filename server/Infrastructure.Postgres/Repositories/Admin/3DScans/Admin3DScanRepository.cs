@@ -44,9 +44,11 @@ public class Admin3DScanRepository(AppDbContext ctx) : IAdmin3DScanRepository
     }
 
     public Task<Threedscan?> GetByIdAsync(Guid scanId, CancellationToken ct)
-    {
-        throw new NotImplementedException();
-    }
+        => ctx.Threedscans
+            .Include(s => s.Project)
+            .Include(s => s.Milestone)
+            .Include(s => s.Uploadedby)
+            .FirstOrDefaultAsync(s => s.Id == scanId, ct);
 
     public async Task DeleteAsync(Guid scanId, CancellationToken ct)
     {

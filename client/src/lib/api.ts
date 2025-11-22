@@ -6,7 +6,10 @@ import {
     User3DScansClient,
     Admin3DScansClient,
     type UploadThreeDScanForm,
-    type AdminThreeDScanDto
+    type AdminThreeDScanDto,
+    AdminProjectDocumentsClient,
+    AdminProjectMilestonesClient,
+    AdminProjectPhotosClient
 } from '../generated-client';
 
 // const httpSchema= import.meta.env.VITE_API_HTTP_SCHEMA;
@@ -23,6 +26,9 @@ export class ApiClient {
     private _auth: AuthClient | null = null;
     private _user3DScans: User3DScansClient | null = null;
     private _admin3DScans: Admin3DScansClient | null = null;
+    private _adminProjectDocuments: AdminProjectDocumentsClient | null = null;
+    private _adminProjectMilestones: AdminProjectMilestonesClient | null = null;
+    private _adminProjectPhotos: AdminProjectPhotosClient | null = null;
 
 
 
@@ -100,6 +106,27 @@ export class ApiClient {
         return this._admin3DScans;
     }
 
+    get adminDocuments() {
+        if (!this._adminProjectDocuments) {
+            this._adminProjectDocuments = new AdminProjectDocumentsClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._adminProjectDocuments;
+    }
+
+    get adminStages() {
+        if (!this._adminProjectMilestones) {
+            this._adminProjectMilestones = new AdminProjectMilestonesClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._adminProjectMilestones;
+    }
+
+    get adminPhotos() {
+        if (!this._adminProjectPhotos) {
+            this._adminProjectPhotos = new AdminProjectPhotosClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._adminProjectPhotos;
+    }
+
     // Reset clients when authentication changes
     resetClients() {
         this._userManagement = null;
@@ -108,6 +135,9 @@ export class ApiClient {
         this._auth = null;
         this._user3DScans = null;
         this._admin3DScans = null;
+        this._adminProjectDocuments = null;
+        this._adminProjectMilestones = null;
+        this._adminProjectPhotos = null;
     }
     async uploadProjectImage(file: File): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
         const endpoint = `${this.baseUrl}/api/FileUpload/project-thumbnail`;
@@ -150,7 +180,6 @@ export class ApiClient {
         if (!res.ok) throw new Error(await res.text());
         return res.json();
     }
-
 }
 
 // Create and export a singleton instance

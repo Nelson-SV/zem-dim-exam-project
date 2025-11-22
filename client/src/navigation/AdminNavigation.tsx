@@ -7,6 +7,7 @@ import { ClientManagementPage } from "../admin/client-management/ClientManagemen
 import { AdminAnalytics } from "../admin/AdminAnalytics";
 import { AdminSettings } from "../admin/AdminSettings";
 import { MessagesPage } from "../client/MessagesPage";
+import { useParams } from "react-router-dom";
 
 const adminLinks = [
   { to: "dashboard", label: "Dashboard" },
@@ -19,7 +20,8 @@ const adminLinks = [
 
 function ProjectDetailsWrapper() {
   const navigate = useNavigate();
-  return <ProjectDetails projectId="1" onBack={() => navigate("/admin/projects")} />;
+  const { id } = useParams();
+  return <ProjectDetails projectId={id ?? ""} onBack={() => navigate("/admin/projects")} />;
 }
 
 export function AdminNavigation() {

@@ -1,6 +1,7 @@
 using Application.Interfaces.Infrastructure.Postgres;
 using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
 using Application.Interfaces.Services;
+using Application.Models.Dtos.Common;
 using Application.Models.Dtos.Project;
 using Core.Domain.Entities;
 
@@ -24,6 +25,21 @@ public class ProjectService : IProjectService
     {
         var projects = await _projectRepository.GetAllAsync();
         return ProjectDto.FromEntityToList(projects);
+    }
+
+    public async Task<PaginationItemsResponse<ProjectDto>> GetPagedAsync(string? search, string? status, int page, int pageSize, CancellationToken ct = default)
+    {
+        if (page < 1) page = 1;
+        if (pageSize <= 0 || pageSize > 100) pageSize = 20;
+
+        var (items, total) = await _projectRepository.GetPagedAsync(search, status, page, pageSize, ct);
+        return new PaginationItemsResponse<ProjectDto>
+        {
+            Items = ProjectDto.FromEntityToList(items.ToList()),
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = total
+        };
     }
 
     public async Task<List<ProjectDto>> GetUserProjectsAsync(Guid userId)

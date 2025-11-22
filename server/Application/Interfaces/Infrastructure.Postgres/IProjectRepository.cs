@@ -12,6 +12,11 @@ public interface IProjectRepository
     Task<List<Project>> GetAllAsync();
 
     /// <summary>
+    /// Get projects with pagination and optional search/status filters
+    /// </summary>
+    Task<(IReadOnlyCollection<Project> Items, int Total)> GetPagedAsync(string? search, string? status, int page, int pageSize, CancellationToken ct = default);
+
+    /// <summary>
     /// Get all projects including soft-deleted ones
     /// </summary>
     Task<List<Project>> GetAllIncludingDeletedAsync();

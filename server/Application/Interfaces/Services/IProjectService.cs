@@ -1,3 +1,4 @@
+using Application.Models.Dtos.Common;
 using Application.Models.Dtos.Project;
 
 namespace Application.Interfaces.Services;
@@ -10,6 +11,11 @@ public interface IProjectService
     /// Get all projects (for Admin)
     /// </summary>
     Task<List<ProjectDto>> GetAllProjectsAsync();
+
+    /// <summary>
+    /// Get paged projects with optional search and status filters (Admin)
+    /// </summary>
+    Task<PaginationItemsResponse<ProjectDto>> GetPagedAsync(string? search, string? status, int page, int pageSize, CancellationToken ct = default);
 
     /// <summary>
     /// Get projects for specific user
