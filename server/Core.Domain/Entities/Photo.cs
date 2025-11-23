@@ -33,6 +33,8 @@ public partial class Photo
 
     public DateTime? Createdat { get; set; }
 
+    public bool Isdeleted { get; set; }
+
     public virtual Milestone? Milestone { get; set; }
 
     public virtual Project Project { get; set; } = null!;

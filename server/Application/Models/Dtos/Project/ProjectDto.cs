@@ -55,7 +55,7 @@ public class ProjectDto
             ThumbnailUrl = project.Thumbnailurl,
             CreatedAt = project.Createdat,
             UpdatedAt = project.Updatedat,
-            IsDeleted = project.Isdeleted ?? false
+            IsDeleted = project.Isdeleted 
         };
     }
 

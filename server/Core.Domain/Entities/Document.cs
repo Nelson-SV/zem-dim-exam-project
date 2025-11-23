@@ -27,6 +27,22 @@ public partial class Document
 
     public DateTime? Createdat { get; set; }
 
+    public bool Isdeleted { get; set; }
+
+    public string? Docusealsubmissionid { get; set; }
+
+    public bool? Requiressignature { get; set; }
+
+    public bool? Issigned { get; set; }
+
+    public Guid? Signedbyuserid { get; set; }
+
+    public DateTime? Signedat { get; set; }
+
+    public string? Signedfileurl { get; set; }
+
+    public string? Docusealoriginalurl { get; set; }
+
     public virtual Project Project { get; set; } = null!;
 
     public virtual User Uploadedby { get; set; } = null!;

@@ -3,7 +3,9 @@ import {
     ProjectsClient,
     MessagesClient,
     AuthClient,
+    DocumentSignatureClient,
     User3DScansClient
+
 } from '../generated-client';
 
 // const httpSchema= import.meta.env.VITE_API_HTTP_SCHEMA;
@@ -19,6 +21,7 @@ export class ApiClient {
     private _messages: MessagesClient | null = null;
     private _auth: AuthClient | null = null;
     private _user3DScans: User3DScansClient | null = null;
+    private _docSignature: DocumentSignatureClient | null = null;
 
 
 
@@ -88,6 +91,15 @@ export class ApiClient {
         }
         return this._user3DScans;
     }
+    get docSignature() {
+        if (!this._docSignature) {
+            this._docSignature = new DocumentSignatureClient(
+                this.baseUrl,
+                this.createHttpClient()
+            );
+        }
+        return this._docSignature;
+    }
 
     // Reset clients when authentication changes
     resetClients() {
@@ -96,6 +108,7 @@ export class ApiClient {
         this._messages = null;
         this._auth = null;
         this._user3DScans = null;
+        this._docSignature = null;
     }
     async uploadProjectImage(file: File): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
         const endpoint = `${this.baseUrl}/api/FileUpload/project-thumbnail`;

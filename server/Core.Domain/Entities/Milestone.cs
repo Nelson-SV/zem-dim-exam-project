@@ -33,6 +33,8 @@ public partial class Milestone
 
     public DateTime? Updatedat { get; set; }
 
+    public bool Isdeleted { get; set; }
+
     public virtual ICollection<Photo> Photos { get; set; } = new List<Photo>();
 
     public virtual Project Project { get; set; } = null!;

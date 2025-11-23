@@ -1,18 +1,21 @@
-using Application.Interfaces.Services;   // інтерфейс IStorageService тепер тут
+using Application.Interfaces.Services;
 using Supabase;
 
 namespace Application.Services.Storage;
 
 public class SupabaseStorageService : IStorageService
 {
-    // чітко вказуємо тип, щоб не було конфлікту з Supabase.Storage.Client
     private readonly Supabase.Client _supabaseClient;
-    private const string BUCKET_NAME = "Projects"; 
+
+    private const string PROJECTS_BUCKET = "Projects";   // thumbnails
+    private const string DOCUMENTS_BUCKET = "Documents"; // pdf/doc, signed pdfs
 
     public SupabaseStorageService(Supabase.Client supabaseClient)
     {
         _supabaseClient = supabaseClient;
     }
+
+    // ---------- Thumbnails ----------
 
     public async Task<string> UploadProjectThumbnailAsync(Stream fileStream, string fileName, string contentType)
     {
@@ -22,50 +25,142 @@ public class SupabaseStorageService : IStorageService
             var uniqueFileName = $"{Guid.NewGuid()}{extension}";
             var filePath = $"thumbnails/{uniqueFileName}";
 
-            // читаємо стрім у байти
             using var ms = new MemoryStream();
             await fileStream.CopyToAsync(ms);
             var bytes = ms.ToArray();
 
-            // ВАЖЛИВО: сигнатура Upload(path, bytes, options)
             await _supabaseClient
                 .Storage
-                .From(BUCKET_NAME)
+                .From(PROJECTS_BUCKET)
                 .Upload(
-                    bytes,          // first parameter - byte array
-                    filePath,       // second parameter - path
+                    bytes,
+                    filePath,
                     new Supabase.Storage.FileOptions
                     {
                         ContentType = contentType,
                         Upsert = false
                     });
 
-            return GetPublicUrl(filePath);
+            return GetPublicUrl(PROJECTS_BUCKET, filePath);
         }
         catch (Exception ex)
         {
-            throw new ApplicationException($"Failed to upload file: {ex.Message}", ex);
+            throw new ApplicationException($"Failed to upload thumbnail: {ex.Message}", ex);
         }
     }
+
+    // ---------- Project documents (PDF, etc.) ----------
+
+    public async Task<string> UploadProjectDocumentAsync(Stream fileStream, string fileName, string contentType)
+    {
+        try
+        {
+            var extension = Path.GetExtension(fileName);
+            var uniqueFileName = $"{Guid.NewGuid()}{extension}";
+            var filePath = $"project-documents/{uniqueFileName}";
+
+            using var ms = new MemoryStream();
+            await fileStream.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+
+            await _supabaseClient
+                .Storage
+                .From(DOCUMENTS_BUCKET)
+                .Upload(
+                    bytes,
+                    filePath,
+                    new Supabase.Storage.FileOptions
+                    {
+                        ContentType = contentType,
+                        Upsert = false
+                    });
+
+            return GetPublicUrl(DOCUMENTS_BUCKET, filePath);
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException($"Failed to upload project document: {ex.Message}", ex);
+        }
+    }
+
+    // ---------- Signed PDF ----------
+
+    public async Task<string> UploadSignedPdfAsync(byte[] pdfBytes, string fileName)
+    {
+        try
+        {
+            var filePath = $"signed-documents/{fileName}";
+
+            await _supabaseClient
+                .Storage
+                .From(DOCUMENTS_BUCKET)
+                .Upload(
+                    pdfBytes,
+                    filePath,
+                    new Supabase.Storage.FileOptions
+                    {
+                        ContentType = "application/pdf",
+                        Upsert = false
+                    });
+
+            return GetPublicUrl(DOCUMENTS_BUCKET, filePath);
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException($"Failed to upload signed PDF: {ex.Message}", ex);
+        }
+    }
+
+    // ---------- Download ----------
+
+    public async Task<byte[]> DownloadFileAsync(string url)
+    {
+        try
+        {
+            using var httpClient = new HttpClient();
+            return await httpClient.GetByteArrayAsync(url);
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException($"Failed to download file: {ex.Message}", ex);
+        }
+    }
+
+    // ---------- Delete (both buckets) ----------
 
     public async Task<bool> DeleteFileAsync(string fileUrl)
     {
         try
         {
-            // Витягаємо відносний шлях у бакеті з публічного URL
             var uri = new Uri(fileUrl);
-            var prefix = $"/storage/v1/object/public/{BUCKET_NAME}/";
             var fullPath = Uri.UnescapeDataString(uri.AbsolutePath);
+
+            string bucketName;
+            string prefix;
+
+            if (fullPath.Contains($"/storage/v1/object/public/{PROJECTS_BUCKET}/"))
+            {
+                bucketName = PROJECTS_BUCKET;
+                prefix = $"/storage/v1/object/public/{PROJECTS_BUCKET}/";
+            }
+            else if (fullPath.Contains($"/storage/v1/object/public/{DOCUMENTS_BUCKET}/"))
+            {
+                bucketName = DOCUMENTS_BUCKET;
+                prefix = $"/storage/v1/object/public/{DOCUMENTS_BUCKET}/";
+            }
+            else
+            {
+                return false;
+            }
 
             if (!fullPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 return false;
 
-            var filePath = fullPath.Substring(prefix.Length); // напр. "thumbnails/xxx.webp"
+            var filePath = fullPath.Substring(prefix.Length);
 
-            // ВАЖЛИВО: Remove приймає IEnumerable<string>
             await _supabaseClient
                 .Storage
-                .From(BUCKET_NAME)
+                .From(bucketName)
                 .Remove(new List<string> { filePath });
 
             return true;
@@ -76,6 +171,11 @@ public class SupabaseStorageService : IStorageService
         }
     }
 
+    // ---------- Public URLs ----------
+
     public string GetPublicUrl(string filePath)
-        => _supabaseClient.Storage.From(BUCKET_NAME).GetPublicUrl(filePath);
+        => GetPublicUrl(PROJECTS_BUCKET, filePath);
+
+    private string GetPublicUrl(string bucketName, string filePath)
+        => _supabaseClient.Storage.From(bucketName).GetPublicUrl(filePath);
 }

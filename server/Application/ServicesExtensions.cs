@@ -3,11 +3,14 @@ using Application.Interfaces.Infrastructure.Postgres.Users._3DScans;
 using Application.Interfaces.Security;
 using Application.Interfaces.Services;
 using Application.Interfaces.Users._3DScans;
+using Application.Services;
 using Application.Services.Admin.UserManagement;
+using Application.Services.Documents;
 using Application.Services.Email;
 using Application.Services.MessageService;
 using Application.Services.ProjectService;
 using Application.Services.Security;
+using Application.Services.Storage;
 using Application.Services.Users._3DScans;
 using Application.Validators.Admin.UserManagement;
 using FluentValidation;
@@ -41,13 +44,15 @@ public static class ServicesExtensions
         services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
         services.AddValidatorsFromAssemblyContaining<UpdateUserValidator>();
         
-        
+        services.AddHttpClient();
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IUser3DScanService, User3DScanService>();
         services.AddTransient<EmailService>();
+        services.AddScoped<IDocuSealService, DocuSealService>();
+        services.AddScoped<IStorageService, SupabaseStorageService>();
         return services;
     }
 }

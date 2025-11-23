@@ -7,6 +7,191 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
+export class DocumentsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getAll(): Promise<DocumentDto[]> {
+        let url_ = this.baseUrl + "/api/Documents";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAll(_response);
+        });
+    }
+
+    protected processGetAll(response: Response): Promise<DocumentDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DocumentDto[];
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentDto[]>(null as any);
+    }
+
+    upload(contentType: string | null | undefined, contentDisposition: string | null | undefined, headers: any[] | null | undefined, length: number | undefined, name: string | null | undefined, fileName: string | null | undefined, projectId: string | undefined, title: string | null | undefined): Promise<DocumentDto> {
+        let url_ = this.baseUrl + "/api/Documents";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (contentType !== null && contentType !== undefined)
+            content_.append("ContentType", contentType.toString());
+        if (contentDisposition !== null && contentDisposition !== undefined)
+            content_.append("ContentDisposition", contentDisposition.toString());
+        if (headers !== null && headers !== undefined)
+            headers.forEach(item_ => content_.append("Headers", item_.toString()));
+        if (length === null || length === undefined)
+            throw new globalThis.Error("The parameter 'length' cannot be null.");
+        else
+            content_.append("Length", length.toString());
+        if (name !== null && name !== undefined)
+            content_.append("Name", name.toString());
+        if (fileName !== null && fileName !== undefined)
+            content_.append("FileName", fileName.toString());
+        if (projectId === null || projectId === undefined)
+            throw new globalThis.Error("The parameter 'projectId' cannot be null.");
+        else
+            content_.append("projectId", projectId.toString());
+        if (title !== null && title !== undefined)
+            content_.append("title", title.toString());
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpload(_response);
+        });
+    }
+
+    protected processUpload(response: Response): Promise<DocumentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DocumentDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentDto>(null as any);
+    }
+}
+
+export class DocumentSignatureClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    requestSignature(dto: CreateDocuSealSubmissionDto): Promise<DocuSealSubmissionResponseDto> {
+        let url_ = this.baseUrl + "/api/DocumentSignature/request";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRequestSignature(_response);
+        });
+    }
+
+    protected processRequestSignature(response: Response): Promise<DocuSealSubmissionResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DocuSealSubmissionResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocuSealSubmissionResponseDto>(null as any);
+    }
+
+    webhook(dto: DocuSealWebhookDto): Promise<DocuSealWebhookResponseDto> {
+        let url_ = this.baseUrl + "/api/DocumentSignature/webhook";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processWebhook(_response);
+        });
+    }
+
+    protected processWebhook(response: Response): Promise<DocuSealWebhookResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DocuSealWebhookResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocuSealWebhookResponseDto>(null as any);
+    }
+}
+
 export class FileUploadClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -1168,6 +1353,52 @@ export class UserManagementClient {
         }
         return Promise.resolve<GetAllUsersResponseDto>(null as any);
     }
+}
+
+export interface DocumentDto {
+    id?: string;
+    title?: string;
+    filename?: string;
+    fileurl?: string;
+    filesize?: number | undefined;
+    uploadedBy?: string;
+    createdat?: Date | undefined;
+    documenttype?: string;
+    docusealsubmissionid?: string | undefined;
+    requiressignature?: boolean | undefined;
+    issigned?: boolean | undefined;
+    signedat?: Date | undefined;
+    signedfileurl?: string | undefined;
+    signedbyuserid?: string | undefined;
+}
+
+export interface DocuSealSubmissionResponseDto {
+    submissionId?: string;
+    signingUrl?: string;
+    emailSent?: boolean;
+}
+
+export interface CreateDocuSealSubmissionDto {
+    documentId?: string;
+    signerEmail?: string;
+    signerName?: string;
+}
+
+export interface DocuSealWebhookResponseDto {
+    message?: string;
+    documentId?: string | undefined;
+    signedFileUrl?: string | undefined;
+}
+
+export interface DocuSealWebhookDto {
+    eventType?: string;
+    data?: SubmissionData;
+}
+
+export interface SubmissionData {
+    submissionId?: string;
+    status?: string;
+    signedDocumentUrl?: string;
 }
 
 export interface FileUploadResponseDto {
