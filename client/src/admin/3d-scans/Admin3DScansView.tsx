@@ -47,7 +47,7 @@ export function Admin3DScansView({ projectId, projectName, milestones }: Props) 
           notes: values.notes,
           file: values.file!,
         };
-        await http.upload3DScanFormData(payload);
+        await http.upload3DScanFile(payload);
         toast.success('3D scan uploaded successfully.');
       } else if (modalState.scan?.id) {
         await http.admin3DScans.update3DScan(modalState.scan.id, {

@@ -61,7 +61,13 @@ public partial class AppDbContext : DbContext
 
             entity.HasIndex(e => e.Uploadedbyid, "IX_documents_uploadedbyid");
 
+            entity.HasIndex(e => e.Docusealsubmissionid, "idx_documents_docuseal_submission");
+
+            entity.HasIndex(e => e.Docusealsubmissionid, "idx_documents_docusealsubmissionid");
+
             entity.HasIndex(e => e.Isdeleted, "idx_documents_isdeleted");
+
+            entity.HasIndex(e => e.Issigned, "idx_documents_issigned");
 
             entity.HasIndex(e => e.Projectid, "idx_documents_project");
 
@@ -79,6 +85,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Documenttype)
                 .HasMaxLength(50)
                 .HasColumnName("documenttype");
+            entity.Property(e => e.Docusealoriginalurl).HasColumnName("docusealoriginalurl");
+            entity.Property(e => e.Docusealsubmissionid)
+                .HasMaxLength(255)
+                .HasColumnName("docusealsubmissionid");
             entity.Property(e => e.Filename)
                 .HasMaxLength(255)
                 .HasColumnName("filename");
@@ -89,6 +99,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Isdeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("isdeleted");
+            entity.Property(e => e.Issigned)
+                .HasDefaultValue(false)
+                .HasColumnName("issigned");
             entity.Property(e => e.Isvisibletoclient)
                 .HasDefaultValue(true)
                 .HasColumnName("isvisibletoclient");
@@ -96,6 +109,16 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("mimetype");
             entity.Property(e => e.Projectid).HasColumnName("projectid");
+            entity.Property(e => e.Requiressignature)
+                .HasDefaultValue(false)
+                .HasColumnName("requiressignature");
+            entity.Property(e => e.Signedat)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("signedat");
+            entity.Property(e => e.Signedbyuserid).HasColumnName("signedbyuserid");
+            entity.Property(e => e.Signedfileurl)
+                .HasMaxLength(500)
+                .HasColumnName("signedfileurl");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)
                 .HasColumnName("title");
@@ -354,16 +377,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("createdat");
-            entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Isdeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("isdeleted");
-            entity.Property(e => e.Latitude)
-                .HasPrecision(10, 8)
-                .HasColumnName("latitude");
-            entity.Property(e => e.Longitude)
-                .HasPrecision(11, 8)
-                .HasColumnName("longitude");
+            entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.Plannedenddate).HasColumnName("plannedenddate");
             entity.Property(e => e.Postalcode)
                 .HasMaxLength(20)
@@ -374,7 +391,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Startdate).HasColumnName("startdate");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("'InProgress'::character varying")
+                .HasDefaultValueSql("'''Pending''::character varying'::character varying")
                 .HasColumnName("status");
             entity.Property(e => e.Thumbnailurl)
                 .HasMaxLength(500)

@@ -2,7 +2,7 @@ namespace Application.Interfaces.Services;
 
 public interface IStorageService
 {
-    Task<string> UploadProjectThumbnailAsync(Stream fileStream, string fileName, string contentType);
+    Task<string> UploadProjectThumbnailAsync(Stream fileStream, string fileName, string contentType, Guid? projectId = null, CancellationToken ct = default);
     Task<string> UploadThreeDScanAsync(Stream fileStream, string fileName, Guid projectId, Guid? milestoneId, CancellationToken ct = default);
     Task<string> UploadPhotoAsync(Stream fileStream, string fileName, string contentType, Guid projectId, Guid? milestoneId, CancellationToken ct = default);
     Task<string> UploadDocumentAsync(Stream fileStream, string fileName, string contentType, Guid projectId, CancellationToken ct = default);

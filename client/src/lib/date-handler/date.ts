@@ -6,10 +6,16 @@ const UKRAINE_TZ = "Europe/Kyiv";
  * Converts a local Ukrainian date (YYYY-MM-DD or Date object)
  * into a UTC ISO string before sending to backend
  */
-export function toUtcForApi(input: string | Date | null): string | null {
+export function toStringUtcForApi(input: string | Date | null): string | null {
   if (!input) return null;
   const date = typeof input === "string" ? new Date(input) : input;
   return fromZonedTime(date, UKRAINE_TZ).toISOString();
+}
+
+export function toDateUtcForApi(input: string | Date | null): Date | null {
+  if (!input) return null;
+  const date = typeof input === "string" ? new Date(input) : input;
+  return fromZonedTime(date, UKRAINE_TZ);
 }
 
 /**

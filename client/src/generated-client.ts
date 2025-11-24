@@ -17,7 +17,7 @@ export class FileUploadClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    uploadProjectThumbnail(contentType: string | null | undefined, contentDisposition: string | null | undefined, headers: any[] | null | undefined, length: number | undefined, name: string | null | undefined, fileName: string | null | undefined): Promise<FileUploadResponseDto> {
+    uploadProjectThumbnail(contentType: string | null | undefined, contentDisposition: string | null | undefined, headers: any[] | null | undefined, length: number | undefined, name: string | null | undefined, fileName: string | null | undefined, projectId: string | null | undefined): Promise<FileUploadResponseDto> {
         let url_ = this.baseUrl + "/api/FileUpload/project-thumbnail";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -36,6 +36,8 @@ export class FileUploadClient {
             content_.append("Name", name.toString());
         if (fileName !== null && fileName !== undefined)
             content_.append("FileName", fileName.toString());
+        if (projectId !== null && projectId !== undefined)
+            content_.append("projectId", projectId.toString());
 
         let options_: RequestInit = {
             body: content_,
@@ -67,11 +69,16 @@ export class FileUploadClient {
         return Promise.resolve<FileUploadResponseDto>(null as any);
     }
 
-    uploadProjectThumbnailAlternative(): Promise<FileUploadResponseDto> {
+    uploadProjectThumbnailAlternative(projectId: string | null | undefined): Promise<FileUploadResponseDto> {
         let url_ = this.baseUrl + "/api/FileUpload/project-thumbnail-alt";
         url_ = url_.replace(/[?&]$/, "");
 
+        const content_ = new FormData();
+        if (projectId !== null && projectId !== undefined)
+            content_.append("projectId", projectId.toString());
+
         let options_: RequestInit = {
+            body: content_,
             method: "POST",
             headers: {
                 "Accept": "application/json"
@@ -2093,15 +2100,13 @@ export interface ProjectDto {
     clientId?: string;
     clientName?: string;
     title?: string;
-    description?: string | undefined;
+    notes?: string | undefined;
     address?: string | undefined;
     city?: string | undefined;
     postalCode?: string | undefined;
-    latitude?: number | undefined;
-    longitude?: number | undefined;
     status?: string;
     startDate?: Date;
-    plannedEndDate?: Date | undefined;
+    plannedEndDate?: Date;
     actualEndDate?: Date | undefined;
     totalArea?: number | undefined;
     budget?: number | undefined;
@@ -2128,53 +2133,47 @@ export interface ProjectParticipantsDto {
 export interface CreateProjectDto {
     clientId: string;
     title: string;
-    description?: string | undefined;
-    address?: string | undefined;
-    city?: string | undefined;
-    postalCode?: string | undefined;
-    latitude?: number | undefined;
-    longitude?: number | undefined;
+    notes?: string | undefined;
+    address: string;
+    city: string;
+    postalCode: string;
     status: string;
-    startDate: Date;
-    plannedEndDate?: Date | undefined;
-    totalArea?: number | undefined;
-    budget?: number | undefined;
+    startDate: string;
+    plannedEndDate: string;
+    totalArea?: number;
+    budget?: number;
     progressPercentage?: number;
     thumbnailUrl?: string | undefined;
 }
 
 export interface UpdateProjectDto {
     title: string;
-    description?: string | undefined;
-    address?: string | undefined;
-    city?: string | undefined;
-    postalCode?: string | undefined;
-    latitude?: number | undefined;
-    longitude?: number | undefined;
+    notes?: string | undefined;
+    address: string;
+    city: string;
+    postalCode: string;
     status: string;
-    startDate: Date;
-    plannedEndDate?: Date | undefined;
-    actualEndDate?: Date | undefined;
-    totalArea?: number | undefined;
-    budget?: number | undefined;
+    startDate: string;
+    plannedEndDate?: string | undefined;
+    actualEndDate?: string | undefined;
+    totalArea?: number;
+    budget?: number;
     progressPercentage?: number;
     thumbnailUrl?: string | undefined;
 }
 
 export interface PatchProjectDto {
     title?: string | undefined;
-    description?: string | undefined;
+    notes?: string | undefined;
     address?: string | undefined;
     city?: string | undefined;
     postalCode?: string | undefined;
-    latitude?: number | undefined;
-    longitude?: number | undefined;
     status?: string | undefined;
-    startDate?: Date | undefined;
-    plannedEndDate?: Date | undefined;
-    actualEndDate?: Date | undefined;
-    totalArea?: number | undefined;
-    budget?: number | undefined;
+    startDate?: string | undefined;
+    plannedEndDate?: string | undefined;
+    actualEndDate?: string | undefined;
+    totalArea?: number;
+    budget?: number;
     progressPercentage?: number | undefined;
     thumbnailUrl?: string | undefined;
 }

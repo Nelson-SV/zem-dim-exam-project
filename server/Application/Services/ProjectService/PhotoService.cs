@@ -122,7 +122,7 @@ public class PhotoService(
             if (photo.Projectid != projectId)
                 throw new UnauthorizedAccessException("Photo does not belong to this project");
 
-            await repository.DeleteAsync(photoId, ct);
+            await repository.SoftDeleteAsync(photoId, ct);
             if (!string.IsNullOrEmpty(photo.Fileurl))
                 await storage.DeleteFileAsync(photo.Fileurl, ct);
 

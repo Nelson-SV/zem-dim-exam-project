@@ -11,5 +11,5 @@ public interface IMilestoneRepository
     Task<Milestone?> GetByIdAsync(Guid milestoneId, CancellationToken ct = default);
     Task<Milestone> InsertAsync(Milestone milestone, CancellationToken ct = default);
     Task<Milestone> UpdateAsync(Milestone milestone, CancellationToken ct = default);
-    Task DeleteAsync(Guid milestoneId, CancellationToken ct = default);
+    Task SoftDeleteAsync(Guid milestoneId, CancellationToken ct = default);
 }

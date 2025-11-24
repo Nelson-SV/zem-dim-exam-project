@@ -139,10 +139,11 @@ export class ApiClient {
         this._adminProjectMilestones = null;
         this._adminProjectPhotos = null;
     }
-    async uploadProjectImage(file: File): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
+    async uploadProjectImage(file: File, projectId?: string): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
         const endpoint = `${this.baseUrl}/api/FileUpload/project-thumbnail`;
         const form = new FormData();
         form.append("file", file); // Key MUST be "file"
+        if (projectId) form.append("projectId", projectId);
 
         const client = this.createHttpClient();
         const res = await client.fetch(endpoint, {
@@ -158,7 +159,7 @@ export class ApiClient {
         return (await res.json()) as { url: string; fileName?: string; contentType?: string; size?: number };
     }
 
-    async upload3DScanFormData(form: UploadThreeDScanForm): Promise<AdminThreeDScanDto> {
+    async upload3DScanFile(form: UploadThreeDScanForm): Promise<AdminThreeDScanDto> {
         const fd = new FormData();
         fd.append("ProjectId", form.projectId!);
         if (form.milestoneId) fd.append("MilestoneId", form.milestoneId);
@@ -177,6 +178,38 @@ export class ApiClient {
             }
         });
 
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+    }
+
+    async uploadProjectPhoto(projectId: string, file: File, caption?: string, takenAt?: string, milestoneId?: string) {
+        const fd = new FormData();
+        fd.append("File", file);
+        if (caption) fd.append("Caption", caption);
+        if (takenAt) fd.append("TakenAt", takenAt);
+        if (milestoneId) fd.append("MilestoneId", milestoneId);
+
+        const res = await this.createHttpClient().fetch(`${this.baseUrl}/api/admin/projects/${projectId}/photos`, {
+            method: "POST",
+            body: fd,
+            headers: { Accept: "application/json" },
+        });
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+    }
+
+    async uploadProjectDocument(projectId: string, file: File, title: string, documentType?: string, isVisibleToClient?: boolean) {
+        const fd = new FormData();
+        fd.append("File", file);
+        fd.append("Title", title);
+        if (documentType) fd.append("DocumentType", documentType);
+        if (isVisibleToClient != null) fd.append("IsVisibleToClient", String(isVisibleToClient));
+
+        const res = await this.createHttpClient().fetch(`${this.baseUrl}/api/admin/projects/${projectId}/documents`, {
+            method: "POST",
+            body: fd,
+            headers: { Accept: "application/json" },
+        });
         if (!res.ok) throw new Error(await res.text());
         return res.json();
     }

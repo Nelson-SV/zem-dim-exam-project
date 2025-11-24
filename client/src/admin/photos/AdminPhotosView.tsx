@@ -111,19 +111,14 @@ export function AdminPhotosView({ projectId, milestones, projectName }: Props) {
     setBusy(true);
     try {
       if (editing) {
-        await http.adminPhotos.updatePhoto(projectId, editing.id, {
-          caption: caption,
-          takenAt: new Date(takenAt),
-          milestoneId: milestoneId,
+        await http.updatePhoto(projectId, editing.id, {
+          caption: caption || null,
+          takenAt: takenAt ? new Date(takenAt).toISOString() : null,
+          milestoneId: milestoneId || null,
         });
         toast.success('Photo updated.');
       } else if (file) {
-        await http.adminPhotos.uploadPhoto(projectId,
-          file,
-          caption,
-          takenAt,
-          milestoneId,
-        );
+        await http.uploadProjectPhoto(projectId, file, caption, takenAt || undefined, milestoneId || undefined);
         toast.success('Photo uploaded.');
       }
       setModalOpen(false);

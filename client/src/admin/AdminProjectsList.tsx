@@ -17,6 +17,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Progress } from '../components/ui/progress';
 import { http } from "../lib/api.ts";
 import { PaginationComponent } from "../components/PaginationComponent.tsx";
+import type { CreateProjectDto, PatchProjectDto, ProjectDto } from '../generated-client';
+import { Textarea } from '../components/ui/textarea.tsx';
 
 interface AdminProjectsListProps {
   onViewProject?: (projectId: string) => void;
@@ -25,9 +27,9 @@ interface AdminProjectsListProps {
 export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [page, setPage] = useState(1);
-  const pageSize = 6;
+  const pageSize = 5;
   const [total, setTotal] = useState(0);
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize]);
 
@@ -38,12 +40,16 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
   const [isAddProjectOpen, setIsAddProjectOpen] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [projectAddress, setProjectAddress] = useState('');
+  const [projectCity, setProjectCity] = useState('');
+  const [projectPostal, setProjectPostal] = useState('');
   const [projectArea, setProjectArea] = useState('');
+  const [projectBudget, setProjectBudget] = useState('');
+  const [projectNotes, setProjectNotes] = useState('');
   // clientName removed - now selection happens via the Select
 
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  const [status, setStatus] = useState<string>('active');
+  const [status, setStatus] = useState<string>('Pending');
 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -106,50 +112,85 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
   const resetForm = () => {
     setProjectName('');
     setProjectAddress('');
+    setProjectCity('');
+    setProjectPostal('');
     setProjectArea('');
+    setProjectBudget('');
+    setProjectNotes('');
     setClientId('');
     setStartDate('');
     setEndDate('');
-    setStatus('active');
+    setStatus('Pending');
     setFile(null);
     setPreview(null);
   };
 
   const handleAddProject = async () => {
-    if (!projectName || !projectAddress || !projectArea || !clientId || !startDate) {
+    const totalAreaNum = projectArea === '' ? 0 : Number(projectArea);
+    const budgetNum = projectBudget === '' ? 0 : Number(projectBudget);
+
+    if (!projectName || !projectAddress || !projectCity || !projectPostal || projectArea === '' || !clientId || !startDate) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (Number.isNaN(totalAreaNum) || totalAreaNum < 0) {
+      toast.error('Total area must be zero or a positive number');
+      return;
+    }
+
+    if (Number.isNaN(budgetNum) || budgetNum < 0) {
+      toast.error('Budget must be zero or a positive number');
       return;
     }
 
     setSubmitting(true);
 
     const createProject = async () => {
-      let thumbnailUrl: string | undefined = undefined;
-
-      if (file) {
-        const uploaded = await http.uploadProjectImage(file);
-        thumbnailUrl = uploaded.url;
-      }
-
-      const dto = {
+      const dto: CreateProjectDto = {
         clientId,
         title: projectName,
-        description: undefined,
+        notes: projectNotes || undefined,
         address: projectAddress,
-        city: undefined,
-        postalCode: undefined,
-        latitude: undefined,
-        longitude: undefined,
+        city: projectCity,
+        postalCode: projectPostal,
         status,
-        startDate,
-        plannedEndDate: endDate || undefined,
-        totalArea: projectArea ? Number(projectArea) : undefined,
-        budget: undefined,
+        startDate: startDate,
+        plannedEndDate: endDate,
+        totalArea: totalAreaNum,
+        budget: budgetNum,
         progressPercentage: 0,
-        thumbnailUrl
-      } as unknown as import('../generated-client').CreateProjectDto;
+        thumbnailUrl: undefined
+      };
 
-      return await http.projects.createProject(dto);
+      const created = await http.projects.createProject(dto);
+
+      if (file && created.id) {
+        try {
+          const uploaded = await http.uploadProjectImage(file, created.id);
+          const patchedDto: PatchProjectDto = {
+            title: created.title,
+            notes: created.notes,
+            address: created.address,
+            city: created.city,
+            postalCode: created.postalCode,
+            status: created.status,
+            startDate: new Date(created.startDate!).toISOString(),
+            plannedEndDate: new Date(created.plannedEndDate!).toISOString(),
+            totalArea: created.totalArea,
+            budget: created.budget,
+            progressPercentage: created.progressPercentage,
+            thumbnailUrl: uploaded.url
+          };
+          await http.projects.patchProject(created.id, patchedDto);
+          created.thumbnailUrl = uploaded.url;
+        } catch (err) {
+          console.error(err);
+          // Continue without failing the promise; toast handled outside
+        }
+      }
+
+      return created;
     };
 
     // ✅ toast.promise automatically handles every state
@@ -175,9 +216,8 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
-          <h2 className="mb-2">All projects</h2>
           <p className="text-muted-foreground">
-            Projects found: {total}
+            Projects: {total}
           </p>
         </div>
         <Dialog open={isAddProjectOpen} onOpenChange={(v) => { setIsAddProjectOpen(v); if (!v) resetForm(); }}>
@@ -218,6 +258,27 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label htmlFor="project-city">City</Label>
+                  <Input
+                    id="project-city"
+                    value={projectCity}
+                    onChange={(e) => setProjectCity(e.target.value)}
+                    placeholder="Vyshneve"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="project-postal">Postal code</Label>
+                  <Input
+                    id="project-postal"
+                    value={projectPostal}
+                    onChange={(e) => setProjectPostal(e.target.value)}
+                    placeholder="08132"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label htmlFor="project-area">Area (m²)</Label>
                   <Input
                     id="project-area"
@@ -227,21 +288,31 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
                     placeholder="180"
                   />
                 </div>
-
-                {/* ↓↓↓ Replaced the text field with the client Select */}
                 <div className="space-y-2">
-                  <Label>Client</Label>
-                  <Select value={clientId} onValueChange={setClientId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a client" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map(c => (
-                        <SelectItem key={c.id} value={c.id}>{c.fullName}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="project-budget">Budget</Label>
+                  <Input
+                    id="project-budget"
+                    type="number"
+                    value={projectBudget}
+                    onChange={(e) => setProjectBudget(e.target.value)}
+                    placeholder="100000"
+                  />
                 </div>
+              </div>
+
+              {/* ↓↓↓ Replaced the text field with the client Select */}
+              <div className="space-y-2">
+                <Label>Client</Label>
+                <Select value={clientId} onValueChange={setClientId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.fullName}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -251,9 +322,9 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="on-hold">On hold</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -280,6 +351,16 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
                 {preview && (
                   <img src={preview} alt="preview" className="mt-2 h-28 w-auto rounded-md object-cover border" />
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="project-notes">Notes (optional)</Label>
+                <Textarea
+                  id="project-notes"
+                  value={projectNotes}
+                  onChange={(e) => setProjectNotes(e.target.value)}
+                  placeholder="Additional notes about the project"
+                />
               </div>
             </div>
 
@@ -313,24 +394,25 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="on-hold">On hold</SelectItem>
+            <SelectItem value="Pending">Pending</SelectItem>
+            <SelectItem value="In Progress">In Progress</SelectItem>
+            <SelectItem value="Completed">Completed</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Projects Table View */}
       <div className="space-y-4">
-        {projects.map((project: any) => (
+        {projects.map((project) => (
           <Card key={project.id} className="p-6 hover:shadow-lg transition-all">
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="w-full lg:w-48 h-32 rounded-lg overflow-hidden bg-muted shrink-0">
-                <img
-                  src={project.thumbnailUrl || project.image || 'https://via.placeholder.com/320x200?text=Project'}
-                  alt={project.title}
-                  className="w-full h-full object-cover"
-                />
+                {project.thumbnailUrl == null || project.thumbnailUrl == "" ? 'Project of Client: ' + project.clientName
+                  : (<img
+                    src={project.thumbnailUrl}
+                    alt={project.title}
+                    className="w-full h-full object-cover"
+                  />)}
               </div>
 
               <div className="flex-1 space-y-4">
@@ -339,7 +421,7 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
                     <div className="flex items-center gap-3 mb-2">
                       <h3>{project.title}</h3>
                       <Badge variant={
-                        project.status?.toLowerCase() === 'active' || project.status?.toLowerCase() === 'inprogress' ? 'default' :
+                        project.status?.toLowerCase() === 'inprogress' ? 'default' :
                           project.status?.toLowerCase() === 'completed' ? 'secondary' :
                             'outline'
                       }>
@@ -355,7 +437,7 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onViewProject?.(project.id)}>
+                      <DropdownMenuItem onClick={() => onViewProject?.(project.id!)}>
                         View
                       </DropdownMenuItem>
                       <DropdownMenuItem>Edit</DropdownMenuItem>
@@ -373,20 +455,20 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
                   </div>
                   <div>
                     <p className="text-muted-foreground">Current stage</p>
-                    <p>{project.currentStage ?? '-'}</p>
+                    <p>{'Here we still need to check which is the last stage of the project'}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Area</p>
-                    <p>{project.totalArea ?? project.area ?? 0} m²</p>
+                    <p>{project.totalArea ?? 0} m²</p>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-muted-foreground">Project progress</span>
-                    <span>{project.progressPercentage ?? project.progress ?? 0}%</span>
+                    <span>{project.progressPercentage ?? 0}%</span>
                   </div>
-                  <Progress value={project.progressPercentage ?? project.progress ?? 0} className="h-2" />
+                  <Progress value={project.progressPercentage ?? 0} className="h-2" />
                 </div>
 
                 <div className="flex items-center justify-between text-muted-foreground pt-2 border-t">
@@ -396,7 +478,7 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onViewProject?.(project.id)}
+                    onClick={() => onViewProject?.(project.id!)}
                   >
                     View details
                   </Button>

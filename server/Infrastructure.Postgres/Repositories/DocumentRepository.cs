@@ -15,7 +15,7 @@ public class DocumentRepository(AppDbContext ctx) : IDocumentRepository
         var query = ctx.Documents
             .Include(d => d.Project)
             .Include(d => d.Uploadedby)
-            .Where(d => d.Projectid == projectId);
+            .Where(d => d.Projectid == projectId && (d.Isdeleted == false || d.Isdeleted == null));
 
         var total = await query.CountAsync(ct);
         var items = await query
@@ -49,12 +49,13 @@ public class DocumentRepository(AppDbContext ctx) : IDocumentRepository
         return document;
     }
 
-    public async Task DeleteAsync(Guid documentId, CancellationToken ct = default)
+    public async Task SoftDeleteAsync(Guid documentId, CancellationToken ct = default)
     {
         var entity = await ctx.Documents.FindAsync(new object[] { documentId }, ct)
                      ?? throw new KeyNotFoundException("Document not found");
 
-        ctx.Documents.Remove(entity);
+        entity.Isdeleted = true;
+        ctx.Documents.Update(entity);
         await ctx.SaveChangesAsync(ct);
     }
 }

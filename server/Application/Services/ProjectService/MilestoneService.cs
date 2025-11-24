@@ -138,7 +138,7 @@ public class MilestoneService(
         try
         {
             await GetAndValidate(projectId, milestoneId, ct);
-            await repository.DeleteAsync(milestoneId, ct);
+            await repository.SoftDeleteAsync(milestoneId, ct);
             await unitOfWork.CommitAsync();
             logger.LogInformation("Milestone {MilestoneId} deleted by {UserId}", milestoneId, performedBy);
         }

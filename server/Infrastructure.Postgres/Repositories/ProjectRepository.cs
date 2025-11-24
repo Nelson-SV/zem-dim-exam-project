@@ -32,7 +32,7 @@ public class ProjectRepository : IProjectRepository
     {
         var query = _context.Projects
             .Include(p => p.Client)
-            .Where(p => p.Isdeleted == false || p.Isdeleted == null);
+            .Where(p => p.Isdeleted == false);
 
         if (!string.IsNullOrWhiteSpace(search))
         {

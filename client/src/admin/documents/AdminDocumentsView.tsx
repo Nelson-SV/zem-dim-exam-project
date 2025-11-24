@@ -117,7 +117,7 @@ export function AdminDocumentsView({ projectId }: Props) {
           setBusy(false);
           return;
         }
-        await http.adminDocuments.uploadDocument(projectId, { file, title, documentType, isVisibleToClient });
+        await http.uploadProjectDocument(projectId, file, title, documentType, isVisibleToClient);
         toast.success('Document uploaded.');
       }
       setModalOpen(false);
