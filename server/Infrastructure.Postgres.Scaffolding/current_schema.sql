@@ -179,22 +179,20 @@ CREATE TABLE projects (
     id uuid NOT NULL DEFAULT (gen_random_uuid()),
     clientid uuid NOT NULL,
     title character varying(200) NOT NULL,
-    description text,
-    address character varying(300),
-    city character varying(100),
-    postalcode character varying(20),
-    latitude numeric(10,8),
-    longitude numeric(11,8),
-    status character varying(50) NOT NULL DEFAULT ('InProgress'::character varying),
+    notes text,
+    address character varying(300) NOT NULL,
+    city character varying(100) NOT NULL,
+    postalcode character varying(20) NOT NULL,
+    status character varying(50) NOT NULL DEFAULT ('''Pending''::character varying'::character varying),
     startdate date NOT NULL,
-    plannedenddate date,
+    plannedenddate date NOT NULL,
     actualenddate date,
-    totalarea numeric(10,2),
-    budget numeric(15,2),
-    progresspercentage integer DEFAULT 0,
+    totalarea numeric(10,2) NOT NULL,
+    budget numeric(15,2) NOT NULL,
+    progresspercentage integer NOT NULL DEFAULT 0,
     thumbnailurl character varying(500),
-    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
-    updatedat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updatedat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     isdeleted boolean NOT NULL DEFAULT FALSE,
     CONSTRAINT projects_pkey PRIMARY KEY (id),
     CONSTRAINT projects_clientid_fkey FOREIGN KEY (clientid) REFERENCES users (id) ON DELETE CASCADE
@@ -227,6 +225,13 @@ CREATE TABLE documents (
     isvisibletoclient boolean DEFAULT TRUE,
     createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
     isdeleted boolean NOT NULL DEFAULT FALSE,
+    docusealsubmissionid character varying(255),
+    requiressignature boolean DEFAULT FALSE,
+    issigned boolean DEFAULT FALSE,
+    signedbyuserid uuid,
+    signedat timestamp without time zone,
+    signedfileurl character varying(500),
+    docusealoriginalurl text,
     CONSTRAINT documents_pkey PRIMARY KEY (id),
     CONSTRAINT documents_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
     CONSTRAINT documents_uploadedbyid_fkey FOREIGN KEY (uploadedbyid) REFERENCES users (id)
@@ -255,17 +260,16 @@ CREATE TABLE milestones (
     id uuid NOT NULL DEFAULT (gen_random_uuid()),
     projectid uuid NOT NULL,
     title character varying(200) NOT NULL,
-    description text,
+    notes text,
     orderindex integer NOT NULL,
     status character varying(50) NOT NULL DEFAULT ('Pending'::character varying),
-    progresspercentage integer DEFAULT 0,
-    plannedstartdate date,
-    plannedenddate date,
+    progresspercentage integer NOT NULL DEFAULT 0,
+    plannedstartdate date NOT NULL,
+    plannedenddate date NOT NULL,
     actualstartdate date,
     actualenddate date,
-    notes text,
-    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
-    updatedat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updatedat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     isdeleted boolean NOT NULL DEFAULT FALSE,
     CONSTRAINT milestones_pkey PRIMARY KEY (id),
     CONSTRAINT milestones_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE
@@ -295,15 +299,11 @@ CREATE TABLE photos (
     milestoneid uuid,
     filename character varying(255) NOT NULL,
     fileurl character varying(500) NOT NULL,
-    thumbnailurl character varying(500),
-    filesize bigint,
-    mimetype character varying(100),
-    width integer,
-    height integer,
-    caption text,
-    takenat timestamp with time zone,
+    filetype character varying(100) NOT NULL,
+    caption text NOT NULL,
+    takenat timestamp with time zone NOT NULL,
     uploadedbyid uuid NOT NULL,
-    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     isdeleted boolean NOT NULL DEFAULT FALSE,
     CONSTRAINT photos_pkey PRIMARY KEY (id),
     CONSTRAINT photos_milestoneid_fkey FOREIGN KEY (milestoneid) REFERENCES milestones (id) ON DELETE SET NULL,
@@ -319,13 +319,12 @@ CREATE TABLE threedscans (
     roomname character varying(100) NOT NULL,
     filename character varying(255) NOT NULL,
     fileurl character varying(500) NOT NULL,
-    filesize bigint,
-    fileformat character varying(50),
-    roomarea numeric(10,2),
-    scannedat timestamp with time zone,
+    filetype character varying(50) NOT NULL,
+    roomarea numeric(10,2) NOT NULL,
+    scannedat timestamp with time zone NOT NULL,
     uploadedbyid uuid NOT NULL,
     notes text,
-    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT threedscans_pkey PRIMARY KEY (id),
     CONSTRAINT threedscans_milestoneid_fkey FOREIGN KEY (milestoneid) REFERENCES milestones (id) ON DELETE SET NULL,
     CONSTRAINT threedscans_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
@@ -349,7 +348,16 @@ CREATE TABLE updates (
 );
 
 
+CREATE INDEX idx_documents_docuseal_submission ON documents (docusealsubmissionid);
+
+
+CREATE INDEX idx_documents_docusealsubmissionid ON documents (docusealsubmissionid);
+
+
 CREATE INDEX idx_documents_isdeleted ON documents (isdeleted);
+
+
+CREATE INDEX idx_documents_issigned ON documents (issigned);
 
 
 CREATE INDEX idx_documents_project ON documents (projectid);

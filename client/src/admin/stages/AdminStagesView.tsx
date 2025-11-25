@@ -33,9 +33,8 @@ interface Props {
 
 const statusOptions = [
   { value: 'Pending', label: 'Pending' },
-  { value: 'InProgress', label: 'In progress' },
+  { value: 'In Progress', label: 'In Progress' },
   { value: 'Completed', label: 'Completed' },
-  { value: 'OnHold', label: 'On hold' },
 ];
 
 export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {

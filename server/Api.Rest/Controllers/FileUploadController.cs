@@ -28,7 +28,7 @@ public class FileUploadController : ControllerBase
     [HttpPost("project-thumbnail")]
     [Authorize]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<FileUploadResponseDto>> UploadProjectThumbnail([FromForm(Name = "file")] IFormFile file)
+    public async Task<ActionResult<FileUploadResponseDto>> UploadProjectThumbnail([FromForm(Name = "file")] IFormFile file, [FromForm] Guid? projectId, CancellationToken ct = default)
     {
         try
         {
@@ -93,7 +93,9 @@ public class FileUploadController : ControllerBase
             var fileUrl = await _storageService.UploadProjectThumbnailAsync(
                 stream, 
                 file.FileName, 
-                file.ContentType
+                file.ContentType,
+                projectId,
+                ct
             );
 
             _logger.LogInformation("✅ File uploaded successfully: {FileUrl}", fileUrl);
@@ -119,7 +121,7 @@ public class FileUploadController : ControllerBase
     /// </summary>
     [HttpPost("project-thumbnail-alt")]
     [RequestSizeLimit(MaxFileSize)]
-    public async Task<ActionResult<FileUploadResponseDto>> UploadProjectThumbnailAlternative()
+    public async Task<ActionResult<FileUploadResponseDto>> UploadProjectThumbnailAlternative([FromForm] Guid? projectId, CancellationToken ct = default)
     {
         try
         {
@@ -172,7 +174,9 @@ public class FileUploadController : ControllerBase
             var fileUrl = await _storageService.UploadProjectThumbnailAsync(
                 stream, 
                 file.FileName, 
-                file.ContentType
+                file.ContentType,
+                projectId,
+                ct
             );
 
             _logger.LogInformation("✅ File uploaded successfully: {FileUrl}", fileUrl);

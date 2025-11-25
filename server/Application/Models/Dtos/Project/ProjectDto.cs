@@ -11,15 +11,13 @@ public class ProjectDto
     public Guid ClientId { get; set; }
     public string ClientName { get; set; } = null!;
     public string Title { get; set; } = null!;
-    public string? Description { get; set; }
+    public string? Notes { get; set; }
     public string? Address { get; set; }
     public string? City { get; set; }
     public string? PostalCode { get; set; }
-    public decimal? Latitude { get; set; }
-    public decimal? Longitude { get; set; }
     public string Status { get; set; } = null!;
     public DateOnly StartDate { get; set; }
-    public DateOnly? PlannedEndDate { get; set; }
+    public DateOnly PlannedEndDate { get; set; }
     public DateOnly? ActualEndDate { get; set; }
     public decimal? TotalArea { get; set; }
     public decimal? Budget { get; set; }
@@ -39,19 +37,17 @@ public class ProjectDto
                 ? $"{project.Client.Firstname} {project.Client.Lastname}" 
                 : "Unknown Client",
             Title = project.Title,
-            Description = project.Description,
+            Notes = project.Notes,
             Address = project.Address,
             City = project.City,
             PostalCode = project.Postalcode,
-            Latitude = project.Latitude,
-            Longitude = project.Longitude,
             Status = project.Status,
             StartDate = project.Startdate,
             PlannedEndDate = project.Plannedenddate,
             ActualEndDate = project.Actualenddate,
             TotalArea = project.Totalarea,
             Budget = project.Budget,
-            ProgressPercentage = project.Progresspercentage ?? 0,
+            ProgressPercentage = project.Progresspercentage,
             ThumbnailUrl = project.Thumbnailurl,
             CreatedAt = project.Createdat,
             UpdatedAt = project.Updatedat,
@@ -88,38 +84,33 @@ public class CreateProjectDto
     [MaxLength(200, ErrorMessage = "Title cannot exceed 200 characters")]
     public string Title { get; set; } = null!;
 
-    [MaxLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
-    public string? Description { get; set; }
+    [MaxLength(2000, ErrorMessage = "Notes cannot exceed 2000 characters")]
+    public string? Notes { get; set; }
 
-    [MaxLength(300, ErrorMessage = "Address cannot exceed 300 characters")]
-    public string? Address { get; set; }
+    [Required, MaxLength(300, ErrorMessage = "Address cannot exceed 300 characters")]
+    public string Address { get; set; } = null!;
 
-    [MaxLength(100, ErrorMessage = "City cannot exceed 100 characters")]
-    public string? City { get; set; }
+    [Required, MaxLength(100, ErrorMessage = "City cannot exceed 100 characters")]
+    public string City { get; set; } = null!;
 
-    [MaxLength(20, ErrorMessage = "Postal code cannot exceed 20 characters")]
-    public string? PostalCode { get; set; }
-
-    [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90")]
-    public decimal? Latitude { get; set; }
-
-    [Range(-180, 180, ErrorMessage = "Longitude must be between -180 and 180")]
-    public decimal? Longitude { get; set; }
+    [Required, MaxLength(20, ErrorMessage = "Postal code cannot exceed 20 characters")]
+    public string PostalCode { get; set; } = null!;
 
     [Required(ErrorMessage = "Status is required")]
     [MaxLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
-    public string Status { get; set; } = "Planning";
+    public string Status { get; set; } = "Pending";
 
     [Required(ErrorMessage = "Start date is required")]
-    public DateOnly StartDate { get; set; }
+    public string StartDate { get; set; } = null!;
 
-    public DateOnly? PlannedEndDate { get; set; }
+    [Required(ErrorMessage = "End date is required")]
+    public string PlannedEndDate { get; set; } = null!;
 
     [Range(0, double.MaxValue, ErrorMessage = "Total area must be positive")]
-    public decimal? TotalArea { get; set; }
+    public decimal TotalArea { get; set; }
 
     [Range(0, double.MaxValue, ErrorMessage = "Budget must be positive")]
-    public decimal? Budget { get; set; }
+    public decimal Budget { get; set; }
 
     [Range(0, 100, ErrorMessage = "Progress percentage must be between 0 and 100")]
     public int ProgressPercentage { get; set; } = 0;
@@ -141,40 +132,34 @@ public class UpdateProjectDto
     [MaxLength(200, ErrorMessage = "Title cannot exceed 200 characters")]
     public string Title { get; set; } = null!;
 
-    [MaxLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
-    public string? Description { get; set; }
+    [MaxLength(2000, ErrorMessage = "Notes cannot exceed 2000 characters")]
+    public string? Notes { get; set; }
 
-    [MaxLength(300, ErrorMessage = "Address cannot exceed 300 characters")]
-    public string? Address { get; set; }
+    [Required, MaxLength(300, ErrorMessage = "Address cannot exceed 300 characters")]
+    public string Address { get; set; } = null!;
 
-    [MaxLength(100, ErrorMessage = "City cannot exceed 100 characters")]
-    public string? City { get; set; }
+    [Required, MaxLength(100, ErrorMessage = "City cannot exceed 100 characters")]
+    public string City { get; set; } = null!;
 
-    [MaxLength(20, ErrorMessage = "Postal code cannot exceed 20 characters")]
-    public string? PostalCode { get; set; }
-
-    [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90")]
-    public decimal? Latitude { get; set; }
-
-    [Range(-180, 180, ErrorMessage = "Longitude must be between -180 and 180")]
-    public decimal? Longitude { get; set; }
+    [Required, MaxLength(20, ErrorMessage = "Postal code cannot exceed 20 characters")]
+    public string PostalCode { get; set; } = null!;
 
     [Required(ErrorMessage = "Status is required")]
     [MaxLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
     public string Status { get; set; } = null!;
 
     [Required(ErrorMessage = "Start date is required")]
-    public DateOnly StartDate { get; set; }
+    public string StartDate { get; set; } = null!;
 
-    public DateOnly? PlannedEndDate { get; set; }
+    public string? PlannedEndDate { get; set; }
 
-    public DateOnly? ActualEndDate { get; set; }
+    public string? ActualEndDate { get; set; }
 
     [Range(0, double.MaxValue, ErrorMessage = "Total area must be positive")]
-    public decimal? TotalArea { get; set; }
+    public decimal TotalArea { get; set; }
 
     [Range(0, double.MaxValue, ErrorMessage = "Budget must be positive")]
-    public decimal? Budget { get; set; }
+    public decimal Budget { get; set; }
 
     [Range(0, 100, ErrorMessage = "Progress percentage must be between 0 and 100")]
     public int ProgressPercentage { get; set; }
@@ -192,8 +177,8 @@ public class PatchProjectDto
     [MaxLength(200, ErrorMessage = "Title cannot exceed 200 characters")]
     public string? Title { get; set; }
 
-    [MaxLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
-    public string? Description { get; set; }
+    [MaxLength(2000, ErrorMessage = "Notes cannot exceed 2000 characters")]
+    public string? Notes { get; set; }
 
     [MaxLength(300, ErrorMessage = "Address cannot exceed 300 characters")]
     public string? Address { get; set; }
@@ -204,26 +189,20 @@ public class PatchProjectDto
     [MaxLength(20, ErrorMessage = "Postal code cannot exceed 20 characters")]
     public string? PostalCode { get; set; }
 
-    [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90")]
-    public decimal? Latitude { get; set; }
-
-    [Range(-180, 180, ErrorMessage = "Longitude must be between -180 and 180")]
-    public decimal? Longitude { get; set; }
-
     [MaxLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
     public string? Status { get; set; }
 
-    public DateOnly? StartDate { get; set; }
+    public string? StartDate { get; set; }
 
-    public DateOnly? PlannedEndDate { get; set; }
+    public string? PlannedEndDate { get; set; }
 
-    public DateOnly? ActualEndDate { get; set; }
+    public string? ActualEndDate { get; set; }
 
     [Range(0, double.MaxValue, ErrorMessage = "Total area must be positive")]
-    public decimal? TotalArea { get; set; }
+    public decimal TotalArea { get; set; }
 
     [Range(0, double.MaxValue, ErrorMessage = "Budget must be positive")]
-    public decimal? Budget { get; set; }
+    public decimal Budget { get; set; }
 
     [Range(0, 100, ErrorMessage = "Progress percentage must be between 0 and 100")]
     public int? ProgressPercentage { get; set; }

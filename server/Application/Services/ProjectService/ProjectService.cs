@@ -4,6 +4,7 @@ using Application.Interfaces.Services;
 using Application.Models.Dtos.Common;
 using Application.Models.Dtos.Project;
 using Core.Domain.Entities;
+using Common.DateHandler;
 
 namespace Application.Services.ProjectService;
 
@@ -12,6 +13,12 @@ public class ProjectService : IProjectService
     private readonly IProjectRepository _projectRepository;
     private readonly IUserManagementRepository _userRepository;
     private static readonly Guid ADMIN_ID = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private static readonly HashSet<string> AllowedStatuses = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Pending",
+        "In Progress",
+        "Completed"
+    };
 
     public ProjectService(IProjectRepository projectRepository, IUserManagementRepository userRepository)
     {
@@ -96,21 +103,24 @@ public class ProjectService : IProjectService
         if (client == null)
             throw new KeyNotFoundException("Client not found");
 
+        var startDate = DateTimeHelper.ParseDateOnly(dto.StartDate, "StartDate");
+        var plannedEnd = DateTimeHelper.ParseDateOnly(dto.PlannedEndDate, "PlannedEndDate");
+        
+        
+
         // Create project entity
         var project = new Project
         {
             Id = Guid.NewGuid(),
             Clientid = dto.ClientId,
             Title = dto.Title,
-            Description = dto.Description,
+            Notes = dto.Notes,
             Address = dto.Address,
             City = dto.City,
             Postalcode = dto.PostalCode,
-            Latitude = dto.Latitude,
-            Longitude = dto.Longitude,
             Status = dto.Status,
-            Startdate = dto.StartDate,
-            Plannedenddate = dto.PlannedEndDate,
+            Startdate = startDate,
+            Plannedenddate = plannedEnd,
             Totalarea = dto.TotalArea,
             Budget = dto.Budget,
             Progresspercentage = dto.ProgressPercentage,
@@ -134,18 +144,20 @@ public class ProjectService : IProjectService
         if (project == null)
             throw new KeyNotFoundException("Project not found");
 
+        var startDate = DateTimeHelper.ParseDateOnly(dto.StartDate, "StartDate");
+        var plannedEnd = DateTimeHelper.ParseDateOnlyNullable(dto.PlannedEndDate, "PlannedEndDate");
+        var actualEnd = DateTimeHelper.ParseDateOnlyNullable(dto.ActualEndDate, "ActualEndDate");
+
         // Update all fields
         project.Title = dto.Title;
-        project.Description = dto.Description;
+        project.Notes = dto.Notes;
         project.Address = dto.Address;
         project.City = dto.City;
         project.Postalcode = dto.PostalCode;
-        project.Latitude = dto.Latitude;
-        project.Longitude = dto.Longitude;
         project.Status = dto.Status;
-        project.Startdate = dto.StartDate;
-        project.Plannedenddate = dto.PlannedEndDate;
-        project.Actualenddate = dto.ActualEndDate;
+        project.Startdate = startDate;
+        project.Plannedenddate = plannedEnd ?? project.Plannedenddate;
+        project.Actualenddate = actualEnd;
         project.Totalarea = dto.TotalArea;
         project.Budget = dto.Budget;
         project.Progresspercentage = dto.ProgressPercentage;
@@ -166,8 +178,8 @@ public class ProjectService : IProjectService
         if (dto.Title != null)
             project.Title = dto.Title;
 
-        if (dto.Description != null)
-            project.Description = dto.Description;
+        if (dto.Notes != null)
+            project.Notes = dto.Notes;
 
         if (dto.Address != null)
             project.Address = dto.Address;
@@ -178,28 +190,24 @@ public class ProjectService : IProjectService
         if (dto.PostalCode != null)
             project.Postalcode = dto.PostalCode;
 
-        if (dto.Latitude.HasValue)
-            project.Latitude = dto.Latitude;
-
-        if (dto.Longitude.HasValue)
-            project.Longitude = dto.Longitude;
-
         if (dto.Status != null)
+        {
             project.Status = dto.Status;
+        }
 
-        if (dto.StartDate.HasValue)
-            project.Startdate = dto.StartDate.Value;
+        if (!string.IsNullOrWhiteSpace(dto.StartDate))
+            project.Startdate = DateTimeHelper.ParseDateOnly(dto.StartDate, nameof(dto.StartDate));
 
-        if (dto.PlannedEndDate.HasValue)
-            project.Plannedenddate = dto.PlannedEndDate;
+        if (!string.IsNullOrWhiteSpace(dto.PlannedEndDate))
+            project.Plannedenddate = DateTimeHelper.ParseDateOnly(dto.PlannedEndDate!, nameof(dto.PlannedEndDate));
 
-        if (dto.ActualEndDate.HasValue)
-            project.Actualenddate = dto.ActualEndDate;
+        if (!string.IsNullOrWhiteSpace(dto.ActualEndDate))
+            project.Actualenddate = DateTimeHelper.ParseDateOnly(dto.ActualEndDate!, nameof(dto.ActualEndDate));
 
-        if (dto.TotalArea.HasValue)
+        if (dto.TotalArea != null)
             project.Totalarea = dto.TotalArea;
 
-        if (dto.Budget.HasValue)
+        if (dto.Budget != null)
             project.Budget = dto.Budget;
 
         if (dto.ProgressPercentage.HasValue)
@@ -246,13 +254,13 @@ public class ProjectService : IProjectService
         project.Updatedat = DateTime.UtcNow;
 
         // Auto-update status based on progress
-        if (progressPercentage == 0 && project.Status == "Planning")
+        if (progressPercentage == 0)
         {
-            // Keep as Planning
+            project.Status = "Pending";
         }
         else if (progressPercentage > 0 && progressPercentage < 100)
         {
-            project.Status = "InProgress";
+            project.Status = "In Progress";
         }
         else if (progressPercentage == 100)
         {

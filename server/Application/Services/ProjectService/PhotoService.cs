@@ -60,8 +60,7 @@ public class PhotoService(
                 Milestoneid = dto.MilestoneId,
                 Filename = fileName,
                 Fileurl = fileUrl,
-                Filesize = fileSize,
-                Mimetype = contentType,
+                Filetype = contentType,
                 Caption = dto.Caption,
                 Takenat = dto.TakenAt,
                 Uploadedbyid = uploadedBy,
@@ -98,7 +97,6 @@ public class PhotoService(
             photo.Milestoneid = dto.MilestoneId ?? photo.Milestoneid;
             photo.Caption = dto.Caption ?? photo.Caption;
             photo.Takenat = dto.TakenAt ?? photo.Takenat;
-            photo.Thumbnailurl = dto.ThumbnailUrl ?? photo.Thumbnailurl;
 
             var updated = await repository.UpdateAsync(photo, ct);
             await unitOfWork.CommitAsync();
@@ -122,7 +120,7 @@ public class PhotoService(
             if (photo.Projectid != projectId)
                 throw new UnauthorizedAccessException("Photo does not belong to this project");
 
-            await repository.DeleteAsync(photoId, ct);
+            await repository.SoftDeleteAsync(photoId, ct);
             if (!string.IsNullOrEmpty(photo.Fileurl))
                 await storage.DeleteFileAsync(photo.Fileurl, ct);
 

@@ -19,17 +19,18 @@ public class SupabaseStorageService : IStorageService
         _supabaseClient = supabaseClient;
     }
 
-    public async Task<string> UploadProjectThumbnailAsync(Stream fileStream, string fileName, string contentType)
+    public async Task<string> UploadProjectThumbnailAsync(Stream fileStream, string fileName, string contentType, Guid? projectId = null, CancellationToken ct = default)
     {
         try
         {
             var extension = Path.GetExtension(fileName);
             var uniqueFileName = $"{Guid.NewGuid()}{extension}";
-            var filePath = $"thumbnails/{uniqueFileName}";
+            var folder = projectId.HasValue ? $"thumbnails/{projectId.Value}" : "thumbnails";
+            var filePath = $"{folder}/{uniqueFileName}";
 
             // Read the incoming stream into bytes
             using var ms = new MemoryStream();
-            await fileStream.CopyToAsync(ms);
+            await fileStream.CopyToAsync(ms, ct);
             var bytes = ms.ToArray();
 
             // IMPORTANT: the signature is Upload(path, bytes, options)
@@ -37,8 +38,8 @@ public class SupabaseStorageService : IStorageService
                 .Storage
                 .From(StorageBuckets.Projects)
                 .Upload(
-                    bytes,          // first parameter - byte array
-                    filePath,       // second parameter - path
+                    bytes,
+                    filePath,
                     new Supabase.Storage.FileOptions
                     {
                         ContentType = contentType,

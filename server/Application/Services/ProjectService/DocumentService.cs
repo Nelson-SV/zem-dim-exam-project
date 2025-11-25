@@ -114,7 +114,7 @@ public class DocumentService(
             if (document.Projectid != projectId)
                 throw new UnauthorizedAccessException("Document does not belong to this project");
 
-            await repository.DeleteAsync(documentId, ct);
+            await repository.SoftDeleteAsync(documentId, ct);
             if (!string.IsNullOrEmpty(document.Fileurl))
                 await storage.DeleteFileAsync(document.Fileurl, ct);
 

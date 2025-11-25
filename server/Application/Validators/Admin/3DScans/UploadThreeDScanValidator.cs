@@ -9,7 +9,7 @@ public class UploadThreeDScanValidator : AbstractValidator<UploadThreeDScanReque
     {
         RuleFor(x => x.ProjectId).NotEmpty();
         RuleFor(x => x.RoomName).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.RoomArea).GreaterThan(0).When(x => x.RoomArea.HasValue);
+        RuleFor(x => x.RoomArea).GreaterThan(0);
         RuleFor(x => x.Notes).MaximumLength(2000);
     }
 }

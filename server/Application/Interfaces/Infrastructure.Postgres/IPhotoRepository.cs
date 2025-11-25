@@ -10,5 +10,5 @@ public interface IPhotoRepository
     Task<Photo?> GetByIdAsync(Guid photoId, CancellationToken ct = default);
     Task<Photo> InsertAsync(Photo photo, CancellationToken ct = default);
     Task<Photo> UpdateAsync(Photo photo, CancellationToken ct = default);
-    Task DeleteAsync(Guid photoId, CancellationToken ct = default);
+    Task SoftDeleteAsync(Guid photoId, CancellationToken ct = default);
 }

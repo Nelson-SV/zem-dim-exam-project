@@ -26,7 +26,7 @@ public class MilestoneRepository(AppDbContext ctx) : IMilestoneRepository
     {
         var query = ctx.Milestones
             .Include(m => m.Project)
-            .Where(m => m.Projectid == projectId)
+            .Where(m => m.Projectid == projectId && (m.Isdeleted == false))
             .OrderBy(m => m.Orderindex);
 
         var total = await query.CountAsync(ct);
@@ -57,12 +57,14 @@ public class MilestoneRepository(AppDbContext ctx) : IMilestoneRepository
         return milestone;
     }
 
-    public async Task DeleteAsync(Guid milestoneId, CancellationToken ct = default)
+    public async Task SoftDeleteAsync(Guid milestoneId, CancellationToken ct = default)
     {
         var entity = await ctx.Milestones.FindAsync(new object[] { milestoneId }, ct)
                      ?? throw new KeyNotFoundException("Milestone not found");
 
-        ctx.Milestones.Remove(entity);
+        entity.Isdeleted = true;
+        entity.Updatedat = DateTime.UtcNow;
+        ctx.Milestones.Update(entity);
         await ctx.SaveChangesAsync(ct);
     }
 }

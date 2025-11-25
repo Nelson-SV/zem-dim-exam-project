@@ -19,7 +19,7 @@ public class PhotoRepository(AppDbContext ctx) : IPhotoRepository
             .Include(p => p.Milestone)
             .Include(p => p.Project)
             .Include(p => p.Uploadedby)
-            .Where(p => p.Projectid == projectId);
+            .Where(p => p.Projectid == projectId && (p.Isdeleted == false || p.Isdeleted == null));
 
         if (milestoneId.HasValue)
             query = query.Where(p => p.Milestoneid == milestoneId.Value);
@@ -59,12 +59,13 @@ public class PhotoRepository(AppDbContext ctx) : IPhotoRepository
         return photo;
     }
 
-    public async Task DeleteAsync(Guid photoId, CancellationToken ct = default)
+    public async Task SoftDeleteAsync(Guid photoId, CancellationToken ct = default)
     {
         var entity = await ctx.Photos.FindAsync(new object[] { photoId }, ct)
                      ?? throw new KeyNotFoundException("Photo not found");
 
-        ctx.Photos.Remove(entity);
+        entity.Isdeleted = true;
+        ctx.Photos.Update(entity);
         await ctx.SaveChangesAsync(ct);
     }
 }

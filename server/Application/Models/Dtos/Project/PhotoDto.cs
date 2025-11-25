@@ -11,11 +11,7 @@ public class PhotoDto
     public string? MilestoneTitle { get; set; }
     public string FileName { get; set; } = null!;
     public string FileUrl { get; set; } = null!;
-    public string? ThumbnailUrl { get; set; }
-    public long? FileSize { get; set; }
     public string? MimeType { get; set; }
-    public int? Width { get; set; }
-    public int? Height { get; set; }
     public string? Caption { get; set; }
     public DateTime? TakenAt { get; set; }
     public Guid UploadedBy { get; set; }
@@ -30,11 +26,7 @@ public class PhotoDto
         MilestoneTitle = entity.Milestone?.Title,
         FileName = entity.Filename,
         FileUrl = entity.Fileurl,
-        ThumbnailUrl = entity.Thumbnailurl,
-        FileSize = entity.Filesize,
-        MimeType = entity.Mimetype,
-        Width = entity.Width,
-        Height = entity.Height,
+        MimeType = entity.Filetype,
         Caption = entity.Caption,
         TakenAt = entity.Takenat,
         UploadedBy = entity.Uploadedbyid,
@@ -51,9 +43,8 @@ public class PhotoDto
 public class CreatePhotoDto
 {
     public Guid? MilestoneId { get; set; }
-    [MaxLength(300)]
-    public string? Caption { get; set; }
-    public DateTime? TakenAt { get; set; }
+    [MaxLength(300)] public string Caption { get; set; } = null!;
+    public DateTime TakenAt { get; set; }
 }
 
 public class UpdatePhotoDto

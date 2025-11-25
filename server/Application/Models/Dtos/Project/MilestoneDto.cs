@@ -8,7 +8,6 @@ public class MilestoneDto
     public Guid Id { get; set; }
     public Guid ProjectId { get; set; }
     public string Title { get; set; } = null!;
-    public string? Description { get; set; }
     public int OrderIndex { get; set; }
     public string Status { get; set; } = null!;
     public int ProgressPercentage { get; set; }
@@ -25,10 +24,9 @@ public class MilestoneDto
         Id = milestone.Id,
         ProjectId = milestone.Projectid,
         Title = milestone.Title,
-        Description = milestone.Description,
         OrderIndex = milestone.Orderindex,
         Status = milestone.Status,
-        ProgressPercentage = milestone.Progresspercentage ?? 0,
+        ProgressPercentage = milestone.Progresspercentage,
         PlannedStartDate = milestone.Plannedstartdate,
         PlannedEndDate = milestone.Plannedenddate,
         ActualStartDate = milestone.Actualstartdate,
@@ -46,32 +44,28 @@ public class CreateMilestoneDto
 {
     [Required, MaxLength(200)]
     public string Title { get; set; } = null!;
-    [MaxLength(2000)]
-    public string? Description { get; set; }
     [Range(0, 100)]
-    public int? ProgressPercentage { get; set; } = 0;
+    public int ProgressPercentage { get; set; } = 0;
     [MaxLength(50)]
     public string Status { get; set; } = "Pending";
-    public DateOnly? PlannedStartDate { get; set; }
-    public DateOnly? PlannedEndDate { get; set; }
+    public DateOnly PlannedStartDate { get; set; }
+    public DateOnly PlannedEndDate { get; set; }
     public DateOnly? ActualStartDate { get; set; }
     public DateOnly? ActualEndDate { get; set; }
     public string? Notes { get; set; }
-    public int? OrderIndex { get; set; }
+    public int OrderIndex { get; set; }
 }
 
 public class UpdateMilestoneDto
 {
     [Required, MaxLength(200)]
     public string Title { get; set; } = null!;
-    [MaxLength(2000)]
-    public string? Description { get; set; }
     [Range(0, 100)]
     public int ProgressPercentage { get; set; }
     [MaxLength(50)]
     public string Status { get; set; } = "Pending";
-    public DateOnly? PlannedStartDate { get; set; }
-    public DateOnly? PlannedEndDate { get; set; }
+    public DateOnly PlannedStartDate { get; set; }
+    public DateOnly PlannedEndDate { get; set; }
     public DateOnly? ActualStartDate { get; set; }
     public DateOnly? ActualEndDate { get; set; }
     public string? Notes { get; set; }
@@ -80,16 +74,15 @@ public class UpdateMilestoneDto
 
 public class PatchMilestoneDto
 {
-    [MaxLength(200)]
-    public string? Title { get; set; }
-    [MaxLength(2000)]
-    public string? Description { get; set; }
+    [MaxLength(200)] public string Title { get; set; } = null!;
+        
     [Range(0, 100)]
-    public int? ProgressPercentage { get; set; }
+    public int ProgressPercentage { get; set; }
+    
     [MaxLength(50)]
     public string? Status { get; set; }
-    public DateOnly? PlannedStartDate { get; set; }
-    public DateOnly? PlannedEndDate { get; set; }
+    public DateOnly PlannedStartDate { get; set; }
+    public DateOnly PlannedEndDate { get; set; }
     public DateOnly? ActualStartDate { get; set; }
     public DateOnly? ActualEndDate { get; set; }
     public string? Notes { get; set; }

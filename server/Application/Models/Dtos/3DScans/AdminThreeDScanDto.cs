@@ -14,7 +14,6 @@ public class AdminThreeDScanDto
     public DateTime? ScannedAt { get; init; }
     public string FileUrl { get; init; } = string.Empty;
     public string FileName { get; init; } = string.Empty;
-    public long? FileSize { get; init; }
     public string FileFormat { get; init; } = ".glb";
     public string? Notes { get; init; }
     public Guid UploadedBy { get; init; }
@@ -32,8 +31,7 @@ public class AdminThreeDScanDto
         ScannedAt = scan.Scannedat,
         FileUrl = scan.Fileurl,
         FileName = scan.Filename,
-        FileSize = scan.Filesize,
-        FileFormat = scan.Fileformat ?? ".glb",
+        FileFormat = scan.Filetype ?? "glb",
         Notes = scan.Notes,
         UploadedBy = scan.Uploadedbyid,
         CreatedAt = scan.Createdat

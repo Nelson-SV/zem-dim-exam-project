@@ -23,7 +23,7 @@ public class User3DScanDto
             RoomArea = scan.Roomarea,
             ScannedAt = scan.Scannedat,
             FileUrl = scan.Fileurl,
-            FileFormat = scan.Fileformat!,
+            FileFormat = scan.Filetype,
             ProjectId = scan.Projectid,
             ProjectTitle = scan.Project?.Title ?? "",
             Notes = scan.Notes

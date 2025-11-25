@@ -41,6 +41,11 @@
                   "FileName": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "guid",
+                    "nullable": true
                   }
                 }
               }
@@ -67,6 +72,21 @@
           "FileUpload"
         ],
         "operationId": "FileUpload_UploadProjectThumbnailAlternative",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "projectId": {
+                    "type": "string",
+                    "format": "guid",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -1585,8 +1605,7 @@
                   },
                   "TakenAt": {
                     "type": "string",
-                    "format": "date-time",
-                    "nullable": true
+                    "format": "date-time"
                   }
                 }
               }
@@ -1734,8 +1753,7 @@
                   },
                   "RoomArea": {
                     "type": "number",
-                    "format": "decimal",
-                    "nullable": true
+                    "format": "decimal"
                   },
                   "ScannedAt": {
                     "type": "string",
@@ -2053,7 +2071,7 @@
           "title": {
             "type": "string"
           },
-          "description": {
+          "notes": {
             "type": "string",
             "nullable": true
           },
@@ -2069,16 +2087,6 @@
             "type": "string",
             "nullable": true
           },
-          "latitude": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "longitude": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
           "status": {
             "type": "string"
           },
@@ -2088,8 +2096,7 @@
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "actualEndDate": {
             "type": "string",
@@ -2177,8 +2184,12 @@
         "required": [
           "clientId",
           "title",
+          "address",
+          "city",
+          "postalCode",
           "status",
-          "startDate"
+          "startDate",
+          "plannedEndDate"
         ],
         "properties": {
           "clientId": {
@@ -2191,39 +2202,25 @@
             "maxLength": 200,
             "minLength": 1
           },
-          "description": {
+          "notes": {
             "type": "string",
-            "maxLength": 1000,
+            "maxLength": 2000,
             "nullable": true
           },
           "address": {
             "type": "string",
             "maxLength": 300,
-            "nullable": true
+            "minLength": 1
           },
           "city": {
             "type": "string",
             "maxLength": 100,
-            "nullable": true
+            "minLength": 1
           },
           "postalCode": {
             "type": "string",
             "maxLength": 20,
-            "nullable": true
-          },
-          "latitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 90.0,
-            "minimum": -90.0,
-            "nullable": true
-          },
-          "longitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 180.0,
-            "minimum": -180.0,
-            "nullable": true
+            "minLength": 1
           },
           "status": {
             "type": "string",
@@ -2232,25 +2229,21 @@
           },
           "startDate": {
             "type": "string",
-            "format": "date",
             "minLength": 1
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "minLength": 1
           },
           "totalArea": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "budget": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "progressPercentage": {
             "type": "integer",
@@ -2270,6 +2263,9 @@
         "additionalProperties": false,
         "required": [
           "title",
+          "address",
+          "city",
+          "postalCode",
           "status",
           "startDate"
         ],
@@ -2279,39 +2275,25 @@
             "maxLength": 200,
             "minLength": 1
           },
-          "description": {
+          "notes": {
             "type": "string",
-            "maxLength": 1000,
+            "maxLength": 2000,
             "nullable": true
           },
           "address": {
             "type": "string",
             "maxLength": 300,
-            "nullable": true
+            "minLength": 1
           },
           "city": {
             "type": "string",
             "maxLength": 100,
-            "nullable": true
+            "minLength": 1
           },
           "postalCode": {
             "type": "string",
             "maxLength": 20,
-            "nullable": true
-          },
-          "latitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 90.0,
-            "minimum": -90.0,
-            "nullable": true
-          },
-          "longitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 180.0,
-            "minimum": -180.0,
-            "nullable": true
+            "minLength": 1
           },
           "status": {
             "type": "string",
@@ -2320,30 +2302,25 @@
           },
           "startDate": {
             "type": "string",
-            "format": "date",
             "minLength": 1
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
             "nullable": true
           },
           "actualEndDate": {
             "type": "string",
-            "format": "date",
             "nullable": true
           },
           "totalArea": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "budget": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "progressPercentage": {
             "type": "integer",
@@ -2367,9 +2344,9 @@
             "maxLength": 200,
             "nullable": true
           },
-          "description": {
+          "notes": {
             "type": "string",
-            "maxLength": 1000,
+            "maxLength": 2000,
             "nullable": true
           },
           "address": {
@@ -2387,20 +2364,6 @@
             "maxLength": 20,
             "nullable": true
           },
-          "latitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 90.0,
-            "minimum": -90.0,
-            "nullable": true
-          },
-          "longitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 180.0,
-            "minimum": -180.0,
-            "nullable": true
-          },
           "status": {
             "type": "string",
             "maxLength": 50,
@@ -2408,30 +2371,25 @@
           },
           "startDate": {
             "type": "string",
-            "format": "date",
             "nullable": true
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
             "nullable": true
           },
           "actualEndDate": {
             "type": "string",
-            "format": "date",
             "nullable": true
           },
           "totalArea": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "budget": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "progressPercentage": {
             "type": "integer",
@@ -2885,10 +2843,6 @@
           "title": {
             "type": "string"
           },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
           "orderIndex": {
             "type": "integer",
             "format": "int32"
@@ -2948,17 +2902,11 @@
             "maxLength": 200,
             "minLength": 1
           },
-          "description": {
-            "type": "string",
-            "maxLength": 2000,
-            "nullable": true
-          },
           "progressPercentage": {
             "type": "integer",
             "format": "int32",
             "maximum": 100.0,
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "status": {
             "type": "string",
@@ -2966,13 +2914,11 @@
           },
           "plannedStartDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "actualStartDate": {
             "type": "string",
@@ -2990,8 +2936,7 @@
           },
           "orderIndex": {
             "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "format": "int32"
           }
         }
       },
@@ -3007,11 +2952,6 @@
             "maxLength": 200,
             "minLength": 1
           },
-          "description": {
-            "type": "string",
-            "maxLength": 2000,
-            "nullable": true
-          },
           "progressPercentage": {
             "type": "integer",
             "format": "int32",
@@ -3024,13 +2964,11 @@
           },
           "plannedStartDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "actualStartDate": {
             "type": "string",
@@ -3058,20 +2996,13 @@
         "properties": {
           "title": {
             "type": "string",
-            "maxLength": 200,
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "maxLength": 2000,
-            "nullable": true
+            "maxLength": 200
           },
           "progressPercentage": {
             "type": "integer",
             "format": "int32",
             "maximum": 100.0,
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "status": {
             "type": "string",
@@ -3080,13 +3011,11 @@
           },
           "plannedStartDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "actualStartDate": {
             "type": "string",
@@ -3160,27 +3089,8 @@
           "fileUrl": {
             "type": "string"
           },
-          "thumbnailUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "fileSize": {
-            "type": "integer",
-            "format": "int64",
-            "nullable": true
-          },
           "mimeType": {
             "type": "string",
-            "nullable": true
-          },
-          "width": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "height": {
-            "type": "integer",
-            "format": "int32",
             "nullable": true
           },
           "caption": {
@@ -3274,11 +3184,6 @@
           },
           "fileName": {
             "type": "string"
-          },
-          "fileSize": {
-            "type": "integer",
-            "format": "int64",
-            "nullable": true
           },
           "fileFormat": {
             "type": "string"
