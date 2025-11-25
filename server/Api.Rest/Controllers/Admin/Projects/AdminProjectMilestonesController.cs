@@ -41,7 +41,7 @@ public class AdminProjectMilestonesController(IMilestoneService service, ILogger
         {
             var userId = GetUserId();
             var result = await service.CreateAsync(projectId, dto, userId, ct);
-            return CreatedAtAction(nameof(GetStages), new { projectId, page = 1, pageSize = 1 }, result);
+            return Ok(result);
         }
         catch (KeyNotFoundException ex)
         {

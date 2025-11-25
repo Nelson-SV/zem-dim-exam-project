@@ -210,7 +210,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("createdat");
-            entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Isdeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("isdeleted");
@@ -311,25 +310,19 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Filename)
                 .HasMaxLength(255)
                 .HasColumnName("filename");
-            entity.Property(e => e.Filesize).HasColumnName("filesize");
+            entity.Property(e => e.Filetype)
+                .HasMaxLength(100)
+                .HasColumnName("filetype");
             entity.Property(e => e.Fileurl)
                 .HasMaxLength(500)
                 .HasColumnName("fileurl");
-            entity.Property(e => e.Height).HasColumnName("height");
             entity.Property(e => e.Isdeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("isdeleted");
             entity.Property(e => e.Milestoneid).HasColumnName("milestoneid");
-            entity.Property(e => e.Mimetype)
-                .HasMaxLength(100)
-                .HasColumnName("mimetype");
             entity.Property(e => e.Projectid).HasColumnName("projectid");
             entity.Property(e => e.Takenat).HasColumnName("takenat");
-            entity.Property(e => e.Thumbnailurl)
-                .HasMaxLength(500)
-                .HasColumnName("thumbnailurl");
             entity.Property(e => e.Uploadedbyid).HasColumnName("uploadedbyid");
-            entity.Property(e => e.Width).HasColumnName("width");
 
             entity.HasOne(d => d.Milestone).WithMany(p => p.Photos)
                 .HasForeignKey(d => d.Milestoneid)
@@ -464,13 +457,12 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("createdat");
-            entity.Property(e => e.Fileformat)
-                .HasMaxLength(50)
-                .HasColumnName("fileformat");
             entity.Property(e => e.Filename)
                 .HasMaxLength(255)
                 .HasColumnName("filename");
-            entity.Property(e => e.Filesize).HasColumnName("filesize");
+            entity.Property(e => e.Filetype)
+                .HasMaxLength(50)
+                .HasColumnName("filetype");
             entity.Property(e => e.Fileurl)
                 .HasMaxLength(500)
                 .HasColumnName("fileurl");

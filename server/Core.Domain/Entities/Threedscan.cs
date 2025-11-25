@@ -17,19 +17,17 @@ public partial class Threedscan
 
     public string Fileurl { get; set; } = null!;
 
-    public long? Filesize { get; set; }
+    public string Filetype { get; set; } = null!;
 
-    public string? Fileformat { get; set; }
+    public decimal Roomarea { get; set; }
 
-    public decimal? Roomarea { get; set; }
-
-    public DateTime? Scannedat { get; set; }
+    public DateTime Scannedat { get; set; }
 
     public Guid Uploadedbyid { get; set; }
 
     public string? Notes { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime Createdat { get; set; }
 
     public virtual Milestone? Milestone { get; set; }
 

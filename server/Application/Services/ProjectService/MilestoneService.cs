@@ -35,17 +35,14 @@ public class MilestoneService(
         {
             await EnsureProjectExists(projectId, ct);
 
-            var orderIndex = dto.OrderIndex ?? await repository.GetNextOrderIndexAsync(projectId, ct);
-
             var entity = new Milestone
             {
                 Id = Guid.NewGuid(),
                 Projectid = projectId,
                 Title = dto.Title.Trim(),
-                Description = dto.Description,
-                Orderindex = orderIndex,
+                Orderindex = dto.OrderIndex,
                 Status = string.IsNullOrWhiteSpace(dto.Status) ? "Pending" : dto.Status,
-                Progresspercentage = dto.ProgressPercentage ?? 0,
+                Progresspercentage = dto.ProgressPercentage,
                 Plannedstartdate = dto.PlannedStartDate,
                 Plannedenddate = dto.PlannedEndDate,
                 Actualstartdate = dto.ActualStartDate,
@@ -76,7 +73,6 @@ public class MilestoneService(
             var milestone = await GetAndValidate(projectId, milestoneId, ct);
 
             milestone.Title = dto.Title.Trim();
-            milestone.Description = dto.Description;
             milestone.Status = dto.Status;
             milestone.Progresspercentage = dto.ProgressPercentage;
             milestone.Plannedstartdate = dto.PlannedStartDate;
@@ -108,11 +104,10 @@ public class MilestoneService(
             var milestone = await GetAndValidate(projectId, milestoneId, ct);
 
             if (!string.IsNullOrWhiteSpace(dto.Title)) milestone.Title = dto.Title.Trim();
-            if (dto.Description != null) milestone.Description = dto.Description;
             if (dto.Status != null) milestone.Status = dto.Status;
-            if (dto.ProgressPercentage.HasValue) milestone.Progresspercentage = dto.ProgressPercentage;
-            if (dto.PlannedStartDate.HasValue) milestone.Plannedstartdate = dto.PlannedStartDate;
-            if (dto.PlannedEndDate.HasValue) milestone.Plannedenddate = dto.PlannedEndDate;
+            milestone.Progresspercentage = dto.ProgressPercentage;
+            milestone.Plannedstartdate = dto.PlannedStartDate;
+            milestone.Plannedenddate = dto.PlannedEndDate;
             if (dto.ActualStartDate.HasValue) milestone.Actualstartdate = dto.ActualStartDate;
             if (dto.ActualEndDate.HasValue) milestone.Actualenddate = dto.ActualEndDate;
             if (dto.Notes != null) milestone.Notes = dto.Notes;

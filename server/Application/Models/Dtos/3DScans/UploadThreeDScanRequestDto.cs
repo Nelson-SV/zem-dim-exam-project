@@ -5,7 +5,7 @@ public class UploadThreeDScanRequestDto
     public Guid ProjectId { get; set; }
     public Guid? MilestoneId { get; set; }
     public string RoomName { get; set; } = string.Empty;
-    public decimal? RoomArea { get; set; }
+    public decimal RoomArea { get; set; }
     public DateTime? ScannedAt { get; set; }
     public string? Notes { get; set; }
     

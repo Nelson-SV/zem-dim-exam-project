@@ -37,8 +37,6 @@ public class Admin3DScanService(IStorageService _storage, IDbUnitOfWork _unitOfW
                 Roomname = command.Request.RoomName.Trim(),
                 Filename = command.File.FileName,
                 Fileurl = fileUrl,
-                Filesize = command.File.Length,
-                Fileformat = Path.GetExtension(command.File.FileName),
                 Roomarea = command.Request.RoomArea,
                 Scannedat = command.Request.ScannedAt ?? DateTime.UtcNow,
                 Uploadedbyid = uploadedBy,

@@ -140,7 +140,7 @@ public class AdminProjectPhotosController(IPhotoService service, ILogger<AdminPr
         [Required]
         public IFormFile File { get; set; } = default!;
         public Guid? MilestoneId { get; set; }
-        public string? Caption { get; set; }
-        public DateTime? TakenAt { get; set; }
+        public string Caption { get; set; } = null!;
+        public DateTime TakenAt { get; set; }
     }
 }

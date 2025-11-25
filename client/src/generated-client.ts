@@ -1704,7 +1704,7 @@ export class AdminProjectPhotosClient {
         return Promise.resolve<PaginationItemsResponseOfPhotoDto>(null as any);
     }
 
-    uploadPhoto(projectId: string, file: FileParameter | null | undefined, milestoneId: string | null | undefined, caption: string | null | undefined, takenAt: Date | null | undefined): Promise<PhotoDto> {
+    uploadPhoto(projectId: string, file: FileParameter | null | undefined, milestoneId: string | null | undefined, caption: string | null | undefined, takenAt: Date | undefined): Promise<PhotoDto> {
         let url_ = this.baseUrl + "/api/admin/projects/{projectId}/photos";
         if (projectId === undefined || projectId === null)
             throw new globalThis.Error("The parameter 'projectId' must be defined.");
@@ -1718,7 +1718,9 @@ export class AdminProjectPhotosClient {
             content_.append("MilestoneId", milestoneId.toString());
         if (caption !== null && caption !== undefined)
             content_.append("Caption", caption.toString());
-        if (takenAt !== null && takenAt !== undefined)
+        if (takenAt === null || takenAt === undefined)
+            throw new globalThis.Error("The parameter 'takenAt' cannot be null.");
+        else
             content_.append("TakenAt", takenAt.toJSON());
 
         let options_: RequestInit = {
@@ -1849,7 +1851,7 @@ export class Admin3DScansClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    upload3DScan(file: FileParameter | null | undefined, projectId: string | undefined, milestoneId: string | null | undefined, roomName: string | null | undefined, roomArea: number | null | undefined, scannedAt: Date | null | undefined, notes: string | null | undefined): Promise<AdminThreeDScanDto> {
+    upload3DScan(file: FileParameter | null | undefined, projectId: string | undefined, milestoneId: string | null | undefined, roomName: string | null | undefined, roomArea: number | undefined, scannedAt: Date | null | undefined, notes: string | null | undefined): Promise<AdminThreeDScanDto> {
         let url_ = this.baseUrl + "/api/admin/3d-scans/Upload3DScan";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1864,7 +1866,9 @@ export class Admin3DScansClient {
             content_.append("MilestoneId", milestoneId.toString());
         if (roomName !== null && roomName !== undefined)
             content_.append("RoomName", roomName.toString());
-        if (roomArea !== null && roomArea !== undefined)
+        if (roomArea === null || roomArea === undefined)
+            throw new globalThis.Error("The parameter 'roomArea' cannot be null.");
+        else
             content_.append("RoomArea", roomArea.toString());
         if (scannedAt !== null && scannedAt !== undefined)
             content_.append("ScannedAt", scannedAt.toJSON());
@@ -2304,7 +2308,6 @@ export interface MilestoneDto {
     id?: string;
     projectId?: string;
     title?: string;
-    description?: string | undefined;
     orderIndex?: number;
     status?: string;
     progressPercentage?: number;
@@ -2319,24 +2322,22 @@ export interface MilestoneDto {
 
 export interface CreateMilestoneDto {
     title: string;
-    description?: string | undefined;
-    progressPercentage?: number | undefined;
+    progressPercentage?: number;
     status?: string;
-    plannedStartDate?: Date | undefined;
-    plannedEndDate?: Date | undefined;
+    plannedStartDate?: Date;
+    plannedEndDate?: Date;
     actualStartDate?: Date | undefined;
     actualEndDate?: Date | undefined;
     notes?: string | undefined;
-    orderIndex?: number | undefined;
+    orderIndex?: number;
 }
 
 export interface UpdateMilestoneDto {
     title: string;
-    description?: string | undefined;
     progressPercentage?: number;
     status?: string;
-    plannedStartDate?: Date | undefined;
-    plannedEndDate?: Date | undefined;
+    plannedStartDate?: Date;
+    plannedEndDate?: Date;
     actualStartDate?: Date | undefined;
     actualEndDate?: Date | undefined;
     notes?: string | undefined;
@@ -2344,12 +2345,11 @@ export interface UpdateMilestoneDto {
 }
 
 export interface PatchMilestoneDto {
-    title?: string | undefined;
-    description?: string | undefined;
-    progressPercentage?: number | undefined;
+    title?: string;
+    progressPercentage?: number;
     status?: string | undefined;
-    plannedStartDate?: Date | undefined;
-    plannedEndDate?: Date | undefined;
+    plannedStartDate?: Date;
+    plannedEndDate?: Date;
     actualStartDate?: Date | undefined;
     actualEndDate?: Date | undefined;
     notes?: string | undefined;
@@ -2370,11 +2370,7 @@ export interface PhotoDto {
     milestoneTitle?: string | undefined;
     fileName?: string;
     fileUrl?: string;
-    thumbnailUrl?: string | undefined;
-    fileSize?: number | undefined;
     mimeType?: string | undefined;
-    width?: number | undefined;
-    height?: number | undefined;
     caption?: string | undefined;
     takenAt?: Date | undefined;
     uploadedBy?: string;
@@ -2400,7 +2396,6 @@ export interface AdminThreeDScanDto {
     scannedAt?: Date | undefined;
     fileUrl?: string;
     fileName?: string;
-    fileSize?: number | undefined;
     fileFormat?: string;
     notes?: string | undefined;
     uploadedBy?: string;

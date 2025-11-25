@@ -1605,8 +1605,7 @@
                   },
                   "TakenAt": {
                     "type": "string",
-                    "format": "date-time",
-                    "nullable": true
+                    "format": "date-time"
                   }
                 }
               }
@@ -1754,8 +1753,7 @@
                   },
                   "RoomArea": {
                     "type": "number",
-                    "format": "decimal",
-                    "nullable": true
+                    "format": "decimal"
                   },
                   "ScannedAt": {
                     "type": "string",
@@ -2845,10 +2843,6 @@
           "title": {
             "type": "string"
           },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
           "orderIndex": {
             "type": "integer",
             "format": "int32"
@@ -2908,17 +2902,11 @@
             "maxLength": 200,
             "minLength": 1
           },
-          "description": {
-            "type": "string",
-            "maxLength": 2000,
-            "nullable": true
-          },
           "progressPercentage": {
             "type": "integer",
             "format": "int32",
             "maximum": 100.0,
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "status": {
             "type": "string",
@@ -2926,13 +2914,11 @@
           },
           "plannedStartDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "actualStartDate": {
             "type": "string",
@@ -2950,8 +2936,7 @@
           },
           "orderIndex": {
             "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "format": "int32"
           }
         }
       },
@@ -2967,11 +2952,6 @@
             "maxLength": 200,
             "minLength": 1
           },
-          "description": {
-            "type": "string",
-            "maxLength": 2000,
-            "nullable": true
-          },
           "progressPercentage": {
             "type": "integer",
             "format": "int32",
@@ -2984,13 +2964,11 @@
           },
           "plannedStartDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "actualStartDate": {
             "type": "string",
@@ -3018,20 +2996,13 @@
         "properties": {
           "title": {
             "type": "string",
-            "maxLength": 200,
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "maxLength": 2000,
-            "nullable": true
+            "maxLength": 200
           },
           "progressPercentage": {
             "type": "integer",
             "format": "int32",
             "maximum": 100.0,
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "status": {
             "type": "string",
@@ -3040,13 +3011,11 @@
           },
           "plannedStartDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "actualStartDate": {
             "type": "string",
@@ -3120,27 +3089,8 @@
           "fileUrl": {
             "type": "string"
           },
-          "thumbnailUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "fileSize": {
-            "type": "integer",
-            "format": "int64",
-            "nullable": true
-          },
           "mimeType": {
             "type": "string",
-            "nullable": true
-          },
-          "width": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "height": {
-            "type": "integer",
-            "format": "int32",
             "nullable": true
           },
           "caption": {
@@ -3234,11 +3184,6 @@
           },
           "fileName": {
             "type": "string"
-          },
-          "fileSize": {
-            "type": "integer",
-            "format": "int64",
-            "nullable": true
           },
           "fileFormat": {
             "type": "string"

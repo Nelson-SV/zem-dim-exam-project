@@ -187,7 +187,7 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
 
       {project.notes && (
         <Card className="p-4">
-          <h4 className="font-semibold mb-2">Notes</h4>
+          <h4 className="font-semibold mb-2">Project Notes</h4>
           <p className="text-muted-foreground">{project.notes}</p>
         </Card>
       )}

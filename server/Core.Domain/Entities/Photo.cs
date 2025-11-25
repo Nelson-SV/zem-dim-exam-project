@@ -15,23 +15,15 @@ public partial class Photo
 
     public string Fileurl { get; set; } = null!;
 
-    public string? Thumbnailurl { get; set; }
+    public string Filetype { get; set; } = null!;
 
-    public long? Filesize { get; set; }
+    public string Caption { get; set; } = null!;
 
-    public string? Mimetype { get; set; }
-
-    public int? Width { get; set; }
-
-    public int? Height { get; set; }
-
-    public string? Caption { get; set; }
-
-    public DateTime? Takenat { get; set; }
+    public DateTime Takenat { get; set; }
 
     public Guid Uploadedbyid { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime Createdat { get; set; }
 
     public bool Isdeleted { get; set; }
 
