@@ -12,7 +12,7 @@ public class DocumentDto
     public DateTime? Createdat { get; set; }
 
     public string Documenttype { get; set; } = "pdf";
-
+    public Guid Projectid { get; set; }
     public string? Docusealsubmissionid { get; set; }
     public bool? Requiressignature { get; set; }
     public bool? Issigned { get; set; }

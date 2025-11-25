@@ -76,7 +76,7 @@ public class ChatSeeder
             Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
             Clientid = client.Id,
             Title = "Тестовий будинок",
-            Description = "Проєкт для тестування Chat",
+            Notes = "...",
             Address = "вул. Тестова, 1",
             City = "Київ",
             Postalcode = "01001",

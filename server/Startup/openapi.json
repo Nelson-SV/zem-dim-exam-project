@@ -1167,6 +1167,10 @@
           "documenttype": {
             "type": "string"
           },
+          "projectid": {
+            "type": "string",
+            "format": "guid"
+          },
           "docusealsubmissionid": {
             "type": "string",
             "nullable": true
@@ -1389,7 +1393,7 @@
           "title": {
             "type": "string"
           },
-          "description": {
+          "notes": {
             "type": "string",
             "nullable": true
           },
@@ -1403,16 +1407,6 @@
           },
           "postalCode": {
             "type": "string",
-            "nullable": true
-          },
-          "latitude": {
-            "type": "number",
-            "format": "decimal",
-            "nullable": true
-          },
-          "longitude": {
-            "type": "number",
-            "format": "decimal",
             "nullable": true
           },
           "status": {
@@ -1444,7 +1438,8 @@
           },
           "progressPercentage": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "nullable": true
           },
           "thumbnailUrl": {
             "type": "string",
@@ -1503,7 +1498,7 @@
             "maxLength": 200,
             "minLength": 1
           },
-          "description": {
+          "notes": {
             "type": "string",
             "maxLength": 1000,
             "nullable": true
@@ -1521,20 +1516,6 @@
           "postalCode": {
             "type": "string",
             "maxLength": 20,
-            "nullable": true
-          },
-          "latitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 90.0,
-            "minimum": -90.0,
-            "nullable": true
-          },
-          "longitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 180.0,
-            "minimum": -180.0,
             "nullable": true
           },
           "status": {
@@ -1568,7 +1549,8 @@
             "type": "integer",
             "format": "int32",
             "maximum": 100.0,
-            "minimum": 0.0
+            "minimum": 0.0,
+            "nullable": true
           },
           "thumbnailUrl": {
             "type": "string",
@@ -1591,7 +1573,7 @@
             "maxLength": 200,
             "minLength": 1
           },
-          "description": {
+          "notes": {
             "type": "string",
             "maxLength": 1000,
             "nullable": true
@@ -1609,20 +1591,6 @@
           "postalCode": {
             "type": "string",
             "maxLength": 20,
-            "nullable": true
-          },
-          "latitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 90.0,
-            "minimum": -90.0,
-            "nullable": true
-          },
-          "longitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 180.0,
-            "minimum": -180.0,
             "nullable": true
           },
           "status": {
@@ -1661,7 +1629,8 @@
             "type": "integer",
             "format": "int32",
             "maximum": 100.0,
-            "minimum": 0.0
+            "minimum": 0.0,
+            "nullable": true
           },
           "thumbnailUrl": {
             "type": "string",
@@ -1679,7 +1648,7 @@
             "maxLength": 200,
             "nullable": true
           },
-          "description": {
+          "notes": {
             "type": "string",
             "maxLength": 1000,
             "nullable": true
@@ -1697,20 +1666,6 @@
           "postalCode": {
             "type": "string",
             "maxLength": 20,
-            "nullable": true
-          },
-          "latitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 90.0,
-            "minimum": -90.0,
-            "nullable": true
-          },
-          "longitude": {
-            "type": "number",
-            "format": "decimal",
-            "maximum": 180.0,
-            "minimum": -180.0,
             "nullable": true
           },
           "status": {

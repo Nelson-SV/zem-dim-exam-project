@@ -377,16 +377,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("createdat");
-            entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Isdeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("isdeleted");
-            entity.Property(e => e.Latitude)
-                .HasPrecision(10, 8)
-                .HasColumnName("latitude");
-            entity.Property(e => e.Longitude)
-                .HasPrecision(11, 8)
-                .HasColumnName("longitude");
+            entity.Property(e => e.Notes).HasColumnName("notes");
             entity.Property(e => e.Plannedenddate).HasColumnName("plannedenddate");
             entity.Property(e => e.Postalcode)
                 .HasMaxLength(20)
@@ -397,7 +391,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Startdate).HasColumnName("startdate");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("'InProgress'::character varying")
+                .HasDefaultValueSql("'''Pending''::character varying'::character varying")
                 .HasColumnName("status");
             entity.Property(e => e.Thumbnailurl)
                 .HasMaxLength(500)

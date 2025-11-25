@@ -75,29 +75,25 @@ public class ProjectService : IProjectService
 
     public async Task<ProjectDto> CreateProjectAsync(CreateProjectDto dto)
     {
-        // Verify client exists
         var client = await _userRepository.GetByIdAsync(dto.ClientId);
         if (client == null)
             throw new KeyNotFoundException("Client not found");
 
-        // Create project entity
         var project = new Project
         {
             Id = Guid.NewGuid(),
             Clientid = dto.ClientId,
             Title = dto.Title,
-            Description = dto.Description,
-            Address = dto.Address,
-            City = dto.City,
-            Postalcode = dto.PostalCode,
-            Latitude = dto.Latitude,
-            Longitude = dto.Longitude,
+            Notes = dto.Notes,
+            Address = dto.Address ?? string.Empty,
+            City = dto.City ?? string.Empty,
+            Postalcode = dto.PostalCode ?? string.Empty,
             Status = dto.Status,
             Startdate = dto.StartDate,
-            Plannedenddate = dto.PlannedEndDate,
-            Totalarea = dto.TotalArea,
-            Budget = dto.Budget,
-            Progresspercentage = dto.ProgressPercentage,
+            Plannedenddate = dto.PlannedEndDate ?? dto.StartDate.AddMonths(6), // Default 6 months
+            Totalarea = dto.TotalArea ?? 0,
+            Budget = dto.Budget ?? 0,
+            Progresspercentage = dto.ProgressPercentage ?? 0,
             Thumbnailurl = dto.ThumbnailUrl,
             Createdat = DateTime.UtcNow,
             Updatedat = DateTime.UtcNow,
@@ -113,90 +109,80 @@ public class ProjectService : IProjectService
     #region UPDATE Operations
 
     public async Task<ProjectDto> UpdateProjectAsync(Guid projectId, UpdateProjectDto dto)
-    {
-        var project = await _projectRepository.GetByIdAsync(projectId);
-        if (project == null)
-            throw new KeyNotFoundException("Project not found");
+{
+    var project = await _projectRepository.GetByIdAsync(projectId);
+    if (project == null)
+        throw new KeyNotFoundException("Project not found");
 
-        // Update all fields
+    project.Title = dto.Title;
+    project.Notes = dto.Notes;
+    project.Address = dto.Address ?? string.Empty;
+    project.City = dto.City ?? string.Empty;
+    project.Postalcode = dto.PostalCode ?? string.Empty;
+    project.Status = dto.Status;
+    project.Startdate = dto.StartDate;
+    project.Plannedenddate = dto.PlannedEndDate ?? project.Plannedenddate;
+    project.Actualenddate = dto.ActualEndDate;
+    project.Totalarea = dto.TotalArea ?? 0;
+    project.Budget = dto.Budget ?? 0;
+    project.Progresspercentage = dto.ProgressPercentage ?? 0;
+    project.Thumbnailurl = dto.ThumbnailUrl;
+    project.Updatedat = DateTime.UtcNow;
+
+    var updatedProject = await _projectRepository.UpdateAsync(project);
+    return ProjectDto.FromEntity(updatedProject);
+}
+
+public async Task<ProjectDto> PatchProjectAsync(Guid projectId, PatchProjectDto dto)
+{
+    var project = await _projectRepository.GetByIdAsync(projectId);
+    if (project == null)
+        throw new KeyNotFoundException("Project not found");
+
+    if (dto.Title != null)
         project.Title = dto.Title;
-        project.Description = dto.Description;
+
+    if (dto.Notes != null)
+        project.Notes = dto.Notes;
+
+    if (dto.Address != null)
         project.Address = dto.Address;
+
+    if (dto.City != null)
         project.City = dto.City;
+
+    if (dto.PostalCode != null)
         project.Postalcode = dto.PostalCode;
-        project.Latitude = dto.Latitude;
-        project.Longitude = dto.Longitude;
+
+    if (dto.Status != null)
         project.Status = dto.Status;
-        project.Startdate = dto.StartDate;
-        project.Plannedenddate = dto.PlannedEndDate;
+
+    if (dto.StartDate.HasValue)
+        project.Startdate = dto.StartDate.Value;
+
+    if (dto.PlannedEndDate.HasValue)
+        project.Plannedenddate = dto.PlannedEndDate.Value;
+
+    if (dto.ActualEndDate.HasValue)
         project.Actualenddate = dto.ActualEndDate;
-        project.Totalarea = dto.TotalArea;
-        project.Budget = dto.Budget;
-        project.Progresspercentage = dto.ProgressPercentage;
+
+    if (dto.TotalArea.HasValue)
+        project.Totalarea = dto.TotalArea.Value;
+
+    if (dto.Budget.HasValue)
+        project.Budget = dto.Budget.Value;
+
+    if (dto.ProgressPercentage.HasValue)
+        project.Progresspercentage = dto.ProgressPercentage.Value;
+
+    if (dto.ThumbnailUrl != null)
         project.Thumbnailurl = dto.ThumbnailUrl;
-        project.Updatedat = DateTime.UtcNow;
 
-        var updatedProject = await _projectRepository.UpdateAsync(project);
-        return ProjectDto.FromEntity(updatedProject);
-    }
+    project.Updatedat = DateTime.UtcNow;
 
-    public async Task<ProjectDto> PatchProjectAsync(Guid projectId, PatchProjectDto dto)
-    {
-        var project = await _projectRepository.GetByIdAsync(projectId);
-        if (project == null)
-            throw new KeyNotFoundException("Project not found");
-
-        // Update only provided fields
-        if (dto.Title != null)
-            project.Title = dto.Title;
-
-        if (dto.Description != null)
-            project.Description = dto.Description;
-
-        if (dto.Address != null)
-            project.Address = dto.Address;
-
-        if (dto.City != null)
-            project.City = dto.City;
-
-        if (dto.PostalCode != null)
-            project.Postalcode = dto.PostalCode;
-
-        if (dto.Latitude.HasValue)
-            project.Latitude = dto.Latitude;
-
-        if (dto.Longitude.HasValue)
-            project.Longitude = dto.Longitude;
-
-        if (dto.Status != null)
-            project.Status = dto.Status;
-
-        if (dto.StartDate.HasValue)
-            project.Startdate = dto.StartDate.Value;
-
-        if (dto.PlannedEndDate.HasValue)
-            project.Plannedenddate = dto.PlannedEndDate;
-
-        if (dto.ActualEndDate.HasValue)
-            project.Actualenddate = dto.ActualEndDate;
-
-        if (dto.TotalArea.HasValue)
-            project.Totalarea = dto.TotalArea;
-
-        if (dto.Budget.HasValue)
-            project.Budget = dto.Budget;
-
-        if (dto.ProgressPercentage.HasValue)
-            project.Progresspercentage = dto.ProgressPercentage.Value;
-
-        if (dto.ThumbnailUrl != null)
-            project.Thumbnailurl = dto.ThumbnailUrl;
-
-        project.Updatedat = DateTime.UtcNow;
-
-        var updatedProject = await _projectRepository.UpdateAsync(project);
-        return ProjectDto.FromEntity(updatedProject);
-    }
+    var updatedProject = await _projectRepository.UpdateAsync(project);
+    return ProjectDto.FromEntity(updatedProject);
+}
 
     public async Task<ProjectDto> UpdateProjectStatusAsync(Guid projectId, string status)
     {
@@ -207,7 +193,6 @@ public class ProjectService : IProjectService
         project.Status = status;
         project.Updatedat = DateTime.UtcNow;
 
-        // Auto-set actual end date if status is "Completed"
         if (status.Equals("Completed", StringComparison.OrdinalIgnoreCase) && !project.Actualenddate.HasValue)
         {
             project.Actualenddate = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -229,7 +214,6 @@ public class ProjectService : IProjectService
         project.Progresspercentage = progressPercentage;
         project.Updatedat = DateTime.UtcNow;
 
-        // Auto-update status based on progress
         if (progressPercentage == 0 && project.Status == "Planning")
         {
             // Keep as Planning

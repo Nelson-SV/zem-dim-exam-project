@@ -39,6 +39,7 @@ public class DocumentsController : ControllerBase
             UploadedBy = "admin",
             Createdat = d.Createdat,
             Documenttype = d.Documenttype,
+            Projectid = d.Projectid,
             Docusealsubmissionid = d.Docusealsubmissionid,
             Requiressignature = d.Requiressignature,
             Issigned = d.Issigned,

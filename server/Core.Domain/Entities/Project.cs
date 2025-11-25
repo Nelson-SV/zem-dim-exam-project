@@ -11,37 +11,33 @@ public partial class Project
 
     public string Title { get; set; } = null!;
 
-    public string? Description { get; set; }
+    public string? Notes { get; set; }
 
-    public string? Address { get; set; }
+    public string Address { get; set; } = null!;
 
-    public string? City { get; set; }
+    public string City { get; set; } = null!;
 
-    public string? Postalcode { get; set; }
-
-    public decimal? Latitude { get; set; }
-
-    public decimal? Longitude { get; set; }
+    public string Postalcode { get; set; } = null!;
 
     public string Status { get; set; } = null!;
 
     public DateOnly Startdate { get; set; }
 
-    public DateOnly? Plannedenddate { get; set; }
+    public DateOnly Plannedenddate { get; set; }
 
     public DateOnly? Actualenddate { get; set; }
 
-    public decimal? Totalarea { get; set; }
+    public decimal Totalarea { get; set; }
 
-    public decimal? Budget { get; set; }
+    public decimal Budget { get; set; }
 
-    public int? Progresspercentage { get; set; }
+    public int Progresspercentage { get; set; }
 
     public string? Thumbnailurl { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public DateTime Createdat { get; set; }
 
-    public DateTime? Updatedat { get; set; }
+    public DateTime Updatedat { get; set; }
 
     public bool Isdeleted { get; set; }
 
