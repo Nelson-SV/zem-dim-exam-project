@@ -9,6 +9,7 @@ import { Progress } from '../components/ui/progress';
 import { Input } from '../components/ui/input';
 import { http } from '../lib/api';
 import type { ProjectDto, UpdateDto } from '../generated-client';
+import { PaginationComponent } from '../components/PaginationComponent';
 
 interface StatsCardProps {
   title: string;
@@ -159,15 +160,13 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
           title="Clients"
           value={loadingStats ? '...' : clientsCount.toString()}
           icon={<Users className="size-6 text-white" />}
-          color={`bg-[#F97316] ${statusFilter === 'all' ? 'ring-2 ring-offset-2 ring-[#F97316]/60' : ''}`}
-          onClick={() => setStatusFilter('all')}
+          color="bg-[#F97316]"
         />
         <StatsCard
           title="Total projects"
           value={loadingStats ? '...' : totalProjects.toString()}
           icon={<Building className="size-6 text-white" />}
-          color={`bg-[#3B82F6] ${statusFilter === 'all' ? 'ring-2 ring-offset-2 ring-[#3B82F6]/60' : ''}`}
-          onClick={() => setStatusFilter('all')}
+          color="bg-[#3B82F6]"
         />
         <StatsCard
           title="Completed"
@@ -187,9 +186,8 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
 
       {/* Active Projects */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2>Active projects</h2>
-          <div className="relative w-full max-w-sm">
+        <div className="mb-6">
+          <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               placeholder="Search projects..."
@@ -204,21 +202,21 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
           {loadingProjects && <p className="text-muted-foreground">Loading projects...</p>}
 
           {!loadingProjects && pagedProjects.map(project => (
-            <Card key={project.id} className="overflow-hidden hover:shadow-lg transition-all">
-              <div className="aspect-video relative overflow-hidden bg-muted">
+            <Card key={project.id} className="overflow-hidden hover:shadow-lg transition-all flex flex-col h-full">
+              <div className="aspect-video relative overflow-hidden px-3 pt-3">
                 {project.thumbnailUrl ? (
                   <img 
                     src={project.thumbnailUrl} 
                     alt={project.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-md"
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm bg-white rounded-md">
                     No image
                   </div>
                 )}
               </div>
-              <div className="p-6">
+              <div className="p-6 text-left flex flex-col h-full">
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <h3 className="mb-1">{project.title}</h3>
@@ -229,7 +227,7 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
                   </Badge>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3 flex-1">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-muted-foreground">Progress</span>
@@ -238,24 +236,19 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
                     <Progress value={project.progressPercentage ?? 0} className="h-2" />
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t">
-                    <span className="text-muted-foreground">Current stage</span>
-                    <span>{project.notes ?? '—'}</span>
+                  <div className="pt-3 border-t space-y-2">
+                    <p className="text-base text-muted-foreground">Current stage: <span className="text-foreground font-semibold">{project.notes ?? '—'}</span></p>
+                    <p className="text-base text-muted-foreground">Client: <span className="text-foreground font-semibold">{project.clientName}</span></p>
                   </div>
+                </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Client</span>
-                    <span>{project.clientName}</span>
-                  </div>
-
-                  <div className="pt-3">
-                    <Button 
-                      onClick={() => onViewProject?.(project.id!)}
-                      className="w-full bg-[#F97316] hover:bg-[#F97316]/90"
-                    >
-                      View details
-                    </Button>
-                  </div>
+                <div className="pt-3 mt-auto">
+                  <Button 
+                    onClick={() => onViewProject?.(project.id!)}
+                    className="w-full bg-[#F97316] hover:bg-[#F97316]/90"
+                  >
+                    View details
+                  </Button>
                 </div>
               </div>
             </Card>
@@ -267,14 +260,8 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-4">
-            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
-              Previous
-            </Button>
-            <span className="self-center text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-            <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>
-              Next
-            </Button>
+          <div className="mt-6">
+            <PaginationComponent currentPage={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}
       </div>
