@@ -92,7 +92,6 @@ export function Admin3DScansView({ projectId, projectName, milestones }: Props) 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xl font-semibold">3D room scans</h3>
-          <p className="text-sm text-muted-foreground">Project: {projectName}</p>
         </div>
         <Button className="bg-[#F97316] hover:bg-[#F97316]/90" onClick={openCreateModal}>
           <Upload className="size-4 mr-2" />

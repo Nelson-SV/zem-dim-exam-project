@@ -1,41 +1,20 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {Badge} from '../../components/ui/badge';
-import {Button} from '../../components/ui/button';
-import {Card} from '../../components/ui/card';
-import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '../../components/ui/dialog';
-import {Input} from '../../components/ui/input';
-import {Label} from '../../components/ui/label';
-import {Textarea} from '../../components/ui/textarea';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../../components/ui/select';
-import {Slider} from '../../components/ui/slider';
-import {PaginationComponent} from '../../components/PaginationComponent';
-import {toast} from 'sonner';
-import {http} from '../../lib/api';
-import {format} from 'date-fns';
-import {AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle} from '../../components/ui/alert-dialog';
-import {Pencil, Trash2} from 'lucide-react';
-
-export interface MilestoneViewModel {
-  id: string;
-  title: string;
-  description?: string | null;
-  status: string;
-  progressPercentage: number;
-  orderIndex: number;
-  plannedStartDate?: string | null;
-  plannedEndDate?: string | null;
-}
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { PaginationComponent } from '../../components/PaginationComponent';
+import { toast } from 'sonner';
+import { http } from '../../lib/api';
+import { format } from 'date-fns';
+import ConfirmationWindowModal from '../../components/ConfirmationWindowModal';
+import { Pencil, Trash2 } from 'lucide-react';
+import { StageModal, type MilestoneViewModel } from './StageModal';
+export type { MilestoneViewModel } from './StageModal';
 
 interface Props {
   projectId: string;
   onMilestonesChanged?: (milestones: MilestoneViewModel[]) => void;
 }
-
-const statusOptions = [
-  { value: 'Pending', label: 'Pending' },
-  { value: 'In Progress', label: 'In Progress' },
-  { value: 'Completed', label: 'Completed' },
-];
 
 export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
   const [stages, setStages] = useState<MilestoneViewModel[]>([]);
@@ -46,35 +25,11 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize]);
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<MilestoneViewModel | null>(null);
-
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    status: 'Pending',
-    progressPercentage: 0,
-    plannedStartDate: '',
-    plannedEndDate: '',
-    orderIndex: '',
-  });
-
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [selectedStage, setSelectedStage] = useState<MilestoneViewModel | null>(null);
   const [pendingDelete, setPendingDelete] = useState<MilestoneViewModel | null>(null);
-  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-
-  const resetForm = () => {
-    setForm({
-      title: '',
-      description: '',
-      status: 'Pending',
-      progressPercentage: 0,
-      plannedStartDate: '',
-      plannedEndDate: '',
-      orderIndex: '',
-    });
-    setEditing(null);
-  };
 
   const fetchStages = useCallback(async () => {
     if (!projectId) return;
@@ -84,12 +39,14 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
       const items = (res.items ?? []).map((m: any) => ({
         id: m.id,
         title: m.title,
-        description: m.description,
+        notes: m.notes,
         status: m.status,
-        progressPercentage: m.progressPercentage,
-        orderIndex: m.orderIndex,
+        progressPercentage: m.progressPercentage ?? 0,
+        orderIndex: m.orderIndex ?? 0,
         plannedStartDate: m.plannedStartDate,
         plannedEndDate: m.plannedEndDate,
+        actualStartDate: m.actualStartDate,
+        actualEndDate: m.actualEndDate,
       })) as MilestoneViewModel[];
       setStages(items);
       setTotal(res.totalItems ?? items.length);
@@ -110,56 +67,15 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
   }, [fetchStages]);
 
   const openCreate = () => {
-    resetForm();
-    setDialogOpen(true);
+    setModalMode('create');
+    setSelectedStage(null);
+    setModalOpen(true);
   };
 
   const openEdit = (stage: MilestoneViewModel) => {
-    setEditing(stage);
-    setForm({
-      title: stage.title,
-      description: stage.description ?? '',
-      status: stage.status,
-      progressPercentage: stage.progressPercentage,
-      plannedStartDate: stage.plannedStartDate ? String(stage.plannedStartDate) : '',
-      plannedEndDate: stage.plannedEndDate ? String(stage.plannedEndDate) : '',
-      orderIndex: String(stage.orderIndex ?? ''),
-    });
-    setDialogOpen(true);
-  };
-
-  const handleSave = async () => {
-    if (!form.title.trim()) {
-      toast.error('Stage title is required.');
-      return;
-    }
-    setSaving(true);
-    try {
-      const payload: any = {
-        title: form.title.trim(),
-        description: form.description || null,
-        status: form.status,
-        progressPercentage: form.progressPercentage,
-        plannedStartDate: form.plannedStartDate || null,
-        plannedEndDate: form.plannedEndDate || null,
-        orderIndex: form.orderIndex ? Number(form.orderIndex) : undefined,
-      };
-
-      if (editing) {
-        await http.adminStages.updateStage(projectId, editing.id, payload);
-        toast.success('Stage updated.');
-      } else {
-        await http.adminStages.createStage(projectId, payload);
-        toast.success('Stage created.');
-      }
-      setDialogOpen(false);
-      resetForm();
-      fetchStages();
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to save stage.');
-    } finally {
-      setSaving(false);
-    }
+    setModalMode('edit');
+    setSelectedStage(stage);
+    setModalOpen(true);
   };
 
   const handleDelete = async () => {
@@ -205,7 +121,7 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
                         <h4 className="text-lg font-semibold">{stage.title}</h4>
                         <Badge variant="outline">{stage.status}</Badge>
                       </div>
-                      {stage.description && <p className="text-muted-foreground">{stage.description}</p>}
+                      {stage.notes && <p className="text-muted-foreground">{stage.notes}</p>}
                     </div>
                     <div className="flex items-center gap-2">
                       <Button variant="outline" size="icon" onClick={() => openEdit(stage)}>
@@ -216,12 +132,18 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
                       </Button>
                     </div>
                   </div>
-                  <div className="text-sm text-muted-foreground flex gap-4">
+                  <div className="text-sm text-muted-foreground flex gap-4 flex-wrap">
                     {stage.plannedStartDate && (
-                      <span>Start: {format(new Date(stage.plannedStartDate), 'dd MMM yyyy')}</span>
+                      <span>Planned start: {format(new Date(stage.plannedStartDate), 'dd MMM yyyy')}</span>
                     )}
                     {stage.plannedEndDate && (
-                      <span>Finish: {format(new Date(stage.plannedEndDate), 'dd MMM yyyy')}</span>
+                      <span>Planned finish: {format(new Date(stage.plannedEndDate), 'dd MMM yyyy')}</span>
+                    )}
+                    {stage.actualStartDate && (
+                      <span>Actual start: {format(new Date(stage.actualStartDate), 'dd MMM yyyy')}</span>
+                    )}
+                    {stage.actualEndDate && (
+                      <span>Actual finish: {format(new Date(stage.actualEndDate), 'dd MMM yyyy')}</span>
                     )}
                   </div>
                   <div className="mt-1">
@@ -244,70 +166,22 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
         <PaginationComponent currentPage={page} totalPages={totalPages} onPageChange={setPage} />
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editing ? 'Edit stage' : 'Add stage'}</DialogTitle>
-            <DialogDescription>Set the key dates, status and progress for this stage.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Title</Label>
-              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Planned start</Label>
-                <Input type="date" value={form.plannedStartDate} onChange={(e) => setForm({ ...form, plannedStartDate: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Planned finish</Label>
-                <Input type="date" value={form.plannedEndDate} onChange={(e) => setForm({ ...form, plannedEndDate: e.target.value })} />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select value={form.status} onValueChange={(val) => setForm({ ...form, status: val })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Progress: {form.progressPercentage}%</Label>
-              <Slider value={[form.progressPercentage]} onValueChange={([v]) => setForm({ ...form, progressPercentage: v })} max={100} step={5} />
-            </div>
-            <div className="space-y-2">
-              <Label>Order (optional)</Label>
-              <Input type="number" value={form.orderIndex} onChange={(e) => setForm({ ...form, orderIndex: e.target.value })} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving} className="bg-[#F97316] hover:bg-[#F97316]/90">
-              {saving ? 'Saving…' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <StageModal
+        open={modalOpen}
+        mode={modalMode}
+        projectId={projectId}
+        stage={selectedStage}
+        onClose={() => { setModalOpen(false); setSelectedStage(null); }}
+        onSaved={() => fetchStages()}
+      />
 
-      <AlertDialog open={!!pendingDelete} onOpenChange={(open) => !open && !deleting && setPendingDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this stage?</AlertDialogTitle>
-            <AlertDialogDescription>This will permanently remove the stage.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting} onClick={() => setPendingDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={deleting}>{deleting ? 'Deleting…' : 'Delete'}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationWindowModal
+        isOpen={!!pendingDelete}
+        title="Delete this stage?"
+        message={`Are you sure you want to delete the stage "${pendingDelete?.title}"?`}
+        onConfirm={handleDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
