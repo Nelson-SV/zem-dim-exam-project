@@ -1,34 +1,20 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {Card} from '../../components/ui/card';
-import {Button} from '../../components/ui/button';
-import {Badge} from '../../components/ui/badge';
-import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '../../components/ui/dialog';
-import {Label} from '../../components/ui/label';
-import {Input} from '../../components/ui/input';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../../components/ui/select';
-import {Textarea} from '../../components/ui/textarea';
-import {PaginationComponent} from '../../components/PaginationComponent';
-import {toast} from 'sonner';
-import {http} from '../../lib/api';
-import {format} from 'date-fns';
-import {AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle} from '../../components/ui/alert-dialog';
-import {Download, Pencil, Trash2, Upload} from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Card } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { PaginationComponent } from '../../components/PaginationComponent';
+import ConfirmationWindowModal from '../../components/ConfirmationWindowModal';
+import { toast } from 'sonner';
+import { http } from '../../lib/api';
+import { format } from 'date-fns';
+import { Download, Pencil, Trash2, Upload } from 'lucide-react';
+import { PhotoModal, type PhotoVm } from './PhotoModal';
 
 interface Props {
   projectId: string;
   milestones: { id: string; name: string }[];
   projectName: string;
-}
-
-interface PhotoVm {
-  id: string;
-  milestoneId?: string | null;
-  milestoneTitle?: string | null;
-  caption?: string | null;
-  takenAt?: string | null;
-  fileUrl: string;
-  fileName: string;
-  createdAt?: string | null;
 }
 
 export function AdminPhotosView({ projectId, milestones, projectName }: Props) {
@@ -40,21 +26,14 @@ export function AdminPhotosView({ projectId, milestones, projectName }: Props) {
   const [loading, setLoading] = useState(false);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<PhotoVm | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [caption, setCaption] = useState('');
-  const [takenAt, setTakenAt] = useState('');
-  const [milestoneId, setMilestoneId] = useState<string>('');
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [selectedPhoto, setSelectedPhoto] = useState<PhotoVm | null>(null);
   const [pendingDelete, setPendingDelete] = useState<PhotoVm | null>(null);
   const [busy, setBusy] = useState(false);
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize]);
 
-  const resetModal = () => {
-    setEditing(null);
-    setCaption('');
-    setTakenAt('');
-    setMilestoneId('');
-    setFile(null);
+  const resetSelection = () => {
+    setSelectedPhoto(null);
   };
 
   const fetchPhotos = useCallback(async () => {
@@ -90,49 +69,23 @@ export function AdminPhotosView({ projectId, milestones, projectName }: Props) {
   }, [fetchPhotos]);
 
   const openCreate = () => {
-    resetModal();
+    setModalMode('create');
+    resetSelection();
     setModalOpen(true);
   };
 
   const openEdit = (photo: PhotoVm) => {
-    setEditing(photo);
-    setCaption(photo.caption ?? '');
-    setTakenAt(photo.takenAt ? photo.takenAt.substring(0, 10) : '');
-    setMilestoneId(photo.milestoneId ?? '');
-    setFile(null);
+    setModalMode('edit');
+    setSelectedPhoto(photo);
     setModalOpen(true);
   };
 
-  const handleSave = async () => {
-    if (!editing && !file) {
-      toast.error('Select an image to upload.');
-      return;
-    }
-    setBusy(true);
-    try {
-      if (editing) {
-        await http.updatePhoto(projectId, editing.id, {
-          caption: caption || null,
-          takenAt: takenAt ? new Date(takenAt).toISOString() : null,
-          milestoneId: milestoneId || null,
-        });
-        toast.success('Photo updated.');
-      } else if (file) {
-        await http.uploadProjectPhoto(projectId, file, caption, takenAt || undefined, milestoneId || undefined);
-        toast.success('Photo uploaded.');
-      }
-      setModalOpen(false);
-      resetModal();
-      fetchPhotos();
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to save photo.');
-    } finally {
-      setBusy(false);
-    }
+  const handleSaved = () => {
+    fetchPhotos();
   };
 
   const handleDelete = async () => {
-    if (!pendingDelete) return;
+    if (!pendingDelete || busy) return;
     setBusy(true);
     try {
       await http.adminPhotos.deletePhoto(projectId, pendingDelete.id);
@@ -151,7 +104,6 @@ export function AdminPhotosView({ projectId, milestones, projectName }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xl font-semibold">Photos</h3>
-          <p className="text-sm text-muted-foreground">Project: {projectName}</p>
         </div>
         <div className="flex gap-3">
           <Select value={milestoneFilter} onValueChange={(v) => setMilestoneFilter(v)}>
@@ -181,7 +133,6 @@ export function AdminPhotosView({ projectId, milestones, projectName }: Props) {
           {photos.map(photo => (
             <Card key={photo.id} className="overflow-hidden">
               <div className="h-48 bg-muted overflow-hidden">
-                {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
                 <img src={photo.fileUrl} alt={photo.caption ?? photo.fileName} className="w-full h-full object-cover" />
               </div>
               <div className="p-4 space-y-2">
@@ -216,61 +167,23 @@ export function AdminPhotosView({ projectId, milestones, projectName }: Props) {
         <PaginationComponent currentPage={page} totalPages={totalPages} onPageChange={setPage} />
       )}
 
-      <Dialog open={modalOpen} onOpenChange={(open) => { setModalOpen(open); if (!open) resetModal(); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editing ? 'Edit photo' : 'Add photo'}</DialogTitle>
-            <DialogDescription>Upload a new photo or update its details.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            {!editing && (
-              <div className="space-y-2">
-                <Label>Image file</Label>
-                <Input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label>Caption</Label>
-              <Textarea value={caption} onChange={(e) => setCaption(e.target.value)} rows={2} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Taken at</Label>
-                <Input type="date" value={takenAt} onChange={(e) => setTakenAt(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>Stage</Label>
-                <Select value={milestoneId || 'none'} onValueChange={(v) => setMilestoneId(v === 'none' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No stage</SelectItem>
-                    {milestones.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setModalOpen(false); resetModal(); }}>Cancel</Button>
-            <Button onClick={handleSave} disabled={busy} className="bg-[#F97316] hover:bg-[#F97316]/90">
-              {busy ? 'Saving…' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <PhotoModal
+        open={modalOpen}
+        mode={modalMode}
+        projectId={projectId}
+        milestones={milestones}
+        photo={selectedPhoto}
+        onClose={() => { setModalOpen(false); resetSelection(); }}
+        onSaved={handleSaved}
+      />
 
-      <AlertDialog open={!!pendingDelete} onOpenChange={(open) => !open && setPendingDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete photo?</AlertDialogTitle>
-            <AlertDialogDescription>This will remove the record and delete the stored file.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy} onClick={() => setPendingDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction disabled={busy} onClick={handleDelete}>{busy ? 'Deleting…' : 'Delete'}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationWindowModal
+        isOpen={!!pendingDelete}
+        title="Delete photo?"
+        message={`Are you sure you want to delete the photo "${pendingDelete?.caption || pendingDelete?.fileName}"?`}
+        onConfirm={handleDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
