@@ -1232,6 +1232,64 @@ export class UserManagementClient {
     }
 }
 
+export class AdminUpdatesClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getUpdates(page: number | undefined, pageSize: number | undefined, projectId: string | null | undefined, updateType: string | null | undefined, search: string | null | undefined): Promise<PaginationItemsResponseOfUpdateDto> {
+        let url_ = this.baseUrl + "/api/admin/updates?";
+        if (page === null)
+            throw new globalThis.Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        if (projectId !== undefined && projectId !== null)
+            url_ += "projectId=" + encodeURIComponent("" + projectId) + "&";
+        if (updateType !== undefined && updateType !== null)
+            url_ += "updateType=" + encodeURIComponent("" + updateType) + "&";
+        if (search !== undefined && search !== null)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetUpdates(_response);
+        });
+    }
+
+    protected processGetUpdates(response: Response): Promise<PaginationItemsResponseOfUpdateDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as PaginationItemsResponseOfUpdateDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PaginationItemsResponseOfUpdateDto>(null as any);
+    }
+}
+
 export class AdminProjectDocumentsClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -2267,6 +2325,27 @@ export interface GetAllUsersResponseDto {
     totalItems?: number;
     page?: number;
     pageSize?: number;
+}
+
+export interface PaginationItemsResponseOfUpdateDto {
+    items?: UpdateDto[];
+    page?: number;
+    pageSize?: number;
+    totalItems?: number;
+}
+
+export interface UpdateDto {
+    id?: string;
+    projectId?: string;
+    projectTitle?: string;
+    milestoneId?: string | undefined;
+    milestoneTitle?: string | undefined;
+    updateType?: string;
+    title?: string;
+    description?: string | undefined;
+    createdById?: string;
+    createdByName?: string | undefined;
+    createdAt?: Date | undefined;
 }
 
 export interface PaginationItemsResponseOfDocumentDto {
