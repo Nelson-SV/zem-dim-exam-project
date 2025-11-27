@@ -203,18 +203,20 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
 
           {!loadingProjects && pagedProjects.map(project => (
             <Card key={project.id} className="overflow-hidden hover:shadow-lg transition-all flex flex-col h-full">
-              <div className="aspect-video relative overflow-hidden px-3 pt-3">
-                {project.thumbnailUrl ? (
-                  <img 
-                    src={project.thumbnailUrl} 
-                    alt={project.title}
-                    className="w-full h-full object-cover rounded-md"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm bg-white rounded-md">
-                    No image
-                  </div>
-                )}
+              <div className="relative px-3 pt-3 pb-0">
+                <div className="w-full h-56 bg-white rounded-md overflow-hidden flex items-center justify-center">
+                  {project.thumbnailUrl ? (
+                    <img 
+                      src={project.thumbnailUrl} 
+                      alt={project.title}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                      No image
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="p-6 text-left flex flex-col h-full">
                 <div className="flex items-start justify-between mb-4">
@@ -236,13 +238,13 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
                     <Progress value={project.progressPercentage ?? 0} className="h-2" />
                   </div>
 
-                  <div className="pt-3 border-t space-y-2">
-                    <p className="text-base text-muted-foreground">Current stage: <span className="text-foreground font-semibold">{project.notes ?? '—'}</span></p>
-                    <p className="text-base text-muted-foreground">Client: <span className="text-foreground font-semibold">{project.clientName}</span></p>
+                  <div className="pt-3 border-t text-base leading-relaxed space-y-3 min-h-[108px]">
+                    <p className="text-muted-foreground line-clamp-2" title={project.notes ?? ''}>Current stage: <span className="text-foreground">{project.notes ?? '—'}</span></p>
+                    <p className="text-muted-foreground">Client: <span className="text-foreground">{project.clientName}</span></p>
                   </div>
                 </div>
 
-                <div className="pt-3 mt-auto">
+                <div className="pt-2 mt-auto">
                   <Button 
                     onClick={() => onViewProject?.(project.id!)}
                     className="w-full bg-[#F97316] hover:bg-[#F97316]/90"
