@@ -10,6 +10,7 @@ using Application.Services.Email;
 using Application.Services.MessageService;
 using Application.Services.ProjectService;
 using Application.Services.Security;
+using Application.Services.UpdateService;
 using Application.Services.Users._3DScans;
 using Application.Validators.Admin._3DScans;
 using Application.Validators.Admin.UserManagement;
@@ -55,6 +56,7 @@ public static class ServicesExtensions
         services.AddScoped<IDocumentService, DocumentService>();
         services.AddScoped<IUser3DScanService, User3DScanService>();
         services.AddScoped<IAdmin3DScanService, Admin3DScanService>();
+        services.AddScoped<IUpdateService, UpdateService>();
         services.AddTransient<EmailService>();
         return services;
     }
