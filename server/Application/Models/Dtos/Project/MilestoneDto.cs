@@ -47,7 +47,7 @@ public class CreateMilestoneDto
     [Range(0, 100)]
     public int ProgressPercentage { get; set; } = 0;
     [MaxLength(50)]
-    public string Status { get; set; } = "Pending";
+    public string Status { get; set; } = "In Progress";
     public DateOnly PlannedStartDate { get; set; }
     public DateOnly PlannedEndDate { get; set; }
     public DateOnly? ActualStartDate { get; set; }
@@ -63,7 +63,7 @@ public class UpdateMilestoneDto
     [Range(0, 100)]
     public int ProgressPercentage { get; set; }
     [MaxLength(50)]
-    public string Status { get; set; } = "Pending";
+    public string Status { get; set; } = "In Progress";
     public DateOnly PlannedStartDate { get; set; }
     public DateOnly PlannedEndDate { get; set; }
     public DateOnly? ActualStartDate { get; set; }

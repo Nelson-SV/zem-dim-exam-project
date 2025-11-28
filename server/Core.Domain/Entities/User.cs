@@ -37,6 +37,8 @@ public partial class User
 
     public bool? Isdeleted { get; set; }
 
+    public virtual ICollection<DocumentSignature> DocumentSignatures { get; set; } = new List<DocumentSignature>();
+
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
 
     public virtual ICollection<Message> MessageReceivers { get; set; } = new List<Message>();

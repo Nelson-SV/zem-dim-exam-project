@@ -121,7 +121,7 @@ export const mockProjects: Project[] = [
         progress: 0,
         startDate: '2025-03-01',
         endDate: '2025-03-31',
-        status: 'pending'
+        status: 'in-progress'
       }
     ]
   },
@@ -164,7 +164,7 @@ export const mockProjects: Project[] = [
         progress: 0,
         startDate: '2025-01-16',
         endDate: '2025-03-01',
-        status: 'pending'
+        status: 'in-progress'
       }
     ]
   },
@@ -198,7 +198,7 @@ export const mockProjects: Project[] = [
         progress: 0,
         startDate: '2024-12-16',
         endDate: '2025-02-28',
-        status: 'pending'
+        status: 'in-progress'
       }
     ]
   }
