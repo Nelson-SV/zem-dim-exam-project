@@ -41,7 +41,7 @@ public class MilestoneService(
                 Projectid = projectId,
                 Title = dto.Title.Trim(),
                 Orderindex = dto.OrderIndex,
-                Status = string.IsNullOrWhiteSpace(dto.Status) ? "Pending" : dto.Status,
+                Status = string.IsNullOrWhiteSpace(dto.Status) ? "In Progress" : dto.Status,
                 Progresspercentage = dto.ProgressPercentage,
                 Plannedstartdate = dto.PlannedStartDate,
                 Plannedenddate = dto.PlannedEndDate,

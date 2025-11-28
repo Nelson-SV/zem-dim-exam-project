@@ -119,9 +119,6 @@ export function ClientDashboard() {
                     {stage.status === 'in-progress' && (
                       <Clock className="size-5 text-white" />
                     )}
-                    {stage.status === 'pending' && (
-                      <span className="text-muted-foreground">{index + 1}</span>
-                    )}
                   </div>
                   {index < project.stages.length - 1 && (
                     <div className={`w-0.5 h-16 ${
@@ -137,13 +134,11 @@ export function ClientDashboard() {
                       stage.status === 'in-progress' ? 'secondary' :
                       'outline'
                     }>
-                      {stage.status === 'completed' ? 'Completed' :
-                       stage.status === 'in-progress' ? 'In Progress' :
-                       'Pending'}
+                      {stage.status === 'completed' ? 'Completed' : 'In Progress'}
                     </Badge>
                   </div>
                   <p className="text-muted-foreground mb-3">{stage.description}</p>
-                  {stage.status !== 'pending' && (
+                  {stage.status !== 'in-progress' && (
                     <>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-muted-foreground">Progress</span>

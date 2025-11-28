@@ -49,7 +49,7 @@ type FormState = {
 const emptyForm: FormState = {
   title: "",
   notes: "",
-  status: "Pending",
+  status: "In Progress",
   progressPercentage: 0,
   plannedStartDate: "",
   plannedEndDate: "",
@@ -65,7 +65,6 @@ const toInputDate = (value?: string | Date | null) => {
 };
 
 const statusOptions = [
-  { value: "Pending", label: "Pending" },
   { value: "In Progress", label: "In Progress" },
   { value: "Completed", label: "Completed" },
 ];
@@ -82,7 +81,7 @@ export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: P
       setForm({
         title: stage.title ?? "",
         notes: stage.notes ?? "",
-        status: stage.status ?? "Pending",
+        status: stage.status ?? "In Progress",
         progressPercentage: stage.progressPercentage ?? 0,
         plannedStartDate: toInputDate(stage.plannedStartDate ?? null),
         plannedEndDate: toInputDate(stage.plannedEndDate ?? null),

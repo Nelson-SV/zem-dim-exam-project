@@ -46,7 +46,7 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
   const [loadingUpdates, setLoadingUpdates] = useState(false);
   const [loadingStats, setLoadingStats] = useState(false);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'active' | 'completed' | 'in-progress' | 'pending' | 'all'>('active');
+  const [statusFilter, setStatusFilter] = useState<'completed' | 'in-progress' | 'all'>('in-progress');
   const [page, setPage] = useState(1);
   const pageSize = 4;
 
@@ -77,11 +77,10 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
     const fetchStats = async () => {
       setLoadingStats(true);
       try {
-        const [all, completed, inProgress, _pending, users] = await Promise.all([
+        const [all, completed, inProgress, users] = await Promise.all([
           http.projects.searchProjects(undefined, undefined, 1, 1),
           http.projects.searchProjects(undefined, 'Completed', 1, 1),
           http.projects.searchProjects(undefined, 'In Progress', 1, 1),
-          http.projects.searchProjects(undefined, 'Pending', 1, 1),
           http.userManagement.getAllUsers(1, 1, undefined, true)
         ]);
 
@@ -127,14 +126,10 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
 
       const s = normalizeStatus(p.status);
       switch (statusNormalized) {
-        case 'active':
-          return s !== 'completed';
         case 'completed':
           return s === 'completed';
         case 'in-progress':
           return s === 'inprogress';
-        case 'pending':
-          return s === 'pending';
         case 'all':
         default:
           return true;

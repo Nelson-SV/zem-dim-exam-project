@@ -15,7 +15,6 @@ public class ProjectService : IProjectService
     private static readonly Guid ADMIN_ID = Guid.Parse("11111111-1111-1111-1111-111111111111");
     private static readonly HashSet<string> AllowedStatuses = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Pending",
         "In Progress",
         "Completed"
     };
@@ -254,11 +253,7 @@ public class ProjectService : IProjectService
         project.Updatedat = DateTime.UtcNow;
 
         // Auto-update status based on progress
-        if (progressPercentage == 0)
-        {
-            project.Status = "Pending";
-        }
-        else if (progressPercentage > 0 && progressPercentage < 100)
+        if (progressPercentage >= 0 && progressPercentage < 100)
         {
             project.Status = "In Progress";
         }

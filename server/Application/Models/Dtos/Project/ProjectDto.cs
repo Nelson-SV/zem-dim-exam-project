@@ -98,7 +98,7 @@ public class CreateProjectDto
 
     [Required(ErrorMessage = "Status is required")]
     [MaxLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
-    public string Status { get; set; } = "Pending";
+    public string Status { get; set; } = "In Progress";
 
     [Required(ErrorMessage = "Start date is required")]
     public string StartDate { get; set; } = null!;

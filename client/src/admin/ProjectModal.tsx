@@ -46,7 +46,7 @@ const emptyForm: FormState = {
   totalArea: "",
   budget: "",
   notes: "",
-  status: "Pending",
+  status: "In Progress",
   startDate: "",
   plannedEndDate: "",
   actualEndDate: "",
@@ -100,7 +100,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
         totalArea: project.totalArea?.toString() ?? "",
         budget: project.budget?.toString() ?? "",
         notes: project.notes ?? "",
-        status: project.status ?? "Pending",
+        status: project.status ?? "In Progress",
         startDate: toInputDate(project.startDate ?? null),
         plannedEndDate: toInputDate(project.plannedEndDate ?? null),
         actualEndDate: toInputDate(project.actualEndDate ?? null),
@@ -341,7 +341,6 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Pending">Pending</SelectItem>
                 <SelectItem value="In Progress">In Progress</SelectItem>
                 <SelectItem value="Completed">Completed</SelectItem>
               </SelectContent>

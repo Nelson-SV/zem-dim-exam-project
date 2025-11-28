@@ -14,6 +14,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Document> Documents { get; set; }
 
+    public virtual DbSet<DocumentSignature> DocumentSignatures { get; set; }
+
     public virtual DbSet<Message> Messages { get; set; }
 
     public virtual DbSet<Milestone> Milestones { get; set; }
@@ -134,6 +136,40 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("documents_uploadedbyid_fkey");
         });
 
+        modelBuilder.Entity<DocumentSignature>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("document_signatures_pkey");
+
+            entity.ToTable("document_signatures");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+            entity.Property(e => e.DocumentId).HasColumnName("document_id");
+            entity.Property(e => e.IpAddress)
+                .HasMaxLength(45)
+                .HasColumnName("ip_address");
+            entity.Property(e => e.SignatureBase64).HasColumnName("signature_base64");
+            entity.Property(e => e.SignedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("signed_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.Document).WithMany(p => p.DocumentSignatures)
+                .HasForeignKey(d => d.DocumentId)
+                .HasConstraintName("document_signatures_document_id_fkey");
+
+            entity.HasOne(d => d.User).WithMany(p => p.DocumentSignatures)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("document_signatures_user_id_fkey");
+        });
+
         modelBuilder.Entity<Message>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("messages_pkey");
@@ -223,7 +259,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Projectid).HasColumnName("projectid");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("'Pending'::character varying")
+                .HasDefaultValueSql("'''In Progress''::character varying'::character varying")
                 .HasColumnName("status");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)
@@ -384,7 +420,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Startdate).HasColumnName("startdate");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("'''Pending''::character varying'::character varying")
+                .HasDefaultValueSql("'''''''In Progress''''::character varying''::character varying'::character varying")
                 .HasColumnName("status");
             entity.Property(e => e.Thumbnailurl)
                 .HasMaxLength(500)

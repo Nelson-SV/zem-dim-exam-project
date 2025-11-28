@@ -137,7 +137,6 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
             <SelectItem value="In Progress">In Progress</SelectItem>
             <SelectItem value="Completed">Completed</SelectItem>
           </SelectContent>

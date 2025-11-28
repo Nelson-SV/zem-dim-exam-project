@@ -20,7 +20,7 @@ export interface ProjectStage {
   progress: number;
   startDate: string;
   endDate: string;
-  status: 'completed' | 'in-progress' | 'pending';
+  status: 'completed' | 'in-progress';
 }
 
 export interface Project {
