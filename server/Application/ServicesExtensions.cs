@@ -6,6 +6,7 @@ using Application.Interfaces.Services;
 using Application.Interfaces.Users._3DScans;
 using Application.Services.Admin._3DScans;
 using Application.Services.Admin.UserManagement;
+using Application.Services.ClientDashboardService;
 using Application.Services.Email;
 using Application.Services.MessageService;
 using Application.Services.ProjectService;
@@ -50,6 +51,7 @@ public static class ServicesExtensions
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IClientDashboardService, ClientDashboardService>();
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IMilestoneService, MilestoneService>();
         services.AddScoped<IPhotoService, PhotoService>();
