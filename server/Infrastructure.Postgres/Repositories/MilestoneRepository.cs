@@ -38,6 +38,14 @@ public class MilestoneRepository(AppDbContext ctx) : IMilestoneRepository
         return (items, total);
     }
 
+    public async Task<IReadOnlyCollection<Milestone>> GetAllByProjectAsync(Guid projectId, CancellationToken ct = default)
+    {
+        return await ctx.Milestones
+            .Where(m => m.Projectid == projectId && m.Isdeleted == false)
+            .OrderBy(m => m.Orderindex)
+            .ToListAsync(ct);
+    }
+
     public Task<Milestone?> GetByIdAsync(Guid milestoneId, CancellationToken ct = default) =>
         ctx.Milestones
             .Include(m => m.Project)

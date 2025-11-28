@@ -5,6 +5,7 @@ import {
     AuthClient,
     User3DScansClient,
     Admin3DScansClient,
+    ClientDashboardClient,
     type UploadThreeDScanForm,
     type AdminThreeDScanDto,
     AdminProjectDocumentsClient,
@@ -31,6 +32,7 @@ export class ApiClient {
     private _adminProjectMilestones: AdminProjectMilestonesClient | null = null;
     private _adminProjectPhotos: AdminProjectPhotosClient | null = null;
     private _adminUpdates: AdminUpdatesClient | null = null;
+    private _clientDashboard: ClientDashboardClient | null = null;
 
 
 
@@ -136,6 +138,13 @@ export class ApiClient {
         return this._adminUpdates;
     }
 
+    get clientDashboard() {
+        if (!this._clientDashboard) {
+            this._clientDashboard = new ClientDashboardClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._clientDashboard;
+    }
+
     // Reset clients when authentication changes
     resetClients() {
         this._userManagement = null;
@@ -148,6 +157,7 @@ export class ApiClient {
         this._adminProjectMilestones = null;
         this._adminProjectPhotos = null;
         this._adminUpdates = null;
+        this._clientDashboard = null;
     }
     async uploadProjectImage(file: File, projectId?: string): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
         const endpoint = `${this.baseUrl}/api/FileUpload/project-thumbnail`;

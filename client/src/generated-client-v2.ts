@@ -942,6 +942,56 @@ export class User3DScansClient {
     }
 }
 
+export class ClientDashboardClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getDashboard(projectId: string | null | undefined, updatesLimit: number | undefined): Promise<ClientDashboardResponseDto> {
+        let url_ = this.baseUrl + "/api/client/dashboard?";
+        if (projectId !== undefined && projectId !== null)
+            url_ += "projectId=" + encodeURIComponent("" + projectId) + "&";
+        if (updatesLimit === null)
+            throw new globalThis.Error("The parameter 'updatesLimit' cannot be null.");
+        else if (updatesLimit !== undefined)
+            url_ += "updatesLimit=" + encodeURIComponent("" + updatesLimit) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetDashboard(_response);
+        });
+    }
+
+    protected processGetDashboard(response: Response): Promise<ClientDashboardResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ClientDashboardResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClientDashboardResponseDto>(null as any);
+    }
+}
+
 export class AuthClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -2260,6 +2310,57 @@ export interface User3DScanDto {
     notes?: string | undefined;
 }
 
+export interface ClientDashboardResponseDto {
+    clientId?: string;
+    clientName?: string;
+    projects?: ClientDashboardProjectDto[];
+}
+
+export interface ClientDashboardProjectDto {
+    id?: string;
+    title?: string;
+    address?: string | undefined;
+    city?: string | undefined;
+    postalCode?: string | undefined;
+    status?: string;
+    progressPercentage?: number;
+    totalArea?: number | undefined;
+    startDate?: Date;
+    plannedEndDate?: Date;
+    actualEndDate?: Date | undefined;
+    thumbnailUrl?: string | undefined;
+    currentStageTitle?: string | undefined;
+    stages?: ClientDashboardStageDto[];
+    latestUpdates?: UpdateDto[];
+}
+
+export interface ClientDashboardStageDto {
+    id?: string;
+    title?: string;
+    status?: string;
+    progressPercentage?: number;
+    orderIndex?: number;
+    notes?: string | undefined;
+    plannedStartDate?: Date | undefined;
+    plannedEndDate?: Date | undefined;
+    actualStartDate?: Date | undefined;
+    actualEndDate?: Date | undefined;
+}
+
+export interface UpdateDto {
+    id?: string;
+    projectId?: string;
+    projectTitle?: string;
+    milestoneId?: string | undefined;
+    milestoneTitle?: string | undefined;
+    updateType?: string;
+    title?: string;
+    description?: string | undefined;
+    createdById?: string;
+    createdByName?: string | undefined;
+    createdAt?: Date | undefined;
+}
+
 export interface AuthResponseDto {
     jwt: string;
     mustChangePassword: boolean;
@@ -2332,20 +2433,6 @@ export interface PaginationItemsResponseOfUpdateDto {
     page?: number;
     pageSize?: number;
     totalItems?: number;
-}
-
-export interface UpdateDto {
-    id?: string;
-    projectId?: string;
-    projectTitle?: string;
-    milestoneId?: string | undefined;
-    milestoneTitle?: string | undefined;
-    updateType?: string;
-    title?: string;
-    description?: string | undefined;
-    createdById?: string;
-    createdByName?: string | undefined;
-    createdAt?: Date | undefined;
 }
 
 export interface PaginationItemsResponseOfDocumentDto {
