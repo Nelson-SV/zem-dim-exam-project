@@ -46,4 +46,7 @@ public partial class Document
     public virtual Project Project { get; set; } = null!;
 
     public virtual User Uploadedby { get; set; } = null!;
+    
+    public virtual ICollection<DocumentSignature> DocumentSignatures { get; set; } = new List<DocumentSignature>();
+
 }

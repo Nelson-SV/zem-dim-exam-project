@@ -29,6 +29,7 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Threedscan> Threedscans { get; set; }
 
     public virtual DbSet<Update> Updates { get; set; }
+    public virtual DbSet<DocumentSignature> DocumentSignatures { get; set; } = null!;
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -132,6 +133,48 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.Uploadedbyid)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("documents_uploadedbyid_fkey");
+        });
+        modelBuilder.Entity<DocumentSignature>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("document_signatures_pkey");
+
+            entity.ToTable("document_signatures");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id");
+
+            entity.Property(e => e.Documentid)
+                .HasColumnName("document_id");
+
+            entity.Property(e => e.Userid)
+                .HasColumnName("user_id");
+
+            entity.Property(e => e.Signaturebase64)
+                .IsRequired()
+                .HasColumnName("signature_base64");
+
+            entity.Property(e => e.Signedat)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("signed_at");
+
+            entity.Property(e => e.Ipaddress)
+                .HasMaxLength(45)
+                .HasColumnName("ip_address");
+
+            entity.Property(e => e.Createdat)
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("created_at");
+
+            entity.HasOne(d => d.Document)
+                .WithMany(p => p.DocumentSignatures) // додамо навігацію в Document
+                .HasForeignKey(d => d.Documentid)
+                .HasConstraintName("document_signatures_document_id_fkey");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.DocumentSignatures) // якщо треба
+                .HasForeignKey(d => d.Userid)
+                .HasConstraintName("document_signatures_user_id_fkey");
         });
 
         modelBuilder.Entity<Message>(entity =>

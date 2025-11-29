@@ -6,11 +6,14 @@ public interface IDocumentRepository
 {
     Task<Document?> GetByIdAsync(Guid id);
 
-    Task<Document?> GetByDocuSealSubmissionIdAsync(string submissionId);
+     Task<IEnumerable<Document>> GetAllWithProjectAsync();
+    Task<Document?> GetByIdWithProjectAsync(Guid id);
 
     Task UpdateAsync(Document document);
 
     Task AddAsync(Document document);
 
     Task<IEnumerable<Document>> GetAllAsync();
+
+    Task<IEnumerable<Document>> GetUserDocumentsAsync(Guid userId);
 }

@@ -1,3 +1,4 @@
+// AdminDocuments.tsx
 import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import { FileText, Download, Trash2, Upload, Send, CheckCircle, Clock, Eye } from 'lucide-react';
 import { Card } from '../components/ui/card';
@@ -10,34 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-
-interface Document {
-    id: string;
-    title: string;
-    filename: string;
-    fileurl: string;
-    filesize: number;
-    uploadedBy: string;
-    createdat: string;
-    documenttype: string;
-    docusealsubmissionid?: string;
-    requiressignature?: boolean;
-    issigned?: boolean;
-    signedat?: string;
-    signedfileurl?: string;
-    signedbyuserid?: string;
-}
-
-interface Project {
-    id: string;
-    title: string;
-}
-
-const API_URL = 'http://localhost:5001';
+import { http } from '../lib/api.ts';
+import type { DocumentDto, ProjectDto, UpdateDocumentRequest } from '../generated-client';
 
 export function AdminDocuments() {
-    const [documents, setDocuments] = useState<Document[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
+    const [documents, setDocuments] = useState<DocumentDto[]>([]);
+    const [projects, setProjects] = useState<ProjectDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     // Upload state
@@ -46,70 +25,58 @@ export function AdminDocuments() {
     const [selectedProjectId, setSelectedProjectId] = useState<string>('');
     const [isUploading, setIsUploading] = useState(false);
 
-    // Signature request state
-    const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
-    const [showSignatureModal, setShowSignatureModal] = useState(false);
-    const [signerEmail, setSignerEmail] = useState('');
-    const [signerName, setSignerName] = useState('');
-    const [isRequesting, setIsRequesting] = useState(false);
-
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
-        fetchDocuments();
-        fetchProjects();
+        loadData();
     }, []);
 
-    const getToken = () =>
-        localStorage.getItem('auth_jwt') || localStorage.getItem('jwt_token') || '';
-
-    const safeJson = async (r: Response) => {
+    const loadData = async () => {
+        setIsLoading(true);
         try {
-            return await r.json();
-        } catch {
-            return { error: await r.text() };
-        }
-    };
-
-    const fetchDocuments = async () => {
-        try {
-            const token = getToken();
-            const response = await fetch(`${API_URL}/api/documents`, {
-                headers: { Authorization: `Bearer ${token}` },
+            const [docs, projs] = await Promise.all([
+                http.documents.getAll(),
+                http.projects.getAllProjects(),
+            ]);
+            setDocuments(docs);
+            setProjects(projs);
+        } catch (error: any) {
+            console.error(error);
+            toast.error('Failed to load documents', {
+                description: error.message ?? 'Unknown error',
             });
-
-            if (!response.ok) {
-                const err = await safeJson(response);
-                console.error('Fetch documents failed:', err);
-                return;
-            }
-
-            const data = await response.json();
-            setDocuments(data);
-        } catch (error) {
-            console.error('Failed to fetch documents:', error);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const fetchProjects = async () => {
-        try {
-            const token = getToken();
-            const response = await fetch(`${API_URL}/api/projects`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+    const formatFileSize = (bytes?: number) => {
+        if (!bytes) return '—';
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    };
 
-            if (!response.ok) {
-                console.error('Failed to fetch projects');
-                return;
-            }
-
-            const data = await response.json();
-            setProjects(data);
-        } catch (error) {
-            console.error('Failed to fetch projects:', error);
+    const getStatusBadge = (doc: DocumentDto) => {
+        if (doc.isSigned) {
+            return (
+                <Badge variant="default" className="bg-green-600">
+                    <CheckCircle className="size-3 mr-1" />
+                    Signed
+                </Badge>
+            );
         }
+
+        if (doc.requiresSignature) {
+            return (
+                <Badge variant="default" className="bg-orange-600">
+                    <Clock className="size-3 mr-1" />
+                    Awaiting signature
+                </Badge>
+            );
+        }
+
+        return null;
     };
 
     const onUploadClick = () => {
@@ -128,7 +95,7 @@ export function AdminDocuments() {
 
         setSelectedFile(file);
         setShowUploadModal(true);
-        e.target.value = ''; // Reset input
+        e.target.value = '';
     };
 
     const handleUpload = async () => {
@@ -138,39 +105,16 @@ export function AdminDocuments() {
         }
 
         setIsUploading(true);
-
         try {
-            const token = getToken();
-            const form = new FormData();
-
-            form.append('file', selectedFile);
-            form.append('title', selectedFile.name);
-            form.append('projectId', selectedProjectId);
-
-            const res = await fetch(`${API_URL}/api/documents`, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                body: form,
-            });
-
-            if (!res.ok) {
-                const err = await safeJson(res);
-                toast.error('Upload failed', {
-                    description: err.error || `Status ${res.status}`,
-                });
-                return;
-            }
+            await http.uploadProjectDocument(selectedFile, selectedProjectId, selectedFile.name);
 
             toast.success('Document uploaded successfully! 📄');
 
-            // Reset state
             setShowUploadModal(false);
             setSelectedFile(null);
             setSelectedProjectId('');
 
-            await fetchDocuments();
+            await loadData();
         } catch (error: any) {
             console.error(error);
             toast.error('Upload error', { description: error.message ?? 'Unknown error' });
@@ -179,94 +123,45 @@ export function AdminDocuments() {
         }
     };
 
-    const requestSignature = async () => {
-        if (!selectedDoc || !signerEmail || !signerName) {
-            toast.error('Please fill all fields');
-            return;
-        }
+    // Admin позначає, що документ треба підписати + показати клієнту
+    const markRequiresSignature = async (doc: DocumentDto) => {
+        if (!doc.id) return;
 
-        setIsRequesting(true);
+        const payload: UpdateDocumentRequest = {
+            requiresSignature: true,
+            isVisibleToClient: true,
+        };
 
         try {
-            const token = getToken();
-
-            const response = await fetch(`${API_URL}/api/DocumentSignature/request`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    documentId: selectedDoc.id,
-                    signerEmail: signerEmail,
-                    signerName: signerName
-                })
-            });
-
-            if (!response.ok) {
-                const error = await safeJson(response);
-                toast.error('Failed to send signature request', {
-                    description: error.error || `Status ${response.status}`
-                });
-                return;
-            }
-
-            toast.success('Signature request sent! ✉️', {
-                description: `${signerName} will receive an email with signing instructions`
-            });
-
-            setShowSignatureModal(false);
-            setSelectedDoc(null);
-            setSignerEmail('');
-            setSignerName('');
-
-            await fetchDocuments();
+            await http.documents.update(doc.id, payload);
+            toast.success('Document marked as requiring signature');
+            await loadData();
         } catch (error: any) {
             console.error(error);
-            toast.error('Error', {
-                description: error.message ?? 'Unknown error'
+            toast.error('Failed to update document', {
+                description: error.message ?? 'Unknown error',
             });
-        } finally {
-            setIsRequesting(false);
         }
     };
 
-    const formatFileSize = (bytes: number) => {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-    };
+    const handleDelete = async (doc: DocumentDto) => {
+        if (!doc.id) return;
 
-    const getStatusBadge = (doc: Document) => {
-        if (doc.issigned) {
-            return (
-                <Badge variant="default" className="bg-green-600">
-                    <CheckCircle className="size-3 mr-1" />
-                    Signed
-                </Badge>
-            );
+        if (!confirm(`Delete document "${doc.title ?? doc.fileName}"?`)) return;
+
+        try {
+            await http.documents.delete(doc.id);
+            toast.success('Document deleted');
+            await loadData();
+        } catch (error: any) {
+            console.error(error);
+            toast.error('Failed to delete document', {
+                description: error.message ?? 'Unknown error',
+            });
         }
-
-        if (doc.requiressignature) {
-            return (
-                <Badge variant="default" className="bg-orange-600">
-                    <Clock className="size-3 mr-1" />
-                    Awaiting signature
-                </Badge>
-            );
-        }
-
-        return null;
     };
 
-    const onOpenSignatureModal = (doc: Document) => {
-        setSelectedDoc(doc);
-        setTimeout(() => {
-            setShowSignatureModal(true);
-        }, 0);
-    };
-
-    const DocumentCard = ({ doc }: { doc: Document }) => (
+    const DocumentCard = ({ doc }: { doc: DocumentDto }) => (
         <div className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors">
             <div className="p-2 rounded-lg bg-primary/10">
                 <FileText className="size-5" />
@@ -274,34 +169,38 @@ export function AdminDocuments() {
 
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                    <h4 className="truncate font-medium">{doc.title}</h4>
+                    <h4 className="truncate font-medium">{doc.title ?? doc.fileName}</h4>
                     {getStatusBadge(doc)}
                 </div>
 
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <span>{formatFileSize(doc.filesize)}</span>
-                    <span>•</span>
-                    <span>{format(new Date(doc.createdat), 'dd MMM yyyy', { locale: enUS })}</span>
+                    <span>{formatFileSize(doc.fileSize)}</span>
+                    {doc.createdAt && (
+                        <>
+                            <span>•</span>
+                            <span>{format(new Date(doc.createdAt), 'dd MMM yyyy', { locale: enUS })}</span>
+                        </>
+                    )}
 
-                    {doc.issigned && doc.signedat && (
+                    {doc.isSigned && doc.signedAt && (
                         <>
                             <span>•</span>
                             <span className="text-green-600">
-                                Signed on {format(new Date(doc.signedat), 'dd MMM yyyy')}
+                                Signed on {format(new Date(doc.signedAt), 'dd MMM yyyy')}
                             </span>
                         </>
                     )}
                 </div>
             </div>
 
-            <Badge variant="secondary">{doc.documenttype || 'PDF'}</Badge>
+            <Badge variant="secondary">{doc.documentType || 'PDF'}</Badge>
 
             <div className="flex gap-2">
                 <Button
                     variant="ghost"
                     size="icon"
                     type="button"
-                    onClick={() => window.open(doc.fileurl, '_blank')}
+                    onClick={() => window.open(doc.fileUrl, '_blank')}
                     title="View original document"
                 >
                     <Eye className="size-4" />
@@ -311,31 +210,31 @@ export function AdminDocuments() {
                     variant="ghost"
                     size="icon"
                     type="button"
-                    onClick={() => window.open(doc.fileurl, '_blank')}
+                    onClick={() => window.open(doc.fileUrl, '_blank')}
                     title="Download original"
                 >
                     <Download className="size-4" />
                 </Button>
 
-                {!doc.requiressignature && !doc.issigned && (
+                {!doc.isSigned && !doc.requiresSignature && (
                     <Button
                         variant="ghost"
                         size="icon"
                         type="button"
-                        onClick={() => onOpenSignatureModal(doc)}
+                        onClick={() => markRequiresSignature(doc)}
                         className="text-[#F97316] hover:text-[#F97316]"
-                        title="Request signature"
+                        title="Send to client for signature"
                     >
                         <Send className="size-4" />
                     </Button>
                 )}
 
-                {doc.issigned && doc.signedfileurl && (
+                {doc.isSigned && doc.signedFileUrl && (
                     <Button
                         variant="ghost"
                         size="icon"
                         type="button"
-                        onClick={() => window.open(doc.signedfileurl, '_blank')}
+                        onClick={() => window.open(doc.signedFileUrl!, '_blank')}
                         className="text-green-600 hover:text-green-600"
                         title="View signed document"
                     >
@@ -347,7 +246,9 @@ export function AdminDocuments() {
                     variant="ghost"
                     size="icon"
                     type="button"
+                    onClick={() => handleDelete(doc)}
                     className="text-destructive hover:text-destructive"
+                    title="Delete document"
                 >
                     <Trash2 className="size-4" />
                 </Button>
@@ -431,7 +332,7 @@ export function AdminDocuments() {
                 </Card>
             </div>
 
-            {/* Upload Modal - SELECT PROJECT */}
+            {/* Upload Modal */}
             <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
                 <DialogContent>
                     <DialogHeader>
@@ -459,7 +360,7 @@ export function AdminDocuments() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {projects.map((project) => (
-                                        <SelectItem key={project.id} value={project.id}>
+                                        <SelectItem key={project.id} value={project.id!}>
                                             {project.title}
                                         </SelectItem>
                                     ))}
@@ -490,62 +391,6 @@ export function AdminDocuments() {
                             className="bg-[#F97316] hover:bg-[#F97316]/90"
                         >
                             {isUploading ? 'Uploading...' : 'Upload'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Request Signature Modal */}
-            <Dialog open={showSignatureModal} onOpenChange={setShowSignatureModal}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Request Signature</DialogTitle>
-                    </DialogHeader>
-
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label>Document</Label>
-                            <Input value={selectedDoc?.title || ''} disabled className="bg-muted" />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Client Email *</Label>
-                            <Input
-                                type="email"
-                                placeholder="client@example.com"
-                                value={signerEmail}
-                                onChange={(e) => setSignerEmail(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Client Name *</Label>
-                            <Input
-                                placeholder="John Doe"
-                                value={signerName}
-                                onChange={(e) => setSignerName(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="text-sm text-muted-foreground">
-                            The client will receive an email with a link to sign this document.
-                        </div>
-                    </div>
-
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowSignatureModal(false)}
-                            disabled={isRequesting}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={requestSignature}
-                            disabled={isRequesting}
-                            className="bg-[#F97316] hover:bg-[#F97316]/90"
-                        >
-                            {isRequesting ? 'Sending...' : 'Send Request'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

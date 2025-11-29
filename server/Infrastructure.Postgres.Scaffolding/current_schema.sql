@@ -294,6 +294,20 @@ CREATE TABLE notifications (
 );
 
 
+CREATE TABLE document_signatures (
+    id uuid NOT NULL DEFAULT (gen_random_uuid()),
+    document_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    signature_base64 text NOT NULL,
+    signed_at timestamp without time zone NOT NULL,
+    ip_address character varying(45),
+    created_at timestamp without time zone NOT NULL,
+    CONSTRAINT document_signatures_pkey PRIMARY KEY (id),
+    CONSTRAINT document_signatures_document_id_fkey FOREIGN KEY (document_id) REFERENCES documents (id) ON DELETE CASCADE,
+    CONSTRAINT document_signatures_user_id_fkey FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+
 CREATE TABLE photos (
     id uuid NOT NULL DEFAULT (gen_random_uuid()),
     projectid uuid NOT NULL,
@@ -352,6 +366,12 @@ CREATE TABLE updates (
     CONSTRAINT updates_milestoneid_fkey FOREIGN KEY (milestoneid) REFERENCES milestones (id) ON DELETE SET NULL,
     CONSTRAINT updates_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE
 );
+
+
+CREATE INDEX "IX_document_signatures_document_id" ON document_signatures (document_id);
+
+
+CREATE INDEX "IX_document_signatures_user_id" ON document_signatures (user_id);
 
 
 CREATE INDEX idx_documents_docuseal_submission ON documents (docusealsubmissionid);

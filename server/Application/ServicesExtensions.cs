@@ -1,4 +1,5 @@
 using Application.Interfaces.Admin.UserManagement;
+using Application.Interfaces.Documents;
 using Application.Interfaces.Infrastructure.Postgres.Users._3DScans;
 using Application.Interfaces.Security;
 using Application.Interfaces.Services;
@@ -51,8 +52,10 @@ public static class ServicesExtensions
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IUser3DScanService, User3DScanService>();
         services.AddTransient<EmailService>();
-        services.AddScoped<IDocuSealService, DocuSealService>();
+        services.AddScoped<IPdfSignatureService, PdfSignatureService>();
         services.AddScoped<IStorageService, SupabaseStorageService>();
+        services.AddScoped<IDocumentsService, DocumentsService>();
+
         return services;
     }
 }

@@ -37,10 +37,38 @@ public class DocumentRepository : IDocumentRepository
         _context.Documents.Update(document);
         await _context.SaveChangesAsync();
     }
+    public async Task<IEnumerable<Document>> GetAllWithProjectAsync()
+    {
+        return await _context.Documents
+            .Include(d => d.Project)
+            .ThenInclude(p => p.Client)
+            .OrderByDescending(d => d.Createdat)
+            .ToListAsync();
+    }
+
+    public async Task<Document?> GetByIdWithProjectAsync(Guid id)
+    {
+        return await _context.Documents
+            .Include(d => d.Project)
+            .ThenInclude(p => p.Client)
+            .FirstOrDefaultAsync(d => d.Id == id);
+    }
 
     public async Task<IEnumerable<Document>> GetAllAsync()
     {
         return await _context.Documents
+            .Where(d => !d.Isdeleted)
+            .OrderByDescending(d => d.Createdat)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Document>> GetUserDocumentsAsync(Guid userId)
+    {
+        return await _context.Documents
+            .Include(d => d.Project)
+            .Where(d => !d.Isdeleted
+                && d.Project.Clientid == userId
+                && (d.Isvisibletoclient == true || d.Isvisibletoclient == null))
             .OrderByDescending(d => d.Createdat)
             .ToListAsync();
     }

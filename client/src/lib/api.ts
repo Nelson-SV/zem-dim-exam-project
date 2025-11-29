@@ -3,8 +3,9 @@ import {
     ProjectsClient,
     MessagesClient,
     AuthClient,
-    DocumentSignatureClient,
-    User3DScansClient
+    DocumentsClient,
+
+    User3DScansClient, type DocumentDto
 
 } from '../generated-client';
 
@@ -21,8 +22,7 @@ export class ApiClient {
     private _messages: MessagesClient | null = null;
     private _auth: AuthClient | null = null;
     private _user3DScans: User3DScansClient | null = null;
-    private _docSignature: DocumentSignatureClient | null = null;
-
+    private _documents: DocumentsClient | null = null;
 
 
     constructor() {
@@ -91,14 +91,11 @@ export class ApiClient {
         }
         return this._user3DScans;
     }
-    get docSignature() {
-        if (!this._docSignature) {
-            this._docSignature = new DocumentSignatureClient(
-                this.baseUrl,
-                this.createHttpClient()
-            );
+    get documents() {
+        if (!this._documents) {
+            this._documents = new DocumentsClient(this.baseUrl, this.createHttpClient());
         }
-        return this._docSignature;
+        return this._documents;
     }
 
     // Reset clients when authentication changes
@@ -108,7 +105,7 @@ export class ApiClient {
         this._messages = null;
         this._auth = null;
         this._user3DScans = null;
-        this._docSignature = null;
+        this._documents = null;
     }
     async uploadProjectImage(file: File): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
         const endpoint = `${this.baseUrl}/api/FileUpload/project-thumbnail`;
@@ -128,6 +125,32 @@ export class ApiClient {
         }
         return (await res.json()) as { url: string; fileName?: string; contentType?: string; size?: number };
     }
+    async uploadProjectDocument(
+        file: File,
+        projectId: string,
+        title?: string
+    ): Promise<DocumentDto> {
+        const endpoint = `${this.baseUrl}/api/documents`;
+        const form = new FormData();
+        form.append('file', file);
+        form.append('projectId', projectId);
+        form.append('title', title ?? file.name);
+
+        const client = this.createHttpClient();
+        const res = await client.fetch(endpoint, {
+            method: 'POST',
+            body: form,
+            headers: { Accept: 'application/json' },
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Document upload failed (${res.status}): ${text}`);
+        }
+
+        return await res.json() as DocumentDto;
+    }
+
 }
 
 // Create and export a singleton instance

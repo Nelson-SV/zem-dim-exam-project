@@ -39,6 +39,8 @@ public static class InfrastructurePostgresExtensions
         services.AddScoped<IUserManagementRepository, UserManagementRepository>();
         services.AddScoped<IUser3DScanRepository, User3DScanRepository>();
         services.AddScoped<IDocumentRepository, DocumentRepository>();
+        services.AddScoped<IDocumentSignatureRepository, DocumentSignatureRepository>();
+
         return services;
     }
 }

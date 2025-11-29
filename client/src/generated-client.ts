@@ -105,23 +105,132 @@ export class DocumentsClient {
         }
         return Promise.resolve<DocumentDto>(null as any);
     }
-}
 
-export class DocumentSignatureClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "";
-    }
-
-    requestSignature(dto: CreateDocuSealSubmissionDto): Promise<DocuSealSubmissionResponseDto> {
-        let url_ = this.baseUrl + "/api/DocumentSignature/request";
+    getById(id: string): Promise<DocumentDto> {
+        let url_ = this.baseUrl + "/api/Documents/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(dto);
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetById(_response);
+        });
+    }
+
+    protected processGetById(response: Response): Promise<DocumentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DocumentDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentDto>(null as any);
+    }
+
+    update(id: string, request: UpdateDocumentRequest): Promise<DocumentDto> {
+        let url_ = this.baseUrl + "/api/Documents/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdate(_response);
+        });
+    }
+
+    protected processUpdate(response: Response): Promise<DocumentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DocumentDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentDto>(null as any);
+    }
+
+    delete(id: string): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Documents/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDelete(_response);
+        });
+    }
+
+    protected processDelete(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+
+    signDocument(documentId: string, request: SignDocumentRequest): Promise<SignedDocumentResponseDto> {
+        let url_ = this.baseUrl + "/api/Documents/{documentId}/sign";
+        if (documentId === undefined || documentId === null)
+            throw new globalThis.Error("The parameter 'documentId' must be defined.");
+        url_ = url_.replace("{documentId}", encodeURIComponent("" + documentId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
 
         let options_: RequestInit = {
             body: content_,
@@ -133,17 +242,17 @@ export class DocumentSignatureClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRequestSignature(_response);
+            return this.processSignDocument(_response);
         });
     }
 
-    protected processRequestSignature(response: Response): Promise<DocuSealSubmissionResponseDto> {
+    protected processSignDocument(response: Response): Promise<SignedDocumentResponseDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DocuSealSubmissionResponseDto;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as SignedDocumentResponseDto;
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -151,44 +260,7 @@ export class DocumentSignatureClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<DocuSealSubmissionResponseDto>(null as any);
-    }
-
-    webhook(dto: DocuSealWebhookDto): Promise<DocuSealWebhookResponseDto> {
-        let url_ = this.baseUrl + "/api/DocumentSignature/webhook";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(dto);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processWebhook(_response);
-        });
-    }
-
-    protected processWebhook(response: Response): Promise<DocuSealWebhookResponseDto> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DocuSealWebhookResponseDto;
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<DocuSealWebhookResponseDto>(null as any);
+        return Promise.resolve<SignedDocumentResponseDto>(null as any);
     }
 }
 
@@ -1357,48 +1429,41 @@ export class UserManagementClient {
 
 export interface DocumentDto {
     id?: string;
+    projectId?: string;
+    projectTitle?: string | undefined;
     title?: string;
-    filename?: string;
-    fileurl?: string;
-    filesize?: number | undefined;
+    fileName?: string;
+    fileUrl?: string;
+    fileSize?: number | undefined;
+    createdAt?: Date | undefined;
     uploadedBy?: string;
-    createdat?: Date | undefined;
-    documenttype?: string;
-    docusealsubmissionid?: string | undefined;
-    requiressignature?: boolean | undefined;
-    issigned?: boolean | undefined;
-    signedat?: Date | undefined;
-    signedfileurl?: string | undefined;
-    signedbyuserid?: string | undefined;
-}
-
-export interface DocuSealSubmissionResponseDto {
-    submissionId?: string;
-    signingUrl?: string;
-    emailSent?: boolean;
-}
-
-export interface CreateDocuSealSubmissionDto {
-    documentId?: string;
-    signerEmail?: string;
-    signerName?: string;
-}
-
-export interface DocuSealWebhookResponseDto {
-    message?: string;
-    documentId?: string | undefined;
+    documentType?: string;
+    requiresSignature?: boolean;
+    isSigned?: boolean;
+    signedAt?: Date | undefined;
+    signedByUserId?: string | undefined;
     signedFileUrl?: string | undefined;
 }
 
-export interface DocuSealWebhookDto {
-    eventType?: string;
-    data?: SubmissionData;
+export interface SignedDocumentResponseDto {
+    documentId?: string;
+    signedFileUrl?: string;
+    message?: string;
 }
 
-export interface SubmissionData {
-    submissionId?: string;
-    status?: string;
-    signedDocumentUrl?: string;
+export interface SignDocumentRequest {
+    signatureBase64?: string;
+    positionX?: number;
+    positionY?: number;
+    positionWidth?: number;
+    positionHeight?: number;
+    pageNumber?: number;
+}
+
+export interface UpdateDocumentRequest {
+    title?: string | undefined;
+    isVisibleToClient?: boolean | undefined;
+    requiresSignature?: boolean | undefined;
 }
 
 export interface FileUploadResponseDto {
@@ -1439,19 +1504,17 @@ export interface ProjectDto {
     clientId?: string;
     clientName?: string;
     title?: string;
-    description?: string | undefined;
+    notes?: string | undefined;
     address?: string | undefined;
     city?: string | undefined;
     postalCode?: string | undefined;
-    latitude?: number | undefined;
-    longitude?: number | undefined;
     status?: string;
     startDate?: Date;
     plannedEndDate?: Date | undefined;
     actualEndDate?: Date | undefined;
     totalArea?: number | undefined;
     budget?: number | undefined;
-    progressPercentage?: number;
+    progressPercentage?: number | undefined;
     thumbnailUrl?: string | undefined;
     createdAt?: Date | undefined;
     updatedAt?: Date | undefined;
@@ -1467,47 +1530,41 @@ export interface ProjectParticipantsDto {
 export interface CreateProjectDto {
     clientId: string;
     title: string;
-    description?: string | undefined;
+    notes?: string | undefined;
     address?: string | undefined;
     city?: string | undefined;
     postalCode?: string | undefined;
-    latitude?: number | undefined;
-    longitude?: number | undefined;
     status: string;
     startDate: Date;
     plannedEndDate?: Date | undefined;
     totalArea?: number | undefined;
     budget?: number | undefined;
-    progressPercentage?: number;
+    progressPercentage?: number | undefined;
     thumbnailUrl?: string | undefined;
 }
 
 export interface UpdateProjectDto {
     title: string;
-    description?: string | undefined;
+    notes?: string | undefined;
     address?: string | undefined;
     city?: string | undefined;
     postalCode?: string | undefined;
-    latitude?: number | undefined;
-    longitude?: number | undefined;
     status: string;
     startDate: Date;
     plannedEndDate?: Date | undefined;
     actualEndDate?: Date | undefined;
     totalArea?: number | undefined;
     budget?: number | undefined;
-    progressPercentage?: number;
+    progressPercentage?: number | undefined;
     thumbnailUrl?: string | undefined;
 }
 
 export interface PatchProjectDto {
     title?: string | undefined;
-    description?: string | undefined;
+    notes?: string | undefined;
     address?: string | undefined;
     city?: string | undefined;
     postalCode?: string | undefined;
-    latitude?: number | undefined;
-    longitude?: number | undefined;
     status?: string | undefined;
     startDate?: Date | undefined;
     plannedEndDate?: Date | undefined;

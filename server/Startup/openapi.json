@@ -90,23 +90,65 @@
         }
       }
     },
-    "/api/DocumentSignature/request": {
-      "post": {
+    "/api/Documents/{id}": {
+      "get": {
         "tags": [
-          "DocumentSignature"
+          "Documents"
         ],
-        "operationId": "DocumentSignature_RequestSignature",
+        "operationId": "Documents_GetById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "Documents_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
         "requestBody": {
-          "x-name": "dto",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateDocuSealSubmissionDto"
+                "$ref": "#/components/schemas/UpdateDocumentRequest"
               }
             }
           },
           "required": true,
-          "x-position": 1
+          "x-position": 2
         },
         "responses": {
           "200": {
@@ -114,7 +156,38 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DocuSealSubmissionResponseDto"
+                  "$ref": "#/components/schemas/DocumentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "Documents_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -122,23 +195,35 @@
         }
       }
     },
-    "/api/DocumentSignature/webhook": {
+    "/api/Documents/{documentId}/sign": {
       "post": {
         "tags": [
-          "DocumentSignature"
+          "Documents"
         ],
-        "operationId": "DocumentSignature_Webhook",
+        "operationId": "Documents_SignDocument",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
         "requestBody": {
-          "x-name": "dto",
+          "x-name": "request",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DocuSealWebhookDto"
+                "$ref": "#/components/schemas/SignDocumentRequest"
               }
             }
           },
           "required": true,
-          "x-position": 1
+          "x-position": 2
         },
         "responses": {
           "200": {
@@ -146,7 +231,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DocuSealWebhookResponseDto"
+                  "$ref": "#/components/schemas/SignedDocumentResponseDto"
                 }
               }
             }
@@ -1142,102 +1227,51 @@
             "type": "string",
             "format": "guid"
           },
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectTitle": {
+            "type": "string",
+            "nullable": true
+          },
           "title": {
             "type": "string"
           },
-          "filename": {
+          "fileName": {
             "type": "string"
           },
-          "fileurl": {
+          "fileUrl": {
             "type": "string"
           },
-          "filesize": {
+          "fileSize": {
             "type": "integer",
             "format": "int64",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           },
           "uploadedBy": {
             "type": "string"
           },
-          "createdat": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "documenttype": {
+          "documentType": {
             "type": "string"
           },
-          "projectid": {
-            "type": "string",
-            "format": "guid"
-          },
-          "docusealsubmissionid": {
-            "type": "string",
-            "nullable": true
-          },
-          "requiressignature": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "issigned": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "signedat": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "signedfileurl": {
-            "type": "string",
-            "nullable": true
-          },
-          "signedbyuserid": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
-          }
-        }
-      },
-      "DocuSealSubmissionResponseDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "submissionId": {
-            "type": "string"
-          },
-          "signingUrl": {
-            "type": "string"
-          },
-          "emailSent": {
+          "requiresSignature": {
             "type": "boolean"
-          }
-        }
-      },
-      "CreateDocuSealSubmissionDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "documentId": {
+          },
+          "isSigned": {
+            "type": "boolean"
+          },
+          "signedAt": {
             "type": "string",
-            "format": "guid"
+            "format": "date-time",
+            "nullable": true
           },
-          "signerEmail": {
-            "type": "string"
-          },
-          "signerName": {
-            "type": "string"
-          }
-        }
-      },
-      "DocuSealWebhookResponseDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "message": {
-            "type": "string"
-          },
-          "documentId": {
+          "signedByUserId": {
             "type": "string",
             "format": "guid",
             "nullable": true
@@ -1248,30 +1282,66 @@
           }
         }
       },
-      "DocuSealWebhookDto": {
+      "SignedDocumentResponseDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "eventType": {
+          "documentId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "signedFileUrl": {
             "type": "string"
           },
-          "data": {
-            "$ref": "#/components/schemas/SubmissionData"
+          "message": {
+            "type": "string"
           }
         }
       },
-      "SubmissionData": {
+      "SignDocumentRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "submissionId": {
+          "signatureBase64": {
             "type": "string"
           },
-          "status": {
-            "type": "string"
+          "positionX": {
+            "type": "number",
+            "format": "double"
           },
-          "signedDocumentUrl": {
-            "type": "string"
+          "positionY": {
+            "type": "number",
+            "format": "double"
+          },
+          "positionWidth": {
+            "type": "number",
+            "format": "double"
+          },
+          "positionHeight": {
+            "type": "number",
+            "format": "double"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "UpdateDocumentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "isVisibleToClient": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "requiresSignature": {
+            "type": "boolean",
+            "nullable": true
           }
         }
       },

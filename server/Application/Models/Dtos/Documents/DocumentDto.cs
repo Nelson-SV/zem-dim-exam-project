@@ -3,20 +3,23 @@
 public class DocumentDto
 {
     public Guid Id { get; set; }
+
+    public Guid ProjectId { get; set; }
+    public string? ProjectTitle { get; set; }
+
     public string Title { get; set; } = default!;
-    public string Filename { get; set; } = default!;
-    public string Fileurl { get; set; } = default!;
-    public long? Filesize { get; set; }
+    public string FileName { get; set; } = default!;
+    public string FileUrl { get; set; } = default!;
+    public long? FileSize { get; set; }
 
-    public string UploadedBy { get; set; } = default!; // "company" / "client" / "admin"
-    public DateTime? Createdat { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public string UploadedBy { get; set; } = default!; // "admin" / "client" / "company"
 
-    public string Documenttype { get; set; } = "pdf";
-    public Guid Projectid { get; set; }
-    public string? Docusealsubmissionid { get; set; }
-    public bool? Requiressignature { get; set; }
-    public bool? Issigned { get; set; }
-    public DateTime? Signedat { get; set; }
-    public string? Signedfileurl { get; set; }
-    public Guid? Signedbyuserid { get; set; }
+    public string DocumentType { get; set; } = "pdf";
+
+    public bool RequiresSignature { get; set; }
+    public bool IsSigned { get; set; }
+    public DateTime? SignedAt { get; set; }
+    public Guid? SignedByUserId { get; set; }
+    public string? SignedFileUrl { get; set; }
 }
