@@ -6,6 +6,239 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/Documents": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "Documents_GetAll",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DocumentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "Documents_Upload",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "ContentType": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "ContentDisposition": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "Headers": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": {}
+                  },
+                  "Length": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "Name": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "FileName": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "guid"
+                  },
+                  "title": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Documents/{id}": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "Documents_GetById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "Documents_Update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDocumentRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "Documents_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Documents/{documentId}/sign": {
+      "post": {
+        "tags": [
+          "Documents"
+        ],
+        "operationId": "Documents_SignDocument",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignDocumentRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedDocumentResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/FileUpload/project-thumbnail": {
       "post": {
         "tags": [
@@ -1273,7 +1506,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DocumentDto"
+                  "$ref": "#/components/schemas/DocumentDto2"
                 }
               }
             }
@@ -1327,7 +1560,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DocumentDto"
+                  "$ref": "#/components/schemas/DocumentDto2"
                 }
               }
             }
@@ -2065,6 +2298,132 @@
   },
   "components": {
     "schemas": {
+      "DocumentDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "fileUrl": {
+            "type": "string"
+          },
+          "fileSize": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "uploadedBy": {
+            "type": "string"
+          },
+          "documentType": {
+            "type": "string"
+          },
+          "requiresSignature": {
+            "type": "boolean"
+          },
+          "isSigned": {
+            "type": "boolean"
+          },
+          "signedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "signedByUserId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "signedFileUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SignedDocumentResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "signedFileUrl": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "SignDocumentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "signatureBase64": {
+            "type": "string"
+          },
+          "positionX": {
+            "type": "number",
+            "format": "double"
+          },
+          "positionY": {
+            "type": "number",
+            "format": "double"
+          },
+          "positionWidth": {
+            "type": "number",
+            "format": "double"
+          },
+          "positionHeight": {
+            "type": "number",
+            "format": "double"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "UpdateDocumentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "isVisibleToClient": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "requiresSignature": {
+            "type": "boolean",
+            "nullable": true
+          }
+        }
+      },
       "FileUploadResponseDto": {
         "type": "object",
         "additionalProperties": false,
@@ -3038,7 +3397,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/DocumentDto"
+              "$ref": "#/components/schemas/DocumentDto2"
             }
           },
           "page": {
@@ -3055,7 +3414,7 @@
           }
         }
       },
-      "DocumentDto": {
+      "DocumentDto2": {
         "type": "object",
         "additionalProperties": false,
         "properties": {

@@ -23,7 +23,7 @@ public class ProjectRepository : IProjectRepository
     {
         return await _context.Projects
             .Include(p => p.Client)
-            .Where(p => p.Isdeleted == false || p.Isdeleted == null)
+            .Where(p => !p.Isdeleted)
             .OrderByDescending(p => p.Createdat)
             .ToListAsync();
     }
@@ -80,7 +80,7 @@ public class ProjectRepository : IProjectRepository
     {
         return await _context.Projects
             .Include(p => p.Client)
-            .Where(p => p.Clientid == clientId && (p.Isdeleted == false || p.Isdeleted == null))
+            .Where(p => !p.Isdeleted)
             .OrderByDescending(p => p.Createdat)
             .ToListAsync();
     }

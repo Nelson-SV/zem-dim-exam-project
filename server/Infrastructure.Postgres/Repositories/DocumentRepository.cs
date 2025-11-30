@@ -1,61 +1,75 @@
-using Application.Interfaces.Infrastructure.Postgres;
+﻿using Application.Interfaces.Infrastructure.Postgres;
 using Core.Domain.Entities;
 using Infrastructure.Postgres.Scaffolding;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Postgres.Repositories;
 
-public class DocumentRepository(AppDbContext ctx) : IDocumentRepository
+public class DocumentRepository : IDocumentRepository
 {
-    public Task<bool> ProjectExistsAsync(Guid projectId, CancellationToken ct = default) =>
-        ctx.Projects.AnyAsync(p => p.Id == projectId && !p.Isdeleted, ct);
+    private readonly AppDbContext _context;
 
-    public async Task<(IReadOnlyCollection<Document> Items, int Total)> GetAsync(Guid projectId, int page, int pageSize, CancellationToken ct = default)
+    public DocumentRepository(AppDbContext context)
     {
-        var query = ctx.Documents
-            .Include(d => d.Project)
-            .Include(d => d.Uploadedby)
-            .Where(d => d.Projectid == projectId && (d.Isdeleted == false || d.Isdeleted == null));
+        _context = context;
+    }
 
-        var total = await query.CountAsync(ct);
-        var items = await query
+    public async Task<Document?> GetByIdAsync(Guid id)
+    {
+        return await _context.Documents
+            .FirstOrDefaultAsync(d => d.Id == id);
+    }
+
+    public async Task<Document?> GetByDocuSealSubmissionIdAsync(string submissionId)
+    {
+        return await _context.Documents
+            .FirstOrDefaultAsync(d => d.Docusealsubmissionid == submissionId);
+    }
+
+    public async Task AddAsync(Document document)
+    {
+        await _context.Documents.AddAsync(document);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(Document document)
+    {
+        _context.Documents.Update(document);
+        await _context.SaveChangesAsync();
+    }
+    public async Task<IEnumerable<Document>> GetAllWithProjectAsync()
+    {
+        return await _context.Documents
+            .Include(d => d.Project)
+            .ThenInclude(p => p.Client)
             .OrderByDescending(d => d.Createdat)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(ct);
-
-        return (items, total);
+            .ToListAsync();
     }
 
-    public Task<Document?> GetByIdAsync(Guid documentId, CancellationToken ct = default) =>
-        ctx.Documents
+    public async Task<Document?> GetByIdWithProjectAsync(Guid id)
+    {
+        return await _context.Documents
             .Include(d => d.Project)
-            .Include(d => d.Uploadedby)
-            .FirstOrDefaultAsync(d => d.Id == documentId, ct);
-
-    public async Task<Document> InsertAsync(Document document, CancellationToken ct = default)
-    {
-        ctx.Documents.Add(document);
-        await ctx.SaveChangesAsync(ct);
-        return document;
+            .ThenInclude(p => p.Client)
+            .FirstOrDefaultAsync(d => d.Id == id);
     }
 
-    public async Task<Document> UpdateAsync(Document document, CancellationToken ct = default)
+    public async Task<IEnumerable<Document>> GetAllAsync()
     {
-        ctx.Documents.Update(document);
-        await ctx.SaveChangesAsync(ct);
-        await ctx.Entry(document).Reference(d => d.Project).LoadAsync(ct);
-        await ctx.Entry(document).Reference(d => d.Uploadedby).LoadAsync(ct);
-        return document;
+        return await _context.Documents
+            .Where(d => !d.Isdeleted)
+            .OrderByDescending(d => d.Createdat)
+            .ToListAsync();
     }
 
-    public async Task SoftDeleteAsync(Guid documentId, CancellationToken ct = default)
+    public async Task<IEnumerable<Document>> GetUserDocumentsAsync(Guid userId)
     {
-        var entity = await ctx.Documents.FindAsync(new object[] { documentId }, ct)
-                     ?? throw new KeyNotFoundException("Document not found");
-
-        entity.Isdeleted = true;
-        ctx.Documents.Update(entity);
-        await ctx.SaveChangesAsync(ct);
+        return await _context.Documents
+            .Include(d => d.Project)
+            .Where(d => !d.Isdeleted
+                && d.Project.Clientid == userId
+                && (d.Isvisibletoclient == true || d.Isvisibletoclient == null))
+            .OrderByDescending(d => d.Createdat)
+            .ToListAsync();
     }
 }

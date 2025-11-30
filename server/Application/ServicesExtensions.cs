@@ -1,17 +1,21 @@
 using Application.Interfaces.Admin._3DScans;
 using Application.Interfaces.Admin.UserManagement;
+using Application.Interfaces.Documents;
 using Application.Interfaces.Infrastructure.Postgres.Users._3DScans;
 using Application.Interfaces.Security;
 using Application.Interfaces.Services;
 using Application.Interfaces.Users._3DScans;
 using Application.Services.Admin._3DScans;
+using Application.Services;
 using Application.Services.Admin.UserManagement;
 using Application.Services.ClientDashboardService;
+using Application.Services.Documents;
 using Application.Services.Email;
 using Application.Services.MessageService;
 using Application.Services.ProjectService;
 using Application.Services.Security;
 using Application.Services.UpdateService;
+using Application.Services.Storage;
 using Application.Services.Users._3DScans;
 using Application.Validators.Admin._3DScans;
 using Application.Validators.Admin.UserManagement;
@@ -47,7 +51,7 @@ public static class ServicesExtensions
         services.AddValidatorsFromAssemblyContaining<UpdateUserValidator>();
         services.AddValidatorsFromAssemblyContaining<UploadThreeDScanValidator>();
         
-        
+        services.AddHttpClient();
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IMessageService, MessageService>();
@@ -55,11 +59,14 @@ public static class ServicesExtensions
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IMilestoneService, MilestoneService>();
         services.AddScoped<IPhotoService, PhotoService>();
-        services.AddScoped<IDocumentService, DocumentService>();
         services.AddScoped<IUser3DScanService, User3DScanService>();
         services.AddScoped<IAdmin3DScanService, Admin3DScanService>();
         services.AddScoped<IUpdateService, UpdateService>();
         services.AddTransient<EmailService>();
+        services.AddScoped<IPdfSignatureService, PdfSignatureService>();
+        services.AddScoped<IStorageService, SupabaseStorageService>();
+        services.AddScoped<IDocumentsService, DocumentsService>();
+
         return services;
     }
 }

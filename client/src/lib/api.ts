@@ -11,7 +11,9 @@ import {
     AdminProjectDocumentsClient,
     AdminProjectMilestonesClient,
     AdminProjectPhotosClient,
-    AdminUpdatesClient
+    AdminUpdatesClient,
+    DocumentsClient,
+    type DocumentDto,
 } from '../generated-client';
 
 // const httpSchema= import.meta.env.VITE_API_HTTP_SCHEMA;
@@ -33,7 +35,7 @@ export class ApiClient {
     private _adminProjectPhotos: AdminProjectPhotosClient | null = null;
     private _adminUpdates: AdminUpdatesClient | null = null;
     private _clientDashboard: ClientDashboardClient | null = null;
-
+    private _documents: DocumentsClient | null = null;
 
 
     constructor() {
@@ -102,6 +104,12 @@ export class ApiClient {
         }
         return this._user3DScans;
     }
+    get documents() {
+        if (!this._documents) {
+            this._documents = new DocumentsClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._documents;
+    }
 
     get admin3DScans() {
         if (!this._admin3DScans) {
@@ -158,6 +166,7 @@ export class ApiClient {
         this._adminProjectPhotos = null;
         this._adminUpdates = null;
         this._clientDashboard = null;
+        this._documents = null;
     }
     async uploadProjectImage(file: File, projectId?: string): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
         const endpoint = `${this.baseUrl}/api/FileUpload/project-thumbnail`;
@@ -217,22 +226,32 @@ export class ApiClient {
         if (!res.ok) throw new Error(await res.text());
         return res.json();
     }
+    async uploadProjectDocument(
+        file: File,
+        projectId: string,
+        title?: string
+    ): Promise<DocumentDto> {
+        const endpoint = `${this.baseUrl}/api/documents`;
+        const form = new FormData();
+        form.append('file', file);
+        form.append('projectId', projectId);
+        form.append('title', title ?? file.name);
 
-    async uploadProjectDocument(projectId: string, file: File, title: string, documentType?: string, isVisibleToClient?: boolean) {
-        const fd = new FormData();
-        fd.append("File", file);
-        fd.append("Title", title);
-        if (documentType) fd.append("DocumentType", documentType);
-        if (isVisibleToClient != null) fd.append("IsVisibleToClient", String(isVisibleToClient));
-
-        const res = await this.createHttpClient().fetch(`${this.baseUrl}/api/admin/projects/${projectId}/documents`, {
-            method: "POST",
-            body: fd,
-            headers: { Accept: "application/json" },
+        const client = this.createHttpClient();
+        const res = await client.fetch(endpoint, {
+            method: 'POST',
+            body: form,
+            headers: { Accept: 'application/json' },
         });
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Document upload failed (${res.status}): ${text}`);
+        }
+
+        return await res.json() as DocumentDto;
     }
+
 }
 
 // Create and export a singleton instance
