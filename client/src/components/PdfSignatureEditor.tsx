@@ -1,10 +1,10 @@
 ﻿// PdfSignatureEditor.tsx - FIXED VERSION з видимими лініями
 import { useState, useRef, useEffect } from 'react';
 import { X, PenLine, Trash2, Check, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Eraser } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Card } from '../components/ui/card';
+import { Button } from './ui/button.tsx';
+import { Card } from './ui/card.tsx';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { Slider } from '../components/ui/slider';
+import { Slider } from './ui/slider.tsx';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -313,7 +313,7 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         ctx.scale(DPI_SCALE, DPI_SCALE);
 
         // Білий фон
-        ctx.fillStyle = '#ffffff';
+         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, boxWidth, boxHeight);
 
         // Налаштування
