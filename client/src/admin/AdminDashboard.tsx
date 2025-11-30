@@ -1,22 +1,27 @@
-import { Building, Users, CheckCircle2, Clock } from 'lucide-react';
-import { mockProjects, mockActivities, mockClients } from '../lib/mock-data';
+import { Building, Users, CheckCircle2, Clock, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS } from 'date-fns/locale';
+import { useEffect, useMemo, useState } from 'react';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Progress } from '../components/ui/progress';
+import { Input } from '../components/ui/input';
+import { http } from '../lib/api';
+import type { ProjectDto, UpdateDto } from '../generated-client';
+import { PaginationComponent } from '../components/PaginationComponent';
 
 interface StatsCardProps {
   title: string;
   value: string;
   icon: React.ReactNode;
   color: string;
+  onClick?: () => void;
 }
 
-function StatsCard({ title, value, icon, color }: StatsCardProps) {
+function StatsCard({ title, value, icon, color, onClick }: StatsCardProps) {
   return (
-    <Card className="p-6 hover:shadow-lg transition-shadow">
+    <Card onClick={onClick} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-muted-foreground">{title}</p>
@@ -35,8 +40,112 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
-  const activeProjects = mockProjects.filter(p => p.status === 'active');
-  const completedProjects = mockProjects.filter(p => p.status === 'completed');
+  const [projects, setProjects] = useState<ProjectDto[]>([]);
+  const [updates, setUpdates] = useState<UpdateDto[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [loadingUpdates, setLoadingUpdates] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'completed' | 'in-progress' | 'all'>('in-progress');
+  const [page, setPage] = useState(1);
+  const pageSize = 4;
+
+  const [totalProjects, setTotalProjects] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [inProgressCount, setInProgressCount] = useState(0);
+  const [clientsCount, setClientsCount] = useState(0);
+
+  const normalizeStatus = (status?: string | null) => status?.replace(/\s+/g, '').toLowerCase() ?? '';
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoadingProjects(true);
+      try {
+        // Fetch a reasonable chunk; backend lacks multi-status filtering.
+        const res = await http.projects.searchProjects(search || undefined, undefined, 1, 100);
+        setProjects(res.items ?? []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+    fetchProjects();
+  }, [search]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoadingStats(true);
+      try {
+        const [all, completed, inProgress, users] = await Promise.all([
+          http.projects.searchProjects(undefined, undefined, 1, 1),
+          http.projects.searchProjects(undefined, 'Completed', 1, 1),
+          http.projects.searchProjects(undefined, 'In Progress', 1, 1),
+          http.userManagement.getAllUsers(1, 1, undefined, true)
+        ]);
+
+        setTotalProjects(all.totalItems ?? 0);
+        setCompletedCount(completed.totalItems ?? 0);
+        setInProgressCount(inProgress.totalItems ?? 0);
+        setClientsCount(users.totalItems ?? 0);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  useEffect(() => {
+    const fetchUpdates = async () => {
+      setLoadingUpdates(true);
+      try {
+        const res = await http.adminUpdates.getUpdates(1, 10, undefined, undefined, undefined);
+        setUpdates(res.items ?? []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingUpdates(false);
+      }
+    };
+    fetchUpdates();
+  }, []);
+
+  const filteredProjects = useMemo(() => {
+    const statusNormalized = statusFilter;
+
+    let list = projects.filter(p => {
+      const term = search.trim().toLowerCase();
+      const matchesSearch = term.length === 0 ||
+        p.title?.toLowerCase().includes(term) ||
+        p.address?.toLowerCase().includes(term) ||
+        p.clientName?.toLowerCase().includes(term);
+
+      if (!matchesSearch) return false;
+
+      const s = normalizeStatus(p.status);
+      switch (statusNormalized) {
+        case 'completed':
+          return s === 'completed';
+        case 'in-progress':
+          return s === 'inprogress';
+        case 'all':
+        default:
+          return true;
+      }
+    });
+
+    list = list.sort((a, b) => (b.progressPercentage ?? 0) - (a.progressPercentage ?? 0));
+    return list;
+  }, [projects, search, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / pageSize));
+  const pagedProjects = filteredProjects.slice((page - 1) * pageSize, page * pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, search]);
 
   return (
     <div className="space-y-8">
@@ -44,114 +153,146 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
           title="Clients"
-          value={mockClients.length.toString()}
+          value={loadingStats ? '...' : clientsCount.toString()}
           icon={<Users className="size-6 text-white" />}
           color="bg-[#F97316]"
         />
         <StatsCard
           title="Total projects"
-          value={mockProjects.length.toString()}
+          value={loadingStats ? '...' : totalProjects.toString()}
           icon={<Building className="size-6 text-white" />}
           color="bg-[#3B82F6]"
         />
         <StatsCard
           title="Completed"
-          value={completedProjects.length.toString()}
+          value={loadingStats ? '...' : completedCount.toString()}
           icon={<CheckCircle2 className="size-6 text-white" />}
-          color="bg-[#10B981]"
+          color={`bg-[#10B981] ${statusFilter === 'completed' ? 'ring-2 ring-offset-2 ring-[#10B981]/60' : ''}`}
+          onClick={() => setStatusFilter(prev => prev === 'completed' ? 'active' : 'completed')}
         />
         <StatsCard
           title="In progress"
-          value={activeProjects.length.toString()}
+          value={loadingStats ? '...' : inProgressCount.toString()}
           icon={<Clock className="size-6 text-white" />}
-          color="bg-[#F59E0B]"
+          color={`bg-[#F59E0B] ${statusFilter === 'in-progress' ? 'ring-2 ring-offset-2 ring-[#F59E0B]/60' : ''}`}
+          onClick={() => setStatusFilter(prev => prev === 'in-progress' ? 'active' : 'in-progress')}
         />
       </div>
 
       {/* Active Projects */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2>Active projects</h2>
+        <div className="mb-6">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Search projects..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {activeProjects.map(project => (
-            <Card key={project.id} className="overflow-hidden hover:shadow-lg transition-all">
-              <div className="aspect-video relative overflow-hidden bg-muted">
-                <img 
-                  src={project.image} 
-                  alt={project.name}
-                  className="w-full h-full object-cover"
-                />
+          {loadingProjects && <p className="text-muted-foreground">Loading projects...</p>}
+
+          {!loadingProjects && pagedProjects.map(project => (
+            <Card key={project.id} className="overflow-hidden hover:shadow-lg transition-all flex flex-col h-full">
+              <div className="relative px-3 pt-3 pb-0">
+                <div className="w-full h-56 bg-white rounded-md overflow-hidden flex items-center justify-center">
+                  {project.thumbnailUrl ? (
+                    <img 
+                      src={project.thumbnailUrl} 
+                      alt={project.title}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                      No image
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="p-6">
+              <div className="p-6 text-left flex flex-col h-full">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="mb-1">{project.name}</h3>
+                    <h3 className="mb-1">{project.title}</h3>
                     <p className="text-muted-foreground">{project.address}</p>
                   </div>
-                  <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>
-                    {project.status === 'active' ? 'Active' : 'Completed'}
+                  <Badge variant={normalizeStatus(project.status) === 'completed' ? 'secondary' : 'default'}>
+                    {project.status}
                   </Badge>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3 flex-1">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-muted-foreground">Progress</span>
-                      <span>{project.progress}%</span>
+                      <span>{project.progressPercentage ?? 0}%</span>
                     </div>
-                    <Progress value={project.progress} className="h-2" />
+                    <Progress value={project.progressPercentage ?? 0} className="h-2" />
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t">
-                    <span className="text-muted-foreground">Current stage</span>
-                    <span>{project.currentStage}</span>
+                  <div className="pt-3 border-t text-base leading-relaxed space-y-3 min-h-[108px]">
+                    <p className="text-muted-foreground line-clamp-2" title={project.notes ?? ''}>Current stage: <span className="text-foreground">{project.notes ?? '—'}</span></p>
+                    <p className="text-muted-foreground">Client: <span className="text-foreground">{project.clientName}</span></p>
                   </div>
+                </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Client</span>
-                    <span>{project.clientName}</span>
-                  </div>
-
-                  <div className="pt-3">
-                    <Button 
-                      onClick={() => onViewProject?.(project.id)}
-                      className="w-full bg-[#F97316] hover:bg-[#F97316]/90"
-                    >
-                      View details
-                    </Button>
-                  </div>
+                <div className="pt-2 mt-auto">
+                  <Button 
+                    onClick={() => onViewProject?.(project.id!)}
+                    className="w-full bg-[#F97316] hover:bg-[#F97316]/90"
+                  >
+                    View details
+                  </Button>
                 </div>
               </div>
             </Card>
           ))}
+
+          {!loadingProjects && pagedProjects.length === 0 && (
+            <p className="text-muted-foreground">No projects found.</p>
+          )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-6">
+            <PaginationComponent currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
+        )}
       </div>
 
       {/* Recent Activity */}
       <div>
         <h2 className="mb-6">Latest updates</h2>
         <Card className="divide-y">
-          {mockActivities.map(activity => {
-            const IconComponent = activity.icon === 'Camera' ? Users : 
-                                 activity.icon === 'TrendingUp' ? CheckCircle2 : 
-                                 Clock;
+          {loadingUpdates && <p className="p-4 text-muted-foreground">Loading updates...</p>}
+          {!loadingUpdates && updates.map(update => {
+            const type = update.updateType?.toLowerCase();
+            const IconComponent = type?.includes('photo') ? Users : type?.includes('progress') ? CheckCircle2 : Clock;
             return (
-              <div key={activity.id} className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors">
+              <div key={update.id} className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors">
                 <div className="p-2 rounded-lg bg-primary/10">
                   <IconComponent className="size-5 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h4>{activity.title}</h4>
-                  <p className="text-muted-foreground">{activity.description}</p>
+                  <h4>{update.title}</h4>
+                  <p className="text-muted-foreground">{update.description}</p>
+                  {update.projectTitle && (
+                    <p className="text-xs text-muted-foreground mt-1">Project: {update.projectTitle}</p>
+                  )}
                 </div>
                 <span className="text-muted-foreground whitespace-nowrap">
-                  {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true, locale: enUS })}
+                  {update.createdAt ? formatDistanceToNow(new Date(update.createdAt), { addSuffix: true, locale: enUS }) : '—'}
                 </span>
               </div>
             );
           })}
+
+          {!loadingUpdates && updates.length === 0 && (
+            <p className="p-4 text-muted-foreground">No updates yet.</p>
+          )}
         </Card>
       </div>
     </div>

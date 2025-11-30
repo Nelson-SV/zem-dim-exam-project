@@ -166,12 +166,12 @@ public class DocumentsService : IDocumentsService
         var signature = new DocumentSignature
         {
             Id = Guid.NewGuid(),
-            Documentid = document.Id,
-            Userid = userId,
-            Signaturebase64 = signatureBase64,
-            Signedat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
-            Ipaddress = ipAddress,
-            Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+            DocumentId = document.Id,
+            UserId = userId,
+            SignatureBase64 = signatureBase64,
+            SignedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+            IpAddress = ipAddress,
+            CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
         };
 
         await _documentSignatureRepository.AddAsync(signature);

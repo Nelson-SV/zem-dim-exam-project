@@ -274,6 +274,11 @@
                   "FileName": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "projectId": {
+                    "type": "string",
+                    "format": "guid",
+                    "nullable": true
                   }
                 }
               }
@@ -300,6 +305,21 @@
           "FileUpload"
         ],
         "operationId": "FileUpload_UploadProjectThumbnailAlternative",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "projectId": {
+                    "type": "string",
+                    "format": "guid",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -497,7 +517,7 @@
         }
       }
     },
-    "/api/Projects": {
+    "/api/Projects/api/admin/projects/GetAllProjects": {
       "get": {
         "tags": [
           "Projects"
@@ -520,7 +540,68 @@
         }
       }
     },
-    "/api/Projects/my": {
+    "/api/Projects/api/admin/projects/SearchProjects": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_SearchProjects",
+        "parameters": [
+          {
+            "name": "q",
+            "x-originalName": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            },
+            "x-position": 3
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "x-position": 4
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationItemsResponseOfProjectDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/api/admin/projects/GetMyProjects": {
       "get": {
         "tags": [
           "Projects"
@@ -543,7 +624,7 @@
         }
       }
     },
-    "/api/Projects/user/{userId}": {
+    "/api/Projects/api/admin/projects/GetUserProjects": {
       "get": {
         "tags": [
           "Projects"
@@ -552,8 +633,7 @@
         "parameters": [
           {
             "name": "userId",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "guid"
@@ -578,7 +658,7 @@
         }
       }
     },
-    "/api/Projects/{projectId}": {
+    "/api/Projects/api/admin/projects/GetProject": {
       "get": {
         "tags": [
           "Projects"
@@ -587,8 +667,7 @@
         "parameters": [
           {
             "name": "projectId",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "guid"
@@ -603,121 +682,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProjectDto"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_UpdateProject",
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "dto",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProjectDto"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProjectDto"
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_PatchProject",
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "dto",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PatchProjectDto"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProjectDto"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_DeleteProject",
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
                 }
               }
             }
@@ -725,7 +689,7 @@
         }
       }
     },
-    "/api/Projects/{projectId}/participants": {
+    "/api/Projects/api/admin/projects/GetProjectParticipants": {
       "get": {
         "tags": [
           "Projects"
@@ -734,8 +698,7 @@
         "parameters": [
           {
             "name": "projectId",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "guid"
@@ -757,7 +720,7 @@
         }
       }
     },
-    "/api/Projects/api/Projects": {
+    "/api/Projects/api/admin/projects/CreateProject": {
       "post": {
         "tags": [
           "Projects"
@@ -789,7 +752,93 @@
         }
       }
     },
-    "/api/Projects/{projectId}/status": {
+    "/api/Projects/api/admin/projects/UpdateProject": {
+      "put": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_UpdateProject",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/api/admin/projects/PatchProject": {
+      "patch": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_PatchProject",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchProjectDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/api/admin/projects/UpdateProjectStatus": {
       "patch": {
         "tags": [
           "Projects"
@@ -798,8 +847,7 @@
         "parameters": [
           {
             "name": "projectId",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "guid"
@@ -833,7 +881,7 @@
         }
       }
     },
-    "/api/Projects/{projectId}/progress": {
+    "/api/Projects/api/admin/projects/UpdateProjectProgress": {
       "patch": {
         "tags": [
           "Projects"
@@ -842,8 +890,7 @@
         "parameters": [
           {
             "name": "projectId",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "guid"
@@ -877,17 +924,16 @@
         }
       }
     },
-    "/api/Projects/{projectId}/restore": {
-      "post": {
+    "/api/Projects/api/admin/projects/DeleteProject": {
+      "delete": {
         "tags": [
           "Projects"
         ],
-        "operationId": "Projects_RestoreProject",
+        "operationId": "Projects_DeleteProject",
         "parameters": [
           {
             "name": "projectId",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "guid"
@@ -910,7 +956,39 @@
         }
       }
     },
-    "/api/Projects/{projectId}/permanent": {
+    "/api/Projects/api/admin/projects/RestoreProject": {
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_RestoreProject",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/api/admin/projects/PermanentDeleteProject": {
       "delete": {
         "tags": [
           "Projects"
@@ -919,8 +997,7 @@
         "parameters": [
           {
             "name": "projectId",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "guid"
@@ -970,6 +1047,48 @@
                   "items": {
                     "$ref": "#/components/schemas/User3DScanDto"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/client/dashboard": {
+      "get": {
+        "tags": [
+          "ClientDashboard"
+        ],
+        "operationId": "ClientDashboard_GetDashboard",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "updatesLimit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 5
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientDashboardResponseDto"
                 }
               }
             }
@@ -1209,6 +1328,966 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetAllUsersResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/updates": {
+      "get": {
+        "tags": [
+          "AdminUpdates"
+        ],
+        "operationId": "AdminUpdates_GetUpdates",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            },
+            "x-position": 1
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "x-position": 2
+          },
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
+            "name": "updateType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 5
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationItemsResponseOfUpdateDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/projects/{projectId}/documents": {
+      "get": {
+        "tags": [
+          "AdminProjectDocuments"
+        ],
+        "operationId": "AdminProjectDocuments_GetDocuments",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            },
+            "x-position": 2
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "x-position": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationItemsResponseOfDocumentDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AdminProjectDocuments"
+        ],
+        "operationId": "AdminProjectDocuments_UploadDocument",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "Title": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "DocumentType": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "IsVisibleToClient": {
+                    "type": "boolean"
+                  },
+                  "File": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDto2"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/projects/{projectId}/documents/{documentId}": {
+      "put": {
+        "tags": [
+          "AdminProjectDocuments"
+        ],
+        "operationId": "AdminProjectDocuments_UpdateDocument",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDocumentDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 3
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDto2"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "AdminProjectDocuments"
+        ],
+        "operationId": "AdminProjectDocuments_DeleteDocument",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/projects/{projectId}/stages": {
+      "get": {
+        "tags": [
+          "AdminProjectMilestones"
+        ],
+        "operationId": "AdminProjectMilestones_GetStages",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            },
+            "x-position": 2
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "x-position": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationItemsResponseOfMilestoneDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AdminProjectMilestones"
+        ],
+        "operationId": "AdminProjectMilestones_CreateStage",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMilestoneDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/projects/{projectId}/stages/{stageId}": {
+      "put": {
+        "tags": [
+          "AdminProjectMilestones"
+        ],
+        "operationId": "AdminProjectMilestones_UpdateStage",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMilestoneDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 3
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "AdminProjectMilestones"
+        ],
+        "operationId": "AdminProjectMilestones_PatchStage",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchMilestoneDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 3
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilestoneDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "AdminProjectMilestones"
+        ],
+        "operationId": "AdminProjectMilestones_DeleteStage",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "stageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/projects/{projectId}/photos": {
+      "get": {
+        "tags": [
+          "AdminProjectPhotos"
+        ],
+        "operationId": "AdminProjectPhotos_GetPhotos",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "milestoneId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            },
+            "x-position": 3
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "x-position": 4
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationItemsResponseOfPhotoDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AdminProjectPhotos"
+        ],
+        "operationId": "AdminProjectPhotos_UploadPhoto",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "File": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  },
+                  "MilestoneId": {
+                    "type": "string",
+                    "format": "guid",
+                    "nullable": true
+                  },
+                  "Caption": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "TakenAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/projects/{projectId}/photos/{photoId}": {
+      "put": {
+        "tags": [
+          "AdminProjectPhotos"
+        ],
+        "operationId": "AdminProjectPhotos_UpdatePhoto",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "photoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePhotoDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 3
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "AdminProjectPhotos"
+        ],
+        "operationId": "AdminProjectPhotos_DeletePhoto",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "photoId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/3d-scans/Upload3DScan": {
+      "post": {
+        "tags": [
+          "Admin3DScans"
+        ],
+        "operationId": "Admin3DScans_Upload3DScan",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "File": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  },
+                  "ProjectId": {
+                    "type": "string",
+                    "format": "guid"
+                  },
+                  "MilestoneId": {
+                    "type": "string",
+                    "format": "guid",
+                    "nullable": true
+                  },
+                  "RoomName": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "RoomArea": {
+                    "type": "number",
+                    "format": "decimal"
+                  },
+                  "ScannedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "nullable": true
+                  },
+                  "Notes": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminThreeDScanDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/3d-scans/Get3DScan": {
+      "get": {
+        "tags": [
+          "Admin3DScans"
+        ],
+        "operationId": "Admin3DScans_Get3DScan",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "milestoneId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            },
+            "x-position": 3
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "x-position": 4
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationItemsResponseOfAdminThreeDScanDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/3d-scans/Get3DScanById": {
+      "get": {
+        "tags": [
+          "Admin3DScans"
+        ],
+        "operationId": "Admin3DScans_Get3DScanById",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminThreeDScanDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/3d-scans/Delete3DScan": {
+      "delete": {
+        "tags": [
+          "Admin3DScans"
+        ],
+        "operationId": "Admin3DScans_Delete3DScan",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/3d-scans/Update3DScan": {
+      "put": {
+        "tags": [
+          "Admin3DScans"
+        ],
+        "operationId": "Admin3DScans_Update3DScan",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateThreeDScanRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminThreeDScanDto"
                 }
               }
             }
@@ -1488,8 +2567,7 @@
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "format": "date"
           },
           "actualEndDate": {
             "type": "string",
@@ -1508,8 +2586,7 @@
           },
           "progressPercentage": {
             "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "format": "int32"
           },
           "thumbnailUrl": {
             "type": "string",
@@ -1527,6 +2604,30 @@
           },
           "isDeleted": {
             "type": "boolean"
+          }
+        }
+      },
+      "PaginationItemsResponseOfProjectDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -1554,8 +2655,12 @@
         "required": [
           "clientId",
           "title",
+          "address",
+          "city",
+          "postalCode",
           "status",
-          "startDate"
+          "startDate",
+          "plannedEndDate"
         ],
         "properties": {
           "clientId": {
@@ -1570,23 +2675,23 @@
           },
           "notes": {
             "type": "string",
-            "maxLength": 1000,
+            "maxLength": 2000,
             "nullable": true
           },
           "address": {
             "type": "string",
             "maxLength": 300,
-            "nullable": true
+            "minLength": 1
           },
           "city": {
             "type": "string",
             "maxLength": 100,
-            "nullable": true
+            "minLength": 1
           },
           "postalCode": {
             "type": "string",
             "maxLength": 20,
-            "nullable": true
+            "minLength": 1
           },
           "status": {
             "type": "string",
@@ -1595,32 +2700,27 @@
           },
           "startDate": {
             "type": "string",
-            "format": "date",
             "minLength": 1
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
-            "nullable": true
+            "minLength": 1
           },
           "totalArea": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "budget": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "progressPercentage": {
             "type": "integer",
             "format": "int32",
             "maximum": 100.0,
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "thumbnailUrl": {
             "type": "string",
@@ -1634,6 +2734,9 @@
         "additionalProperties": false,
         "required": [
           "title",
+          "address",
+          "city",
+          "postalCode",
           "status",
           "startDate"
         ],
@@ -1645,23 +2748,23 @@
           },
           "notes": {
             "type": "string",
-            "maxLength": 1000,
+            "maxLength": 2000,
             "nullable": true
           },
           "address": {
             "type": "string",
             "maxLength": 300,
-            "nullable": true
+            "minLength": 1
           },
           "city": {
             "type": "string",
             "maxLength": 100,
-            "nullable": true
+            "minLength": 1
           },
           "postalCode": {
             "type": "string",
             "maxLength": 20,
-            "nullable": true
+            "minLength": 1
           },
           "status": {
             "type": "string",
@@ -1670,37 +2773,31 @@
           },
           "startDate": {
             "type": "string",
-            "format": "date",
             "minLength": 1
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
             "nullable": true
           },
           "actualEndDate": {
             "type": "string",
-            "format": "date",
             "nullable": true
           },
           "totalArea": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "budget": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "progressPercentage": {
             "type": "integer",
             "format": "int32",
             "maximum": 100.0,
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "thumbnailUrl": {
             "type": "string",
@@ -1720,7 +2817,7 @@
           },
           "notes": {
             "type": "string",
-            "maxLength": 1000,
+            "maxLength": 2000,
             "nullable": true
           },
           "address": {
@@ -1745,30 +2842,25 @@
           },
           "startDate": {
             "type": "string",
-            "format": "date",
             "nullable": true
           },
           "plannedEndDate": {
             "type": "string",
-            "format": "date",
             "nullable": true
           },
           "actualEndDate": {
             "type": "string",
-            "format": "date",
             "nullable": true
           },
           "totalArea": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "budget": {
             "type": "number",
             "format": "decimal",
-            "minimum": 0.0,
-            "nullable": true
+            "minimum": 0.0
           },
           "progressPercentage": {
             "type": "integer",
@@ -1849,6 +2941,192 @@
           },
           "notes": {
             "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ClientDashboardResponseDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "clientId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "clientName": {
+            "type": "string"
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientDashboardProjectDto"
+            }
+          }
+        }
+      },
+      "ClientDashboardProjectDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "postalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string"
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalArea": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "plannedEndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "actualEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "currentStageTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientDashboardStageDto"
+            }
+          },
+          "latestUpdates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateDto"
+            }
+          }
+        }
+      },
+      "ClientDashboardStageDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orderIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "plannedStartDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "plannedEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "actualStartDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "actualEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectTitle": {
+            "type": "string"
+          },
+          "milestoneId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "milestoneTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "updateType": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdById": {
+            "type": "string",
+            "format": "guid"
+          },
+          "createdByName": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         }
@@ -2085,6 +3363,577 @@
           "pageSize": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "PaginationItemsResponseOfUpdateDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PaginationItemsResponseOfDocumentDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentDto2"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DocumentDto2": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "fileUrl": {
+            "type": "string"
+          },
+          "fileSize": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "mimeType": {
+            "type": "string",
+            "nullable": true
+          },
+          "documentType": {
+            "type": "string"
+          },
+          "uploadedBy": {
+            "type": "string",
+            "format": "guid"
+          },
+          "uploadedByName": {
+            "type": "string",
+            "nullable": true
+          },
+          "isVisibleToClient": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateDocumentDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "nullable": true
+          },
+          "documentType": {
+            "type": "string",
+            "maxLength": 50,
+            "nullable": true
+          },
+          "isVisibleToClient": {
+            "type": "boolean",
+            "nullable": true
+          }
+        }
+      },
+      "PaginationItemsResponseOfMilestoneDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MilestoneDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "MilestoneDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "orderIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "plannedStartDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "plannedEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "actualStartDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "actualEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreateMilestoneDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 100.0,
+            "minimum": 0.0
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "plannedStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "plannedEndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "actualStartDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "actualEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "orderIndex": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "UpdateMilestoneDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 100.0,
+            "minimum": 0.0
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "plannedStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "plannedEndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "actualStartDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "actualEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "orderIndex": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PatchMilestoneDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "progressPercentage": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 100.0,
+            "minimum": 0.0
+          },
+          "status": {
+            "type": "string",
+            "maxLength": 50,
+            "nullable": true
+          },
+          "plannedStartDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "plannedEndDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "actualStartDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "actualEndDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "orderIndex": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        }
+      },
+      "PaginationItemsResponseOfPhotoDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PhotoDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PhotoDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "milestoneId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "milestoneTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "fileUrl": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string",
+            "nullable": true
+          },
+          "caption": {
+            "type": "string",
+            "nullable": true
+          },
+          "takenAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "uploadedBy": {
+            "type": "string",
+            "format": "guid"
+          },
+          "uploadedByName": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "UpdatePhotoDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "milestoneId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "caption": {
+            "type": "string",
+            "maxLength": 300,
+            "nullable": true
+          },
+          "takenAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "thumbnailUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "AdminThreeDScanDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "milestoneId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "projectTitle": {
+            "type": "string"
+          },
+          "milestoneTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "roomName": {
+            "type": "string"
+          },
+          "roomArea": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "scannedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "fileUrl": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "fileFormat": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "uploadedBy": {
+            "type": "string",
+            "format": "guid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "PaginationItemsResponseOfAdminThreeDScanDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminThreeDScanDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "UpdateThreeDScanRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "roomName": {
+            "type": "string",
+            "nullable": true
+          },
+          "milestoneId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "roomArea": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "scannedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

@@ -28,6 +28,40 @@ public class ProjectRepository : IProjectRepository
             .ToListAsync();
     }
 
+    public async Task<(IReadOnlyCollection<Project> Items, int Total)> GetPagedAsync(string? search, string? status, int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = _context.Projects
+            .Include(p => p.Client)
+            .Where(p => p.Isdeleted == false);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var term = search.Trim().ToLower();
+            query = query.Where(p =>
+                p.Title.ToLower().Contains(term) ||
+                (p.Address != null && p.Address.ToLower().Contains(term)) ||
+                (p.City != null && p.City.ToLower().Contains(term)) ||
+                (p.Client != null && (
+                    (p.Client.Firstname + " " + p.Client.Lastname).ToLower().Contains(term) ||
+                    (p.Client.Email ?? string.Empty).ToLower().Contains(term))));
+        }
+
+        if (!string.IsNullOrWhiteSpace(status) && !status.Equals("all", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(p => p.Status.ToLower() == status.ToLower());
+        }
+
+        var total = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(p => p.Createdat)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
+
     /// <summary>
     /// Get all projects including soft-deleted ones
     /// </summary>

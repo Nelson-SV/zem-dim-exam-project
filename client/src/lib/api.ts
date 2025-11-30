@@ -3,10 +3,17 @@ import {
     ProjectsClient,
     MessagesClient,
     AuthClient,
+    User3DScansClient,
+    Admin3DScansClient,
+    ClientDashboardClient,
+    type UploadThreeDScanForm,
+    type AdminThreeDScanDto,
+    AdminProjectDocumentsClient,
+    AdminProjectMilestonesClient,
+    AdminProjectPhotosClient,
+    AdminUpdatesClient,
     DocumentsClient,
-
-    User3DScansClient, type DocumentDto
-
+    type DocumentDto,
 } from '../generated-client';
 
 // const httpSchema= import.meta.env.VITE_API_HTTP_SCHEMA;
@@ -22,6 +29,12 @@ export class ApiClient {
     private _messages: MessagesClient | null = null;
     private _auth: AuthClient | null = null;
     private _user3DScans: User3DScansClient | null = null;
+    private _admin3DScans: Admin3DScansClient | null = null;
+    private _adminProjectDocuments: AdminProjectDocumentsClient | null = null;
+    private _adminProjectMilestones: AdminProjectMilestonesClient | null = null;
+    private _adminProjectPhotos: AdminProjectPhotosClient | null = null;
+    private _adminUpdates: AdminUpdatesClient | null = null;
+    private _clientDashboard: ClientDashboardClient | null = null;
     private _documents: DocumentsClient | null = null;
 
 
@@ -98,6 +111,48 @@ export class ApiClient {
         return this._documents;
     }
 
+    get admin3DScans() {
+        if (!this._admin3DScans) {
+            this._admin3DScans = new Admin3DScansClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._admin3DScans;
+    }
+
+    get adminDocuments() {
+        if (!this._adminProjectDocuments) {
+            this._adminProjectDocuments = new AdminProjectDocumentsClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._adminProjectDocuments;
+    }
+
+    get adminStages() {
+        if (!this._adminProjectMilestones) {
+            this._adminProjectMilestones = new AdminProjectMilestonesClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._adminProjectMilestones;
+    }
+
+    get adminPhotos() {
+        if (!this._adminProjectPhotos) {
+            this._adminProjectPhotos = new AdminProjectPhotosClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._adminProjectPhotos;
+    }
+
+    get adminUpdates() {
+        if (!this._adminUpdates) {
+            this._adminUpdates = new AdminUpdatesClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._adminUpdates;
+    }
+
+    get clientDashboard() {
+        if (!this._clientDashboard) {
+            this._clientDashboard = new ClientDashboardClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._clientDashboard;
+    }
+
     // Reset clients when authentication changes
     resetClients() {
         this._userManagement = null;
@@ -105,12 +160,19 @@ export class ApiClient {
         this._messages = null;
         this._auth = null;
         this._user3DScans = null;
+        this._admin3DScans = null;
+        this._adminProjectDocuments = null;
+        this._adminProjectMilestones = null;
+        this._adminProjectPhotos = null;
+        this._adminUpdates = null;
+        this._clientDashboard = null;
         this._documents = null;
     }
-    async uploadProjectImage(file: File): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
+    async uploadProjectImage(file: File, projectId?: string): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
         const endpoint = `${this.baseUrl}/api/FileUpload/project-thumbnail`;
         const form = new FormData();
-        form.append("file", file); // ключ МАЄ бути "file"
+        form.append("file", file); // Key MUST be "file"
+        if (projectId) form.append("projectId", projectId);
 
         const client = this.createHttpClient();
         const res = await client.fetch(endpoint, {
@@ -124,6 +186,45 @@ export class ApiClient {
             throw new Error(`Upload failed (${res.status}): ${text}`);
         }
         return (await res.json()) as { url: string; fileName?: string; contentType?: string; size?: number };
+    }
+
+    async upload3DScanFile(form: UploadThreeDScanForm): Promise<AdminThreeDScanDto> {
+        const fd = new FormData();
+        fd.append("ProjectId", form.projectId!);
+        if (form.milestoneId) fd.append("MilestoneId", form.milestoneId);
+        fd.append("RoomName", form.roomName!);
+        if (form.roomArea != null) fd.append("RoomArea", form.roomArea.toString());
+        if (form.scannedAt) fd.append("ScannedAt", form.scannedAt.toISOString());
+        if (form.notes) fd.append("Notes", form.notes);
+        fd.append("File", form.file!); 
+
+        const client = this.createHttpClient();
+        const res = await client.fetch(`${url}/api/admin/3d-scans/Upload3DScan`, {
+            method: "POST",
+            body: fd,
+            headers: {
+                "Accept": "application/json"
+            }
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+    }
+
+    async uploadProjectPhoto(projectId: string, file: File, caption?: string, takenAt?: string, milestoneId?: string) {
+        const fd = new FormData();
+        fd.append("File", file);
+        if (caption) fd.append("Caption", caption);
+        if (takenAt) fd.append("TakenAt", takenAt);
+        if (milestoneId) fd.append("MilestoneId", milestoneId);
+
+        const res = await this.createHttpClient().fetch(`${this.baseUrl}/api/admin/projects/${projectId}/photos`, {
+            method: "POST",
+            body: fd,
+            headers: { Accept: "application/json" },
+        });
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
     }
     async uploadProjectDocument(
         file: File,

@@ -43,10 +43,9 @@ public partial class Document
 
     public string? Docusealoriginalurl { get; set; }
 
+    public virtual ICollection<DocumentSignature> DocumentSignatures { get; set; } = new List<DocumentSignature>();
+
     public virtual Project Project { get; set; } = null!;
 
     public virtual User Uploadedby { get; set; } = null!;
-    
-    public virtual ICollection<DocumentSignature> DocumentSignatures { get; set; } = new List<DocumentSignature>();
-
 }

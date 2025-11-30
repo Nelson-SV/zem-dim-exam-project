@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Application.Interfaces.Services;
+using Application.Models.Dtos.Common;
 using Application.Models.Dtos.Project;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,22 @@ public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _projectService;
     private readonly ILogger<ProjectsController> _logger;
+    
+    public const string ControllerRoute = "api/admin/projects/";
+    public const string GetAllProjectsList = ControllerRoute + nameof(GetAllProjects);
+    public const string Search = ControllerRoute + nameof(SearchProjects);
+    public const string Create = ControllerRoute + nameof(CreateProject);
+    public const string GetMy = ControllerRoute + nameof(GetMyProjects);
+    public const string GetUser = ControllerRoute + nameof(GetUserProjects);
+    public const string GetOnlyProject = ControllerRoute + nameof(GetProject);
+    public const string ProjectParticipants = ControllerRoute + nameof(GetProjectParticipants);
+    public const string Update = ControllerRoute + nameof(UpdateProject);
+    public const string Patch = ControllerRoute + nameof(PatchProject);
+    public const string UpdateStatus = ControllerRoute + nameof(UpdateProjectStatus);
+    public const string UpdateProgress = ControllerRoute + nameof(UpdateProjectProgress);
+    public const string SoftDelete = ControllerRoute + nameof(DeleteProject);
+    public const string Restore = ControllerRoute + nameof(RestoreProject);
+    public const string PermanentDelete = ControllerRoute + nameof(PermanentDeleteProject);
 
     public ProjectsController(IProjectService projectService, ILogger<ProjectsController> logger)
     {
@@ -27,6 +44,7 @@ public class ProjectsController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize(Policy = "AdminOnly")]
+    [Route(GetAllProjectsList)]
     public async Task<ActionResult<List<ProjectDto>>> GetAllProjects()
     {
         try
@@ -42,11 +60,37 @@ public class ProjectsController : ControllerBase
     }
 
     /// <summary>
+    /// Get projects with pagination, search and status filter (Admin)
+    /// </summary>
+    [HttpGet]
+    [Authorize(Policy = "AdminOnly")]
+    [Route(Search)]
+    public async Task<ActionResult<PaginationItemsResponse<ProjectDto>>> SearchProjects(
+        [FromQuery(Name = "q")] string? search,
+        [FromQuery] string? status,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var result = await _projectService.GetPagedAsync(search, status, page, pageSize, ct);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching projects");
+            return StatusCode(500, new { error = $"Internal server error: {ex.Message}" });
+        }
+    }
+
+    /// <summary>
     /// Get my projects (uses JWT token to determine user)
     /// Admin → all projects
     /// Client → only their projects
     /// </summary>
-    [HttpGet("my")]
+    [HttpGet]
+    [Route(GetMy)]
     public async Task<ActionResult<List<ProjectDto>>> GetMyProjects()
     {
         try
@@ -77,7 +121,8 @@ public class ProjectsController : ControllerBase
     /// <summary>
     /// Get projects for specific user
     /// </summary>
-    [HttpGet("user/{userId}")]
+    [HttpGet]
+    [Route(GetUser)]
     public async Task<ActionResult<List<ProjectDto>>> GetUserProjects(Guid userId)
     {
         try
@@ -112,7 +157,8 @@ public class ProjectsController : ControllerBase
     /// <summary>
     /// Get single project by ID
     /// </summary>
-    [HttpGet("{projectId}")]
+    [HttpGet]
+    [Route(GetOnlyProject)]
     public async Task<ActionResult<ProjectDto>> GetProject(Guid projectId)
     {
         try
@@ -143,7 +189,8 @@ public class ProjectsController : ControllerBase
     /// <summary>
     /// Get project participants
     /// </summary>
-    [HttpGet("{projectId}/participants")]
+    [HttpGet]
+    [Route(ProjectParticipants)]
     public async Task<ActionResult<ProjectParticipantsDto>> GetProjectParticipants(Guid projectId)
     {
         try
@@ -170,9 +217,8 @@ public class ProjectsController : ControllerBase
     /// Create new project (Admin only)
     /// </summary>
     [HttpPost]
-    [Route("api/Projects")]
-    [ProducesResponseType(typeof(ProjectDto), 201)]  // ⬅️ ДОДАЙ ЦЕ!
-     
+    [Route(Create)]
+    [ProducesResponseType(typeof(ProjectDto), 201)]  // ⬅️ Make sure this stays!
     [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<ProjectDto>> CreateProject([FromBody] CreateProjectDto dto)
     {
@@ -206,8 +252,9 @@ public class ProjectsController : ControllerBase
     /// <summary>
     /// Full update of project (Admin only)
     /// </summary>
-    [HttpPut("{projectId}")]
+    [HttpPut]
     [Authorize(Policy = "AdminOnly")]
+    [Route(Update)]
     public async Task<ActionResult<ProjectDto>> UpdateProject(Guid projectId, [FromBody] UpdateProjectDto dto)
     {
         try
@@ -232,8 +279,9 @@ public class ProjectsController : ControllerBase
     /// <summary>
     /// Partial update of project (Admin only)
     /// </summary>
-    [HttpPatch("{projectId}")]
+    [HttpPatch]
     [Authorize(Policy = "AdminOnly")]
+    [Route(Patch)]
     public async Task<ActionResult<ProjectDto>> PatchProject(Guid projectId, [FromBody] PatchProjectDto dto)
     {
         try
@@ -258,8 +306,9 @@ public class ProjectsController : ControllerBase
     /// <summary>
     /// Update only project status (Admin only)
     /// </summary>
-    [HttpPatch("{projectId}/status")]
+    [HttpPatch]
     [Authorize(Policy = "AdminOnly")]
+    [Route(UpdateStatus)]
     public async Task<ActionResult<ProjectDto>> UpdateProjectStatus(Guid projectId, [FromBody] UpdateProjectStatusDto dto)
     {
         try
@@ -284,8 +333,9 @@ public class ProjectsController : ControllerBase
     /// <summary>
     /// Update only project progress (Admin only)
     /// </summary>
-    [HttpPatch("{projectId}/progress")]
+    [HttpPatch]
     [Authorize(Policy = "AdminOnly")]
+    [Route(UpdateProgress)]
     public async Task<ActionResult<ProjectDto>> UpdateProjectProgress(Guid projectId, [FromBody] UpdateProjectProgressDto dto)
     {
         try
@@ -318,8 +368,9 @@ public class ProjectsController : ControllerBase
     /// <summary>
     /// Soft delete project (Admin only)
     /// </summary>
-    [HttpDelete("{projectId}")]
+    [HttpDelete]
     [Authorize(Policy = "AdminOnly")]
+    [Route(SoftDelete)]
     public async Task<ActionResult<object>> DeleteProject(Guid projectId)
     {
         try
@@ -344,8 +395,9 @@ public class ProjectsController : ControllerBase
     /// <summary>
     /// Restore soft-deleted project (Admin only)
     /// </summary>
-    [HttpPost("{projectId}/restore")]
+    [HttpPost]
     [Authorize(Policy = "AdminOnly")]
+    [Route(Restore)]
     public async Task<ActionResult<object>> RestoreProject(Guid projectId)
     {
         try
@@ -370,8 +422,9 @@ public class ProjectsController : ControllerBase
     /// <summary>
     /// Permanent delete project (Admin only)
     /// </summary>
-    [HttpDelete("{projectId}/permanent")]
+    [HttpDelete]
     [Authorize(Policy = "AdminOnly")]
+    [Route(PermanentDelete)]
     public async Task<ActionResult<object>> PermanentDeleteProject(Guid projectId)
     {
         try

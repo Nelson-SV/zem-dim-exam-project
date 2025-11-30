@@ -28,7 +28,7 @@ public class ChatSeeder
         var adminSalt = GenerateSalt();
         var clientSalt = GenerateSalt();
         
-        var now = DateTime.Now; // ← Використовуємо DateTime.Now замість UtcNow
+        var now = DateTime.Now; // ← Use DateTime.Now instead of UtcNow
 
         // Admin
         var admin = new User
@@ -76,11 +76,11 @@ public class ChatSeeder
             Id = Guid.Parse("33333333-3333-3333-3333-333333333333"),
             Clientid = client.Id,
             Title = "Тестовий будинок",
-            Notes = "...",
+            Notes = "Проєкт для тестування Chat",
             Address = "вул. Тестова, 1",
             City = "Київ",
             Postalcode = "01001",
-            Status = "InProgress",
+            Status = "In Progress",
             Startdate = DateOnly.FromDateTime(now),
             Plannedenddate = DateOnly.FromDateTime(now.AddMonths(6)),
             Totalarea = 150.0m,

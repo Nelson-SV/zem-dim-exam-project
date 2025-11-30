@@ -14,6 +14,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Document> Documents { get; set; }
 
+    public virtual DbSet<DocumentSignature> DocumentSignatures { get; set; }
+
     public virtual DbSet<Message> Messages { get; set; }
 
     public virtual DbSet<Milestone> Milestones { get; set; }
@@ -29,7 +31,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Threedscan> Threedscans { get; set; }
 
     public virtual DbSet<Update> Updates { get; set; }
-    public virtual DbSet<DocumentSignature> DocumentSignatures { get; set; } = null!;
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -134,6 +135,7 @@ public partial class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("documents_uploadedbyid_fkey");
         });
+
         modelBuilder.Entity<DocumentSignature>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("document_signatures_pkey");
@@ -143,37 +145,28 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("id");
-
-            entity.Property(e => e.Documentid)
-                .HasColumnName("document_id");
-
-            entity.Property(e => e.Userid)
-                .HasColumnName("user_id");
-
-            entity.Property(e => e.Signaturebase64)
-                .IsRequired()
-                .HasColumnName("signature_base64");
-
-            entity.Property(e => e.Signedat)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("signed_at");
-
-            entity.Property(e => e.Ipaddress)
-                .HasMaxLength(45)
-                .HasColumnName("ip_address");
-
-            entity.Property(e => e.Createdat)
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
+            entity.Property(e => e.DocumentId).HasColumnName("document_id");
+            entity.Property(e => e.IpAddress)
+                .HasMaxLength(45)
+                .HasColumnName("ip_address");
+            entity.Property(e => e.SignatureBase64).HasColumnName("signature_base64");
+            entity.Property(e => e.SignedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("signed_at");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
 
-            entity.HasOne(d => d.Document)
-                .WithMany(p => p.DocumentSignatures) // додамо навігацію в Document
-                .HasForeignKey(d => d.Documentid)
+            entity.HasOne(d => d.Document).WithMany(p => p.DocumentSignatures)
+                .HasForeignKey(d => d.DocumentId)
                 .HasConstraintName("document_signatures_document_id_fkey");
 
-            entity.HasOne(d => d.User)
-                .WithMany(p => p.DocumentSignatures) // якщо треба
-                .HasForeignKey(d => d.Userid)
+            entity.HasOne(d => d.User).WithMany(p => p.DocumentSignatures)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("document_signatures_user_id_fkey");
         });
 
@@ -253,7 +246,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("createdat");
-            entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.Isdeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("isdeleted");
@@ -267,7 +259,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Projectid).HasColumnName("projectid");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("'Pending'::character varying")
+                .HasDefaultValueSql("'''In Progress''::character varying'::character varying")
                 .HasColumnName("status");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)
@@ -354,25 +346,19 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Filename)
                 .HasMaxLength(255)
                 .HasColumnName("filename");
-            entity.Property(e => e.Filesize).HasColumnName("filesize");
+            entity.Property(e => e.Filetype)
+                .HasMaxLength(100)
+                .HasColumnName("filetype");
             entity.Property(e => e.Fileurl)
                 .HasMaxLength(500)
                 .HasColumnName("fileurl");
-            entity.Property(e => e.Height).HasColumnName("height");
             entity.Property(e => e.Isdeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("isdeleted");
             entity.Property(e => e.Milestoneid).HasColumnName("milestoneid");
-            entity.Property(e => e.Mimetype)
-                .HasMaxLength(100)
-                .HasColumnName("mimetype");
             entity.Property(e => e.Projectid).HasColumnName("projectid");
             entity.Property(e => e.Takenat).HasColumnName("takenat");
-            entity.Property(e => e.Thumbnailurl)
-                .HasMaxLength(500)
-                .HasColumnName("thumbnailurl");
             entity.Property(e => e.Uploadedbyid).HasColumnName("uploadedbyid");
-            entity.Property(e => e.Width).HasColumnName("width");
 
             entity.HasOne(d => d.Milestone).WithMany(p => p.Photos)
                 .HasForeignKey(d => d.Milestoneid)
@@ -434,7 +420,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Startdate).HasColumnName("startdate");
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
-                .HasDefaultValueSql("'''Pending''::character varying'::character varying")
+                .HasDefaultValueSql("'''''''In Progress''''::character varying''::character varying'::character varying")
                 .HasColumnName("status");
             entity.Property(e => e.Thumbnailurl)
                 .HasMaxLength(500)
@@ -507,13 +493,12 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Createdat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("createdat");
-            entity.Property(e => e.Fileformat)
-                .HasMaxLength(50)
-                .HasColumnName("fileformat");
             entity.Property(e => e.Filename)
                 .HasMaxLength(255)
                 .HasColumnName("filename");
-            entity.Property(e => e.Filesize).HasColumnName("filesize");
+            entity.Property(e => e.Filetype)
+                .HasMaxLength(50)
+                .HasColumnName("filetype");
             entity.Property(e => e.Fileurl)
                 .HasMaxLength(500)
                 .HasColumnName("fileurl");

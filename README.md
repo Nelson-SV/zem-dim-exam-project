@@ -68,7 +68,7 @@
 - [ ] Milestones tab on project page
 - [ ] Add/Edit milestone modal
 - [ ] Add progress slider (0–100%)
-- [ ] Add status badges (Pending / In Progress / Completed)
+- [ ] Add status badges (In Progress / Completed)
 - [ ] Auto-refresh project progress bar
 
 ---
