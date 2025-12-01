@@ -44,6 +44,7 @@ export function ClientDashboard() {
       try {
         const res = await http.clientDashboard.getDashboard(undefined, UPDATES_LIMIT);
         setProjects(res.projects ?? []);
+        console.log("HERE: ", res.projects);
         setClientName(res.clientName ?? `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim());
         setSelectedProjectId(prev => prev ?? res.projects?.[0]?.id ?? null);
       } catch (err) {

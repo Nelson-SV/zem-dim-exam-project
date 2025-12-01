@@ -80,7 +80,7 @@ public class ProjectRepository : IProjectRepository
     {
         return await _context.Projects
             .Include(p => p.Client)
-            .Where(p => !p.Isdeleted)
+            .Where(p => !p.Isdeleted && p.Client.Id == clientId)
             .OrderByDescending(p => p.Createdat)
             .ToListAsync();
     }
