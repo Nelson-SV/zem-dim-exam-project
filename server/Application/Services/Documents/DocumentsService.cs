@@ -27,7 +27,7 @@ public class DocumentsService : IDocumentsService
     }
 
     // ============================================================
-    // GET ALL (admin – всі, user – тільки свої проєкти)
+    // GET ALL (admin – sees everything, user – only own projects)
     // ============================================================
 
     public async Task<IEnumerable<DocumentDto>> GetAllAsync(Guid userId, string role)
@@ -39,13 +39,13 @@ public class DocumentsService : IDocumentsService
 
         if (isAdmin)
         {
-            // Адмін бачить всі не видалені
+            // Admins see every non-deleted document
             docs = await _documentRepository.GetAllWithProjectAsync();
             docs = docs.Where(d => !d.Isdeleted);
         }
         else
         {
-            // Клієнт бачить тільки свої документи
+            // Clients only see documents that belong to them
             docs = await _documentRepository.GetUserDocumentsAsync(userId);
         }
 
@@ -67,7 +67,7 @@ public class DocumentsService : IDocumentsService
     }
 
     // ============================================================
-    // UPLOAD DOCUMENT (адмін завантажує)
+    // UPLOAD DOCUMENT (admin uploads)
     // ============================================================
 
     public async Task<DocumentDto> UploadAsync(
@@ -100,8 +100,8 @@ public class DocumentsService : IDocumentsService
             Uploadedbyid = uploadedById,
             Isdeleted = false,
 
-            // За замовчуванням: прихований від клієнта,
-            // поки адмін не скаже "RequiresSignature + VisibleToClient"
+            // Default state: hidden from the client
+            // until an admin marks "RequiresSignature + VisibleToClient"
             Isvisibletoclient = false,
             Requiressignature = false,
             Issigned = false
@@ -113,7 +113,7 @@ public class DocumentsService : IDocumentsService
     }
 
     // ============================================================
-    // SIGN DOCUMENT (клієнт підписує)
+    // SIGN DOCUMENT (client signs)
     // ============================================================
 
     public async Task<string> SignDocumentAsync(
@@ -137,7 +137,7 @@ public class DocumentsService : IDocumentsService
         if (document.Project == null)
             throw new InvalidOperationException("Document is not linked to any project.");
 
-        // 🔒 Дуже важливо: клієнт може підписати тільки документи своїх проєктів
+        // 🔒 Critical: clients may only sign documents from their own projects
         if (document.Project.Clientid != userId)
             throw new InvalidOperationException("You are not allowed to sign this document.");
 
@@ -147,7 +147,7 @@ public class DocumentsService : IDocumentsService
         if (document.Requiressignature != true)
             throw new InvalidOperationException("This document does not require a signature.");
 
-        // Підпис PDF (генерація нового файла в Supabase)
+        // Apply the signature to the PDF (generate a new file in Supabase)
         var signedUrl = await _pdfSignatureService.SignDocumentAsync(
             document,
             signatureBase64,
@@ -164,7 +164,7 @@ public class DocumentsService : IDocumentsService
 
         await _documentRepository.UpdateAsync(document);
 
-        // Лог підпису
+        // Signature log entry
         var signature = new DocumentSignature
         {
             Id = Guid.NewGuid(),
@@ -182,7 +182,7 @@ public class DocumentsService : IDocumentsService
     }
 
     // ============================================================
-    // UPDATE (адмін відмічає: RequiresSignature / VisibleToClient)
+    // UPDATE (admin toggles RequiresSignature / VisibleToClient)
     // ============================================================
 
     public async Task UpdateAsync(Guid id, UpdateDocumentRequest request)

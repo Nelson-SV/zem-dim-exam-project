@@ -1,4 +1,4 @@
-﻿// PdfSignatureEditor.tsx - FIXED VERSION з видимими лініями
+﻿// PdfSignatureEditor.tsx - FIXED VERSION with visible lines
 import { useState, useRef, useEffect } from 'react';
 import { X, PenLine, Trash2, Check, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Eraser } from 'lucide-react';
 import { Button } from './ui/button.tsx';
@@ -57,8 +57,8 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // DPI scaling для чітких ліній
-    const DPI_SCALE = 2; // Фіксований scale для стабільності
+    // DPI scaling for sharp lines
+    const DPI_SCALE = 2; // Fixed scale for stability
 
     const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
         console.log('✅ PDF loaded, pages:', numPages);
@@ -71,32 +71,32 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         setPageHeight(viewport.height);
     };
 
-    // Налаштування canvas - ВИПРАВЛЕНО
+    // Canvas setup - FIXED
     useEffect(() => {
         if (canvasRef.current && pageWidth && pageHeight) {
             const canvas = canvasRef.current;
 
-            // ❌ СТАРА ПРОБЛЕМА: canvas.width !== CSS width
-            // Встановлюємо canvas розміри з урахуванням DPI
+            // ❌ OLD ISSUE: canvas.width !== CSS width
+            // Set canvas dimensions with DPI in mind
             canvas.width = pageWidth * DPI_SCALE;
             canvas.height = pageHeight * DPI_SCALE;
 
             const ctx = canvas.getContext('2d');
             if (ctx) {
-                // Масштабуємо контекст
+                // Scale the context
                 ctx.scale(DPI_SCALE, DPI_SCALE);
 
-                // Гладкі лінії
+                // Smooth lines
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
 
-                // Білий фон для видимості
+                // White background for visibility
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
                 ctx.fillRect(0, 0, pageWidth, pageHeight);
 
-                // Перемалювати всі штрихи
+                // Redraw all strokes
                 redrawAllStrokes();
             }
         }
@@ -109,16 +109,16 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Очистити і заново налаштувати
+        // Reset the transform and redraw
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.scale(DPI_SCALE, DPI_SCALE);
 
-        // Білий фон
+        // White background
         ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
         ctx.fillRect(0, 0, pageWidth, pageHeight);
 
-        // Налаштування для гладких ліній
+        // Settings for smooth lines
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
@@ -158,7 +158,7 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         if (!canvas) return;
 
         const rect = canvas.getBoundingClientRect();
-        // ✅ ВИПРАВЛЕННЯ: Правильне масштабування координат
+        // ✅ FIX: Correct coordinate scaling
         const x = (e.clientX - rect.left);
         const y = (e.clientY - rect.top);
 
@@ -181,7 +181,7 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Налаштування контексту
+        // Context settings
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.lineCap = 'round';
@@ -248,7 +248,7 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.scale(DPI_SCALE, DPI_SCALE);
 
-        // Білий фон
+        // White background
         ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
         ctx.fillRect(0, 0, pageWidth, pageHeight);
 
@@ -285,7 +285,7 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        // Знайти bounding box всіх штрихів
+        // Find the bounding box of all strokes
         const allPoints = allStrokes.flatMap(s => s.points);
         const xs = allPoints.map(p => p.x);
         const ys = allPoints.map(p => p.y);
@@ -303,7 +303,7 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
 
         console.log('📦 Signature box:', { boxX, boxY, boxWidth, boxHeight });
 
-        // Створити canvas для підпису
+        // Create a canvas for the signature
         const signatureCanvas = document.createElement('canvas');
         signatureCanvas.width = boxWidth * DPI_SCALE;
         signatureCanvas.height = boxHeight * DPI_SCALE;
@@ -312,17 +312,17 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
 
         ctx.scale(DPI_SCALE, DPI_SCALE);
 
-        // Білий фон
+        // White background
          ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, boxWidth, boxHeight);
 
-        // Налаштування
+        // Settings
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
-        // Малюємо штрихи
+        // Draw the strokes
         allStrokes.forEach(stroke => {
             if (stroke.points.length < 2 || stroke.isEraser) return;
 
@@ -587,7 +587,7 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
                                         width: `${pageWidth}px`,
                                         height: `${pageHeight}px`,
                                         touchAction: 'none',
-                                        // ✅ КРИТИЧНО: прозорий фон щоб бачити PDF
+                                        // ✅ CRITICAL: transparent background so the PDF stays visible
                                         backgroundColor: 'transparent',
                                     }}
                                     onMouseDown={startDrawing}

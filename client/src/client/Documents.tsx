@@ -63,7 +63,7 @@ export function Documents() {
         if (!signingDoc?.id) return;
 
         try {
-            // Відправляємо підпис + позицію на backend
+            // Send the signature plus its position to the backend
             await http.documents.signDocument(signingDoc.id, {
                 signatureBase64,
                 positionX: position.x,

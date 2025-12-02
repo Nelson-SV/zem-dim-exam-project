@@ -1,4 +1,4 @@
-﻿// PdfSignatureService.cs - ОНОВЛЕНИЙ з підтримкою координат
+﻿// PdfSignatureService.cs - UPDATED with coordinate support
 using Application.Interfaces.Documents;
 using Application.Interfaces.Services;
 using iTextSharp.text;
@@ -28,33 +28,33 @@ public class PdfSignatureService : IPdfSignatureService
         if (string.IsNullOrWhiteSpace(document.Fileurl))
             throw new InvalidOperationException("Document does not have a file URL.");
 
-        // 1. Скачати оригінальний PDF з Supabase
+        // 1. Download the original PDF from Supabase
         var pdfBytes = await _storageService.DownloadFileAsync(document.Fileurl);
 
-        // 2. Витягнути чисту Base64-частину з data URL
+        // 2. Extract the pure Base64 payload from the data URL
         var base64Part = signatureBase64.Contains(",")
             ? signatureBase64.Split(',')[1]
             : signatureBase64;
 
         var signatureBytes = Convert.FromBase64String(base64Part);
 
-        // 3. Вставити підпис у PDF на вказаній позиції
+        // 3. Insert the signature into the PDF at the requested position
         using var inputMs = new MemoryStream(pdfBytes);
         using var reader = new PdfReader(inputMs);
         using var outputMs = new MemoryStream();
 
         using (var stamper = new PdfStamper(reader, outputMs))
         {
-            // Переконайся що pageNumber в межах документа
+            // Ensure pageNumber stays within the document bounds
             if (pageNumber < 1 || pageNumber > reader.NumberOfPages)
                 pageNumber = 1;
 
             var image = Image.GetInstance(signatureBytes);
             
-            // Встановити розмір підпису з frontend
+            // Honor the signature dimensions from the frontend
             image.ScaleToFit((float)width, (float)height);
 
-            // PDF координати: Y відраховується знизу, тому інвертуємо
+            // PDF coordinates: Y is counted from the bottom, so invert it
             var page = reader.GetPageSize(pageNumber);
             var pdfY = page.Height - (float)positionY - (float)height;
 
@@ -66,10 +66,10 @@ public class PdfSignatureService : IPdfSignatureService
 
         var signedPdfBytes = outputMs.ToArray();
 
-        // 4. Згенерувати ім'я файлу для підписаного PDF
+        // 4. Generate a file name for the signed PDF
         var signedFileName = $"{document.Id}-signed.pdf";
 
-        // 5. Залити підписаний PDF у Supabase
+        // 5. Upload the signed PDF back to Supabase
         var signedUrl = await _storageService.UploadSignedPdfAsync(signedPdfBytes, signedFileName);
 
         return signedUrl;

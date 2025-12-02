@@ -123,7 +123,7 @@ export function AdminDocuments() {
         }
     };
 
-    // Admin позначає, що документ треба підписати + показати клієнту
+    // Admin flags that the document must be signed and shown to the client
     const markRequiresSignature = async (doc: DocumentDto) => {
         if (!doc.id) return;
 

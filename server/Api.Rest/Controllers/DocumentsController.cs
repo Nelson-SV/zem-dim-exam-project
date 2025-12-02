@@ -10,7 +10,7 @@ namespace Api.Rest.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] // Базова авторизація
+[Authorize] // Basic authorization
 public class DocumentsController : ControllerBase
 {
     private readonly IDocumentsService _documentsService;
@@ -50,7 +50,7 @@ public class DocumentsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = AuthorizationRoles.Admin)] // ⬅️ Тільки admin
+    [Authorize(Policy = AuthorizationRoles.Admin)] // ⬅️ Admin only
     [RequestSizeLimit(50 * 1024 * 1024)]
     public async Task<ActionResult<DocumentDto>> Upload(
         [FromForm] IFormFile file,
@@ -81,7 +81,7 @@ public class DocumentsController : ControllerBase
     }
 
     [HttpPost("{documentId:guid}/sign")]
-    [Authorize(Policy = AuthorizationRoles.User)] // ⬅️ Тільки user
+    [Authorize(Policy = AuthorizationRoles.User)] // ⬅️ User only
     public async Task<ActionResult<SignedDocumentResponseDto>> SignDocument(
         Guid documentId,
         [FromBody] SignDocumentRequest request)
@@ -128,7 +128,7 @@ public class DocumentsController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    [Authorize(Policy = AuthorizationRoles.Admin)] // ⬅️ Тільки admin
+    [Authorize(Policy = AuthorizationRoles.Admin)] // ⬅️ Admin only
     public async Task<ActionResult<DocumentDto>> Update(Guid id, [FromBody] UpdateDocumentRequest request)
     {
         try
@@ -144,7 +144,7 @@ public class DocumentsController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Policy = AuthorizationRoles.Admin)] // ⬅️ Тільки admin
+    [Authorize(Policy = AuthorizationRoles.Admin)] // ⬅️ Admin only
     public async Task<IActionResult> Delete(Guid id)
     {
         try

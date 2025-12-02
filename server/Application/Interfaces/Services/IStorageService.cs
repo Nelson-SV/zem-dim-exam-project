@@ -11,6 +11,6 @@ public interface IStorageService
     Task<string> UploadSignedPdfAsync(byte[] pdfBytes, string fileName);
     Task<byte[]> DownloadFileAsync(string url);
     
-    // 👇 Додано для проектних документів (PDF тощо)
+    // 👇 Added for project documents (PDF files, etc.)
     Task<string> UploadProjectDocumentAsync(Stream fileStream, string fileName, string contentType);
 }

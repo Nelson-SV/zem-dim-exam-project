@@ -128,7 +128,7 @@ export function ClientDashboard() {
       )}
 
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#F97316] to-[#F59E0B] rounded-lg p-8 text-white">
+      <div className="bg-linear-to-r from-[#F97316] to-[#F59E0B] rounded-lg p-8 text-white">
         <h2 className="mb-2">Welcome, {clientName || 'Client'}!</h2>
         <p className="opacity-90">
           Your project is {progress}% complete.
