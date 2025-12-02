@@ -1,6 +1,6 @@
-// AdminDocuments.tsx
+// AdminDocuments.tsx (UPDATED with Project Filtering)
 import { useState, useEffect, useRef, type ChangeEvent } from 'react';
-import { FileText, Download, Trash2, Upload, Send, CheckCircle, Clock, Eye } from 'lucide-react';
+import { FileText, Download, Trash2, Upload, Send, CheckCircle, Clock, Eye, Filter, X } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -18,6 +18,9 @@ export function AdminDocuments() {
     const [documents, setDocuments] = useState<DocumentDto[]>([]);
     const [projects, setProjects] = useState<ProjectDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Filter state
+    const [selectedFilterProjectId, setSelectedFilterProjectId] = useState<string>('all');
 
     // Upload state
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -123,7 +126,6 @@ export function AdminDocuments() {
         }
     };
 
-    // Admin flags that the document must be signed and shown to the client
     const markRequiresSignature = async (doc: DocumentDto) => {
         if (!doc.id) return;
 
@@ -161,6 +163,26 @@ export function AdminDocuments() {
         }
     };
 
+    // Filter documents based on selected project
+    const getFilteredDocuments = () => {
+        if (selectedFilterProjectId === 'all') {
+            return documents;
+        }
+        return documents.filter(doc => doc.projectId === selectedFilterProjectId);
+    };
+
+    const filteredDocuments = getFilteredDocuments();
+    const companyDocs = filteredDocuments.filter(
+        (d) => d.uploadedBy === 'company' || d.uploadedBy === 'admin',
+    );
+    const clientDocs = filteredDocuments.filter((d) => d.uploadedBy === 'client');
+
+    // Get project name by ID
+    const getProjectName = (projectId?: string) => {
+        if (!projectId) return 'Unknown Project';
+        return projects.find(p => p.id === projectId)?.title || 'Unknown Project';
+    };
+
     const DocumentCard = ({ doc }: { doc: DocumentDto }) => (
         <div className="flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors">
             <div className="p-2 rounded-lg bg-primary/10">
@@ -174,6 +196,8 @@ export function AdminDocuments() {
                 </div>
 
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <span className="text-[#F97316] font-medium">{getProjectName(doc.projectId)}</span>
+                    <span>•</span>
                     <span>{formatFileSize(doc.fileSize)}</span>
                     {doc.createdAt && (
                         <>
@@ -260,11 +284,6 @@ export function AdminDocuments() {
         return <div className="flex items-center justify-center h-64">Loading...</div>;
     }
 
-    const companyDocs = documents.filter(
-        (d) => d.uploadedBy === 'company' || d.uploadedBy === 'admin',
-    );
-    const clientDocs = documents.filter((d) => d.uploadedBy === 'client');
-
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -292,6 +311,62 @@ export function AdminDocuments() {
                 </div>
             </div>
 
+            {/* Filter Section */}
+            <Card className="p-4">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <Filter className="size-5 text-muted-foreground" />
+                        <span className="font-medium">Filter by Project:</span>
+                    </div>
+                    <Select
+                        value={selectedFilterProjectId}
+                        onValueChange={setSelectedFilterProjectId}
+                    >
+                        <SelectTrigger className="w-[300px]">
+                            <SelectValue placeholder="Select a project..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">
+                                <div className="flex items-center gap-2">
+                                    <span>All Projects</span>
+                                    <Badge variant="secondary">{documents.length}</Badge>
+                                </div>
+                            </SelectItem>
+                            {projects.map((project) => {
+                                const count = documents.filter(d => d.projectId === project.id).length;
+                                return (
+                                    <SelectItem key={project.id} value={project.id!}>
+                                        <div className="flex items-center gap-2">
+                                            <span>{project.title}</span>
+                                            {count > 0 && (
+                                                <Badge variant="secondary">{count}</Badge>
+                                            )}
+                                        </div>
+                                    </SelectItem>
+                                );
+                            })}
+                        </SelectContent>
+                    </Select>
+
+                    {selectedFilterProjectId !== 'all' && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedFilterProjectId('all')}
+                            className="text-muted-foreground hover:text-foreground"
+                        >
+                            <X className="size-4 mr-1" />
+                            Clear filter
+                        </Button>
+                    )}
+
+                    <div className="ml-auto text-sm text-muted-foreground">
+                        Showing <span className="font-medium text-foreground">{filteredDocuments.length}</span> of {documents.length} documents
+                    </div>
+                </div>
+            </Card>
+
+            {/* Company Documents */}
             <div>
                 <div className="flex items-center gap-3 mb-4">
                     <h3>Company documents</h3>
@@ -306,12 +381,15 @@ export function AdminDocuments() {
                         </div>
                     ) : (
                         <div className="text-center py-12 text-muted-foreground">
-                            No documents uploaded yet
+                            {selectedFilterProjectId === 'all'
+                                ? 'No documents uploaded yet'
+                                : 'No company documents for this project'}
                         </div>
                     )}
                 </Card>
             </div>
 
+            {/* Client Documents */}
             <div>
                 <div className="flex items-center gap-3 mb-4">
                     <h3>Client documents</h3>
@@ -326,7 +404,9 @@ export function AdminDocuments() {
                         </div>
                     ) : (
                         <div className="text-center py-12 text-muted-foreground">
-                            Client has not uploaded any documents yet
+                            {selectedFilterProjectId === 'all'
+                                ? 'Client has not uploaded any documents yet'
+                                : 'No client documents for this project'}
                         </div>
                     )}
                 </Card>
