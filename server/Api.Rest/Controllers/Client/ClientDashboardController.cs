@@ -45,7 +45,7 @@ public class ClientDashboardController : ControllerBase
             return NotFound(new { error = ex.Message });
         }
         catch (Exception ex)
-        {
+        {   
             _logger.LogError(ex, "Failed to fetch client dashboard");
             return StatusCode(500, new { error = "Internal server error" });
         }

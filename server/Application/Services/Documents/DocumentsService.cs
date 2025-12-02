@@ -83,6 +83,8 @@ public class DocumentsService : IDocumentsService
             fileName,
             contentType
         );
+        
+        Console.WriteLine("URL HERE: " + fileUrl);
 
         var document = new Document
         {

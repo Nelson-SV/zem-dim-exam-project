@@ -228,7 +228,7 @@ public class SupabaseStorageService : IStorageService
                         Upsert = false
                     });
 
-            return GetPublicUrl(DOCUMENTS_BUCKET, filePath);
+            return GetPublicUrl(filePath, DOCUMENTS_BUCKET);
         }
         catch (Exception ex)
         {
@@ -256,7 +256,7 @@ public class SupabaseStorageService : IStorageService
                         Upsert = false
                     });
 
-            return GetPublicUrl(DOCUMENTS_BUCKET, filePath);
+            return GetPublicUrl(filePath, DOCUMENTS_BUCKET);
         }
         catch (Exception ex)
         {
