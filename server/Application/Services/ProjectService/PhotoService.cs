@@ -35,6 +35,36 @@ public class PhotoService(
         };
     }
 
+    public async Task<PaginationItemsResponse<PhotoDto>> GetForClientAsync(
+        Guid requesterId,
+        string requesterRole,
+        Guid projectId,
+        Guid? milestoneId,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        var project = await projectRepository.GetByIdAsync(projectId);
+        if (project == null || project.Isdeleted)
+            throw new KeyNotFoundException("Project not found");
+
+        var isAdmin = requesterRole.Equals("Admin", StringComparison.OrdinalIgnoreCase);
+        if (!isAdmin && project.Clientid != requesterId)
+            throw new UnauthorizedAccessException("You are not allowed to view this project's photos");
+
+        if (milestoneId.HasValue)
+            await EnsureMilestone(projectId, milestoneId.Value, ct);
+
+        var (items, total) = await repository.GetAsync(projectId, milestoneId, page, pageSize, ct);
+        return new PaginationItemsResponse<PhotoDto>
+        {
+            Items = PhotoDto.FromEntities(items),
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = total
+        };
+    }
+
     public async Task<PhotoDto> CreateAsync(Guid projectId, CreatePhotoDto dto, Stream fileStream, string fileName, string contentType, long fileSize, Guid uploadedBy, CancellationToken ct = default)
     {
         if (fileSize <= 0 || fileSize > MaxPhotoSizeBytes)

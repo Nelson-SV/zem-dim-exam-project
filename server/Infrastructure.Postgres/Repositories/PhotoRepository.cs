@@ -19,7 +19,7 @@ public class PhotoRepository(AppDbContext ctx) : IPhotoRepository
             .Include(p => p.Milestone)
             .Include(p => p.Project)
             .Include(p => p.Uploadedby)
-            .Where(p => p.Projectid == projectId && (p.Isdeleted == false || p.Isdeleted == null));
+            .Where(p => p.Projectid == projectId && (p.Isdeleted == false));
 
         if (milestoneId.HasValue)
             query = query.Where(p => p.Milestoneid == milestoneId.Value);
