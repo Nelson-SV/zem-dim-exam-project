@@ -1,14 +1,19 @@
 // Documents.tsx - UPDATED
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, type ChangeEvent } from 'react';
 import { FileText, Download, Eye, Upload, PenLine } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Checkbox } from '../components/ui/checkbox';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { http } from '../lib/api';
-import type { DocumentDto } from '../generated-client';
+import type { DocumentDto, ProjectDto } from '../generated-client';
 import { PdfSignatureEditor } from '../components/PdfSignatureEditor';
 
 interface SignaturePosition {
@@ -21,8 +26,19 @@ interface SignaturePosition {
 
 export function Documents() {
     const [documents, setDocuments] = useState<DocumentDto[]>([]);
+    const [projects, setProjects] = useState<ProjectDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [signingDoc, setSigningDoc] = useState<DocumentDto | null>(null);
+
+    // Upload modal state
+    const [showUploadModal, setShowUploadModal] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+    const [documentTitle, setDocumentTitle] = useState<string>('');
+    const [requiresSignature, setRequiresSignature] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const fetchDocuments = async () => {
         try {
@@ -38,8 +54,21 @@ export function Documents() {
         }
     };
 
+    const fetchProjects = async () => {
+        try {
+            const data = await http.getMyProjects();
+            setProjects(data ?? []);
+        } catch (err: any) {
+            console.error(err);
+            toast.error('Failed to load projects', {
+                description: err.message ?? 'Unknown error',
+            });
+        }
+    };
+
     useEffect(() => {
         fetchDocuments();
+        fetchProjects();
     }, []);
 
     const formatFileSize = (bytes?: number) => {
@@ -82,6 +111,59 @@ export function Documents() {
                 description: err.message ?? 'Unknown error',
             });
             throw err;
+        }
+    };
+
+    const onUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const onFileSelected = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.name.toLowerCase().endsWith('.pdf')) {
+            toast.error('Only PDF files are allowed');
+            e.target.value = '';
+            return;
+        }
+
+        setSelectedFile(file);
+        setDocumentTitle('');
+        setRequiresSignature(false);
+        setShowUploadModal(true);
+        e.target.value = '';
+    };
+
+    const handleUpload = async () => {
+        if (!selectedFile || !selectedProjectId) {
+            toast.error('Please select a project');
+            return;
+        }
+
+        setIsUploading(true);
+        try {
+            await http.uploadClientDocument(
+                selectedFile,
+                selectedProjectId,
+                documentTitle || selectedFile.name,
+                requiresSignature
+            );
+
+            toast.success('Document uploaded successfully! 📄');
+
+            setShowUploadModal(false);
+            setSelectedFile(null);
+            setSelectedProjectId('');
+            setDocumentTitle('');
+            setRequiresSignature(false);
+
+            await fetchDocuments();
+        } catch (error: any) {
+            console.error(error);
+            toast.error('Upload error', { description: error.message ?? 'Unknown error' });
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -203,11 +285,19 @@ export function Documents() {
                     <Button
                         className="bg-[#F97316] hover:bg-[#F97316]/90"
                         type="button"
-                        onClick={() => toast.info('Client upload is not implemented yet.')}
+                        onClick={onUploadClick}
                     >
                         <Upload className="size-4 mr-2" />
                         Upload document
                     </Button>
+
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={onFileSelected}
+                    />
                 </div>
 
                 <div>
@@ -251,6 +341,97 @@ export function Documents() {
                     onCancel={() => setSigningDoc(null)}
                 />
             )}
+
+            {/* Upload Modal */}
+            <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Upload Document</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>File</Label>
+                            <Input
+                                value={selectedFile?.name || ''}
+                                disabled
+                                className="bg-muted"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Select Project *</Label>
+                            <Select
+                                value={selectedProjectId}
+                                onValueChange={setSelectedProjectId}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Choose a project..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {projects.map((project) => (
+                                        <SelectItem key={project.id} value={project.id!}>
+                                            {project.title}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Title (optional)</Label>
+                            <Input
+                                value={documentTitle}
+                                onChange={(e) => setDocumentTitle(e.target.value)}
+                                placeholder="Enter document title or leave blank to use filename"
+                            />
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="requiresSignature"
+                                checked={requiresSignature}
+                                onCheckedChange={(checked) => setRequiresSignature(checked === true)}
+                            />
+                            <Label
+                                htmlFor="requiresSignature"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            >
+                                This document requires a signature from the company
+                            </Label>
+                        </div>
+
+                        <div className="text-sm text-muted-foreground">
+                            {requiresSignature
+                                ? 'The company will be notified to sign this document.'
+                                : 'This document will be sent to the company without requiring a signature.'}
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setShowUploadModal(false);
+                                setSelectedFile(null);
+                                setSelectedProjectId('');
+                                setDocumentTitle('');
+                                setRequiresSignature(false);
+                            }}
+                            disabled={isUploading}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleUpload}
+                            disabled={isUploading || !selectedProjectId}
+                            className="bg-[#F97316] hover:bg-[#F97316]/90"
+                        >
+                            {isUploading ? 'Uploading...' : 'Upload'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

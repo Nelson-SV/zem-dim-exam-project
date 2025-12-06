@@ -1,6 +1,6 @@
 // AdminDocuments.tsx (UPDATED with Project Filtering)
 import { useState, useEffect, useRef, type ChangeEvent } from 'react';
-import { FileText, Download, Trash2, Upload, Send, CheckCircle, Clock, Eye, Filter, X } from 'lucide-react';
+import { FileText, Download, Trash2, Upload, Send, CheckCircle, Clock, Eye, Filter, X, PenLine } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -8,16 +8,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Checkbox } from '../components/ui/checkbox';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { http } from '../lib/api.ts';
 import type { DocumentDto, ProjectDto, UpdateDocumentRequest } from '../generated-client';
+import { PdfSignatureEditor } from '../components/PdfSignatureEditor';
+
+interface SignaturePosition {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    pageNumber: number;
+}
 
 export function AdminDocuments() {
     const [documents, setDocuments] = useState<DocumentDto[]>([]);
     const [projects, setProjects] = useState<ProjectDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [signingDoc, setSigningDoc] = useState<DocumentDto | null>(null);
 
     // Filter state
     const [selectedFilterProjectId, setSelectedFilterProjectId] = useState<string>('all');
@@ -26,6 +37,8 @@ export function AdminDocuments() {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+    const [isVisibleToClient, setIsVisibleToClient] = useState(false);
+    const [requiresSignature, setRequiresSignature] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -97,6 +110,8 @@ export function AdminDocuments() {
         }
 
         setSelectedFile(file);
+        setIsVisibleToClient(false);
+        setRequiresSignature(false);
         setShowUploadModal(true);
         e.target.value = '';
     };
@@ -109,16 +124,24 @@ export function AdminDocuments() {
 
         setIsUploading(true);
         try {
-            await http.uploadProjectDocument(selectedFile, selectedProjectId, selectedFile.name);
+            await http.uploadProjectDocument(
+                selectedFile,
+                selectedProjectId,
+                selectedFile.name,
+                isVisibleToClient,
+                requiresSignature
+            );
 
             toast.success('Document uploaded successfully! 📄');
 
             setShowUploadModal(false);
             setSelectedFile(null);
             setSelectedProjectId('');
+            setIsVisibleToClient(false);
+            setRequiresSignature(false);
 
             await loadData();
-        } catch (error: any) {
+        } catch (error: never) {
             console.error(error);
             toast.error('Upload error', { description: error.message ?? 'Unknown error' });
         } finally {
@@ -160,6 +183,31 @@ export function AdminDocuments() {
             toast.error('Failed to delete document', {
                 description: error.message ?? 'Unknown error',
             });
+        }
+    };
+
+    const handleSign = async (signatureBase64: string, position: SignaturePosition) => {
+        if (!signingDoc?.id) return;
+
+        try {
+            await http.documents.signDocument(signingDoc.id, {
+                signatureBase64,
+                positionX: position.x,
+                positionY: position.y,
+                positionWidth: position.width,
+                positionHeight: position.height,
+                pageNumber: position.pageNumber,
+            });
+
+            toast.success('Document signed successfully! ✅');
+            await loadData();
+            setSigningDoc(null);
+        } catch (err: any) {
+            console.error(err);
+            toast.error('Failed to sign document', {
+                description: err.message ?? 'Unknown error',
+            });
+            throw err;
         }
     };
 
@@ -250,6 +298,19 @@ export function AdminDocuments() {
                         title="Send to client for signature"
                     >
                         <Send className="size-4" />
+                    </Button>
+                )}
+
+                {doc.requiresSignature && !doc.isSigned && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        onClick={() => setSigningDoc(doc)}
+                        title="Sign document"
+                        className="text-blue-600 hover:text-blue-600"
+                    >
+                        <PenLine className="size-4" />
                     </Button>
                 )}
 
@@ -448,8 +509,46 @@ export function AdminDocuments() {
                             </Select>
                         </div>
 
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="isVisibleToClient"
+                                checked={isVisibleToClient}
+                                onCheckedChange={(checked) => {
+                                    const isChecked = checked === true;
+                                    setIsVisibleToClient(isChecked);
+                                    // If making invisible, also uncheck signature requirement
+                                    if (!isChecked) setRequiresSignature(false);
+                                }}
+                            />
+                            <Label
+                                htmlFor="isVisibleToClient"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            >
+                                Make visible to client
+                            </Label>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="requiresSignature"
+                                checked={requiresSignature}
+                                disabled={!isVisibleToClient}
+                                onCheckedChange={(checked) => setRequiresSignature(checked === true)}
+                            />
+                            <Label
+                                htmlFor="requiresSignature"
+                                className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${isVisibleToClient ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+                            >
+                                Requires signature from client
+                            </Label>
+                        </div>
+
                         <div className="text-sm text-muted-foreground">
-                            This document will be associated with the selected project.
+                            {!isVisibleToClient
+                                ? 'This document will be internal (visible only to admins).'
+                                : requiresSignature
+                                ? 'The client will see this document and will be required to sign it.'
+                                : 'The client will see this document for information only (no signature required).'}
                         </div>
                     </div>
 
@@ -460,6 +559,8 @@ export function AdminDocuments() {
                                 setShowUploadModal(false);
                                 setSelectedFile(null);
                                 setSelectedProjectId('');
+                                setIsVisibleToClient(false);
+                                setRequiresSignature(false);
                             }}
                             disabled={isUploading}
                         >
@@ -475,6 +576,15 @@ export function AdminDocuments() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* PDF Signature Editor Modal */}
+            {signingDoc && (
+                <PdfSignatureEditor
+                    pdfUrl={signingDoc.fileUrl!}
+                    onSign={handleSign}
+                    onCancel={() => setSigningDoc(null)}
+                />
+            )}
         </div>
     );
 }

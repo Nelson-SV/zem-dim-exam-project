@@ -50,7 +50,7 @@ export class DocumentsClient {
         return Promise.resolve<DocumentDto[]>(null as any);
     }
 
-    upload(contentType: string | null | undefined, contentDisposition: string | null | undefined, headers: any[] | null | undefined, length: number | undefined, name: string | null | undefined, fileName: string | null | undefined, projectId: string | undefined, title: string | null | undefined): Promise<DocumentDto> {
+    upload(contentType: string | null | undefined, contentDisposition: string | null | undefined, headers: any[] | null | undefined, length: number | undefined, name: string | null | undefined, fileName: string | null | undefined, projectId: string | undefined, title: string | null | undefined, isVisibleToClient: boolean | undefined, requiresSignature: boolean | undefined): Promise<DocumentDto> {
         let url_ = this.baseUrl + "/api/Documents";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -75,6 +75,14 @@ export class DocumentsClient {
             content_.append("projectId", projectId.toString());
         if (title !== null && title !== undefined)
             content_.append("title", title.toString());
+        if (isVisibleToClient === null || isVisibleToClient === undefined)
+            throw new globalThis.Error("The parameter 'isVisibleToClient' cannot be null.");
+        else
+            content_.append("isVisibleToClient", isVisibleToClient.toString());
+        if (requiresSignature === null || requiresSignature === undefined)
+            throw new globalThis.Error("The parameter 'requiresSignature' cannot be null.");
+        else
+            content_.append("requiresSignature", requiresSignature.toString());
 
         let options_: RequestInit = {
             body: content_,
@@ -221,6 +229,66 @@ export class DocumentsClient {
             });
         }
         return Promise.resolve<FileResponse>(null as any);
+    }
+
+    clientUpload(contentType: string | null | undefined, contentDisposition: string | null | undefined, headers: any[] | null | undefined, length: number | undefined, name: string | null | undefined, fileName: string | null | undefined, projectId: string | undefined, title: string | null | undefined, requiresSignature: boolean | undefined): Promise<DocumentDto> {
+        let url_ = this.baseUrl + "/api/Documents/client-upload";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (contentType !== null && contentType !== undefined)
+            content_.append("ContentType", contentType.toString());
+        if (contentDisposition !== null && contentDisposition !== undefined)
+            content_.append("ContentDisposition", contentDisposition.toString());
+        if (headers !== null && headers !== undefined)
+            headers.forEach(item_ => content_.append("Headers", item_.toString()));
+        if (length === null || length === undefined)
+            throw new globalThis.Error("The parameter 'length' cannot be null.");
+        else
+            content_.append("Length", length.toString());
+        if (name !== null && name !== undefined)
+            content_.append("Name", name.toString());
+        if (fileName !== null && fileName !== undefined)
+            content_.append("FileName", fileName.toString());
+        if (projectId === null || projectId === undefined)
+            throw new globalThis.Error("The parameter 'projectId' cannot be null.");
+        else
+            content_.append("projectId", projectId.toString());
+        if (title !== null && title !== undefined)
+            content_.append("title", title.toString());
+        if (requiresSignature === null || requiresSignature === undefined)
+            throw new globalThis.Error("The parameter 'requiresSignature' cannot be null.");
+        else
+            content_.append("requiresSignature", requiresSignature.toString());
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processClientUpload(_response);
+        });
+    }
+
+    protected processClientUpload(response: Response): Promise<DocumentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DocumentDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentDto>(null as any);
     }
 
     signDocument(documentId: string, request: SignDocumentRequest): Promise<SignedDocumentResponseDto> {

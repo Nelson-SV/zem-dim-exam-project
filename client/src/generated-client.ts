@@ -680,7 +680,7 @@ export class ProjectsClient {
     }
 
     getMyProjects(): Promise<ProjectDto[]> {
-        let url_ = this.baseUrl + "/api/Projects/api/admin/projects/GetMyProjects";
+        let url_ = this.baseUrl + "/api/admin/projects/GetMyProjects";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
