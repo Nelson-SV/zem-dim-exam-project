@@ -1,6 +1,6 @@
 // Documents.tsx - UPDATED
 import { useEffect, useState, useRef, type ChangeEvent } from 'react';
-import { FileText, Download, Eye, Upload, PenLine } from 'lucide-react';
+import { FileText, Download, Eye, Upload, PenLine, CheckCircle, Clock, Filter } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -29,6 +29,9 @@ export function Documents() {
     const [projects, setProjects] = useState<ProjectDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [signingDoc, setSigningDoc] = useState<DocumentDto | null>(null);
+
+    // Filter state
+    const [selectedFilterProjectId, setSelectedFilterProjectId] = useState<string>('all');
 
     // Upload modal state
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -80,10 +83,20 @@ export function Documents() {
 
     const getStatusBadge = (doc: DocumentDto) => {
         if (doc.isSigned) {
-            return <Badge variant="default" className="bg-green-600">Signed</Badge>;
+            return (
+                <Badge variant="default" className="bg-green-600">
+                    <CheckCircle className="size-3 mr-1" />
+                    Signed
+                </Badge>
+            );
         }
         if (doc.requiresSignature) {
-            return <Badge variant="default" className="bg-orange-600">Awaiting signature</Badge>;
+            return (
+                <Badge variant="default" className="bg-orange-600">
+                    <Clock className="size-3 mr-1" />
+                    Awaiting signature
+                </Badge>
+            );
         }
         return null;
     };
@@ -268,8 +281,23 @@ export function Documents() {
         return <div className="flex items-center justify-center h-64">Loading...</div>;
     }
 
-    const clientDocs = documents.filter((d) => d.uploadedBy === 'client');
-    const companyDocs = documents.filter((d) => d.uploadedBy !== 'client');
+    // Filter documents based on selected project
+    const getFilteredDocuments = () => {
+        if (selectedFilterProjectId === 'all') {
+            return documents;
+        }
+        return documents.filter(doc => doc.projectId === selectedFilterProjectId);
+    };
+
+    // Get project name by ID
+    const getProjectName = (projectId?: string) => {
+        if (!projectId) return 'Unknown Project';
+        return projects.find(p => p.id === projectId)?.title || 'Unknown Project';
+    };
+
+    const filteredDocuments = getFilteredDocuments();
+    const clientDocs = filteredDocuments.filter((d) => d.uploadedBy === 'client');
+    const companyDocs = filteredDocuments.filter((d) => d.uploadedBy !== 'client');
 
     return (
         <>
@@ -299,6 +327,55 @@ export function Documents() {
                         onChange={onFileSelected}
                     />
                 </div>
+
+                {/* Filter Section */}
+                <Card className="p-4">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <Filter className="size-5 text-muted-foreground" />
+                            <span className="font-medium">Filter by Project:</span>
+                        </div>
+                        <Select
+                            value={selectedFilterProjectId}
+                            onValueChange={setSelectedFilterProjectId}
+                        >
+                            <SelectTrigger className="w-[300px]">
+                                <SelectValue placeholder="Select a project..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    <div className="flex items-center gap-2">
+                                        <span>All Projects</span>
+                                        <Badge variant="secondary">{documents.length}</Badge>
+                                    </div>
+                                </SelectItem>
+                                {projects.map((project) => {
+                                    const count = documents.filter(d => d.projectId === project.id).length;
+                                    return (
+                                        <SelectItem key={project.id} value={project.id!}>
+                                            <div className="flex items-center gap-2">
+                                                <span>{project.title}</span>
+                                                {count > 0 && (
+                                                    <Badge variant="secondary">{count}</Badge>
+                                                )}
+                                            </div>
+                                        </SelectItem>
+                                    );
+                                })}
+                            </SelectContent>
+                        </Select>
+                        {selectedFilterProjectId !== 'all' && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedFilterProjectId('all')}
+                                className="text-muted-foreground hover:text-foreground"
+                            >
+                                Clear filter
+                            </Button>
+                        )}
+                    </div>
+                </Card>
 
                 <div>
                     <div className="flex items-center gap-3 mb-4">
