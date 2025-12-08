@@ -1342,6 +1342,157 @@ export class ProjectsClient {
     }
 }
 
+export class SettingsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getCompanyInfo(): Promise<CompanyDto> {
+        let url_ = this.baseUrl + "/api/Settings/company";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetCompanyInfo(_response);
+        });
+    }
+
+    protected processGetCompanyInfo(response: Response): Promise<CompanyDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as CompanyDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CompanyDto>(null as any);
+    }
+
+    updateCompanyInfo(dto: UpdateCompanyDto): Promise<CompanyDto> {
+        let url_ = this.baseUrl + "/api/Settings/company";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateCompanyInfo(_response);
+        });
+    }
+
+    protected processUpdateCompanyInfo(response: Response): Promise<CompanyDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as CompanyDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CompanyDto>(null as any);
+    }
+
+    getUserSettings(): Promise<UserSettingsDto> {
+        let url_ = this.baseUrl + "/api/Settings/notifications";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetUserSettings(_response);
+        });
+    }
+
+    protected processGetUserSettings(response: Response): Promise<UserSettingsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as UserSettingsDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UserSettingsDto>(null as any);
+    }
+
+    updateUserSettings(dto: UpdateUserSettingsDto): Promise<UserSettingsDto> {
+        let url_ = this.baseUrl + "/api/Settings/notifications";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateUserSettings(_response);
+        });
+    }
+
+    protected processUpdateUserSettings(response: Response): Promise<UserSettingsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as UserSettingsDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UserSettingsDto>(null as any);
+    }
+}
+
 export class User3DScansClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -2808,6 +2959,39 @@ export interface UpdateProjectStatusDto {
 
 export interface UpdateProjectProgressDto {
     progressPercentage: number;
+}
+
+export interface CompanyDto {
+    id?: string;
+    name?: string;
+    email?: string;
+    phone?: string | undefined;
+    website?: string | undefined;
+    address?: string | undefined;
+    currency?: string | undefined;
+}
+
+export interface UpdateCompanyDto {
+    name: string;
+    email: string;
+    phone?: string | undefined;
+    website?: string | undefined;
+    address?: string | undefined;
+    currency?: string | undefined;
+}
+
+export interface UserSettingsDto {
+    id?: string;
+    userId?: string;
+    emailAlerts?: boolean;
+    reportFrequency?: string;
+    clientUpdates?: boolean;
+}
+
+export interface UpdateUserSettingsDto {
+    emailAlerts?: boolean;
+    reportFrequency: string;
+    clientUpdates?: boolean;
 }
 
 export interface User3DScanDto {

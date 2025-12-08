@@ -5,6 +5,7 @@ import { PhotoGallery } from "../client/PhotoGallery";
 import { Viewer3D } from "../client/Viewer3D";
 import { Documents } from "../client/Documents";
 import { Calculator } from "../client/Calculator";
+import { ClientProfile } from "../client/ClientProfile";
 import { MessagesPage } from "../client/MessagesPage";
 
 const clientLinks = [
@@ -28,6 +29,7 @@ export function ClientNavigation() {
         <Route path="messages" element={<MessagesPage />} />
         <Route path="documents" element={<Documents />} />
         <Route path="calculator" element={<Calculator />} />
+        <Route path="profile" element={<ClientProfile />} />
       </Routes>
     </>
   );

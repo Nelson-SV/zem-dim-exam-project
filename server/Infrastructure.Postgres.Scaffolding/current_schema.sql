@@ -154,6 +154,21 @@ END $EF$;
 CREATE EXTENSION IF NOT EXISTS supabase_vault SCHEMA vault;
 
 
+CREATE TABLE company (
+    id uuid NOT NULL DEFAULT (gen_random_uuid()),
+    name character varying(255) NOT NULL,
+    email character varying(255) NOT NULL,
+    phone character varying(50),
+    website character varying(255),
+    address text,
+    currency character varying(3) DEFAULT ('UAH'::character varying),
+    createdat timestamp with time zone DEFAULT (now()),
+    updatedat timestamp with time zone DEFAULT (now()),
+    CONSTRAINT company_pkey PRIMARY KEY (id)
+);
+COMMENT ON TABLE company IS 'Global company information and settings';
+
+
 CREATE TABLE users (
     id uuid NOT NULL DEFAULT (gen_random_uuid()),
     email character varying(255) NOT NULL,
@@ -210,6 +225,20 @@ CREATE TABLE refreshtokens (
     CONSTRAINT refreshtokens_pkey PRIMARY KEY (id),
     CONSTRAINT refreshtokens_userid_fkey FOREIGN KEY (userid) REFERENCES users (id) ON DELETE CASCADE
 );
+
+
+CREATE TABLE usersettings (
+    id uuid NOT NULL DEFAULT (gen_random_uuid()),
+    userid uuid NOT NULL,
+    emailalerts boolean DEFAULT TRUE,
+    reportfrequency character varying(20) DEFAULT ('Weekly'::character varying),
+    clientupdates boolean DEFAULT TRUE,
+    createdat timestamp with time zone DEFAULT (now()),
+    updatedat timestamp with time zone DEFAULT (now()),
+    CONSTRAINT usersettings_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_usersettings_user FOREIGN KEY (userid) REFERENCES users (id) ON DELETE CASCADE
+);
+COMMENT ON TABLE usersettings IS 'Per-user notification settings';
 
 
 CREATE TABLE documents (
@@ -504,5 +533,11 @@ CREATE INDEX idx_users_role ON users (role);
 
 
 CREATE UNIQUE INDEX users_email_key ON users (email);
+
+
+CREATE INDEX idx_usersettings_userid ON usersettings (userid);
+
+
+CREATE UNIQUE INDEX unique_user_settings ON usersettings (userid);
 
 
