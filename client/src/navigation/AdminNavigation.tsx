@@ -6,6 +6,7 @@ import { ProjectDetails } from "../admin/ProjectDetails";
 import { ClientManagementPage } from "../admin/client-management/ClientManagementPage";
 import { AdminDocuments } from "../admin/AdminDocuments.tsx";
 import { AdminSettings } from "../admin/AdminSettings";
+import { Profile } from "../admin/Profile";
 import { MessagesPage } from "../client/MessagesPage";
 import { useParams } from "react-router-dom";
 
@@ -43,6 +44,7 @@ export function AdminNavigation() {
         <Route path="messages" element={<MessagesPage />} />
         <Route path="documents" element={<AdminDocuments />} />
         <Route path="settings" element={<AdminSettings />} />
+        <Route path="profile" element={<Profile />} />
       </Routes>
     </>
   );
