@@ -26,15 +26,14 @@ public class ClientProjectPhotosController : ControllerBase
         Guid projectId,
         [FromQuery] Guid? milestoneId,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken ct = default)
+        [FromQuery] int pageSize = 20)
     {
         try
         {
             var requesterId = GetUserIdFromToken();
             var role = GetUserRoleFromToken();
 
-            var result = await _photoService.GetForClientAsync(requesterId, role, projectId, milestoneId, page, pageSize, ct);
+            var result = await _photoService.GetForClientAsync(requesterId, role, projectId, milestoneId, page, pageSize);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)

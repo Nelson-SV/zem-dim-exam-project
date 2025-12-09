@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { X, Download, ChevronLeft, ChevronRight, Filter, Loader2, ImageOff } from 'lucide-react';
+import { X, Download, ChevronLeft, ChevronRight, Filter, Loader2, ImageOff, Maximize2 } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -15,6 +15,7 @@ import {
 import { http } from '../lib/api';
 import type { ClientDashboardProjectDto, PhotoDto } from '../generated-client';
 import { PaginationComponent } from '../components/PaginationComponent';
+import { useAuth } from '../contexts/useAuth';
 
 const PAGE_SIZE = 100;
 const MILESTONES_PER_PAGE = 2;
@@ -36,6 +37,7 @@ export function PhotoGallery() {
   const [error, setError] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const { user } = useAuth();
 
   // Load projects (and their stages) from the client dashboard
   useEffect(() => {
@@ -43,7 +45,7 @@ export function PhotoGallery() {
       setLoadingProjects(true);
       setError(null);
       try {
-        const res = await http.clientDashboard.getDashboard(undefined, 3);
+        const res = await http.clientDashboard.getClientProjects(user?.id, undefined, 3);
         const list = res.projects ?? [];
         setProjects(list);
         setSelectedProjectId(prev => prev ?? list[0]?.id ?? null);
@@ -229,8 +231,8 @@ export function PhotoGallery() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {stagePhotos.map(photo => (
-                <Card 
-                  key={photo.id} 
+                <Card
+                  key={photo.id}
                   className="overflow-hidden cursor-pointer hover:shadow-lg transition-all group"
                   onClick={() => photo.fileUrl && setSelectedPhoto(photo.fileUrl)}
                 >
@@ -246,13 +248,40 @@ export function PhotoGallery() {
                         <ImageOff className="size-6" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="p-3 bg-white rounded-full">
-                          <Download className="size-5 text-foreground" />
+                    {photo.fileUrl && (
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                        <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="bg-white/90 hover:bg-white"
+                            aria-label="View full screen"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedPhoto(photo.fileUrl!);
+                            }}
+                          >
+                            <Maximize2 className="size-5 text-foreground" />
+                          </Button>
+
+                          <a
+                            href={photo.fileUrl}
+                            download
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex"
+                          >
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="bg-white/90 hover:bg-white"
+                              aria-label="Download photo"
+                            >
+                              <Download className="size-5 text-foreground" />
+                            </Button>
+                          </a>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                   <div className="p-4">
                     <p className="mb-1">{photo.caption || 'Untitled photo'}</p>

@@ -1209,8 +1209,12 @@ export class ClientDashboardClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    getDashboard(projectId: string | null | undefined, updatesLimit: number | undefined): Promise<ClientDashboardResponseDto> {
-        let url_ = this.baseUrl + "/api/client/dashboard?";
+    getClientProjects(userIdFromClient: string | undefined, projectId: string | null | undefined, updatesLimit: number | undefined): Promise<ClientDashboardResponseDto> {
+        let url_ = this.baseUrl + "/api/client/dashboard/GetClientProjects?";
+        if (userIdFromClient === null)
+            throw new globalThis.Error("The parameter 'userIdFromClient' cannot be null.");
+        else if (userIdFromClient !== undefined)
+            url_ += "userIdFromClient=" + encodeURIComponent("" + userIdFromClient) + "&";
         if (projectId !== undefined && projectId !== null)
             url_ += "projectId=" + encodeURIComponent("" + projectId) + "&";
         if (updatesLimit === null)
@@ -1227,11 +1231,11 @@ export class ClientDashboardClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetDashboard(_response);
+            return this.processGetClientProjects(_response);
         });
     }
 
-    protected processGetDashboard(response: Response): Promise<ClientDashboardResponseDto> {
+    protected processGetClientProjects(response: Response): Promise<ClientDashboardResponseDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2672,6 +2676,7 @@ export interface ClientDashboardResponseDto {
 export interface ClientDashboardProjectDto {
     id?: string;
     title?: string;
+    notes?: string;
     address?: string | undefined;
     city?: string | undefined;
     postalCode?: string | undefined;

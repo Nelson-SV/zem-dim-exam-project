@@ -69,12 +69,11 @@ public class ProjectsController : ControllerBase
         [FromQuery(Name = "q")] string? search,
         [FromQuery] string? status,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken ct = default)
+        [FromQuery] int pageSize = 20)
     {
         try
         {
-            var result = await _projectService.GetPagedAsync(search, status, page, pageSize, ct);
+            var result = await _projectService.GetPagedAsync(search, status, page, pageSize);
             return Ok(result);
         }
         catch (Exception ex)

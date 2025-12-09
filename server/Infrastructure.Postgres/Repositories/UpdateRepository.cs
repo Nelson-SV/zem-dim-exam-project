@@ -12,8 +12,7 @@ public class UpdateRepository(AppDbContext context) : IUpdateRepository
         int pageSize,
         Guid? projectId,
         string? updateType,
-        string? search,
-        CancellationToken ct = default)
+        string? search)
     {
         var query = context.Updates
             .Include(u => u.Project)
@@ -28,8 +27,8 @@ public class UpdateRepository(AppDbContext context) : IUpdateRepository
 
         if (!string.IsNullOrWhiteSpace(updateType))
         {
-            var normalizedType = updateType.Trim().ToLower();
-            query = query.Where(u => u.Updatetype.ToLower() == normalizedType);
+            var normalizedUpdateType = updateType.Trim().ToLower();
+            query = query.Where(u => u.Updatetype.ToLower() == normalizedUpdateType);
         }
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -42,11 +41,11 @@ public class UpdateRepository(AppDbContext context) : IUpdateRepository
 
         query = query.OrderByDescending(u => u.Createdat ?? DateTime.MinValue);
 
-        var total = await query.CountAsync(ct);
+        var total = await query.CountAsync();
         var items = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync(ct);
+            .ToListAsync();
 
         return (items, total);
     }

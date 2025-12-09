@@ -19,13 +19,13 @@ public class PhotoService(
     private const long MaxPhotoSizeBytes = 10 * 1024 * 1024; // 10MB
     private static readonly string[] AllowedPhotoMimeTypes = { "image/jpeg", "image/png", "image/webp", "image/gif" };
 
-    public async Task<PaginationItemsResponse<PhotoDto>> GetAsync(Guid projectId, Guid? milestoneId, int page, int pageSize, CancellationToken ct = default)
+    public async Task<PaginationItemsResponse<PhotoDto>> GetAsync(Guid projectId, Guid? milestoneId, int page, int pageSize)
     {
-        await EnsureProjectExists(projectId, ct);
+        await EnsureProjectExists(projectId);
         if (milestoneId.HasValue)
-            await EnsureMilestone(projectId, milestoneId.Value, ct);
+            await EnsureMilestone(projectId, milestoneId.Value);
 
-        var (items, total) = await repository.GetAsync(projectId, milestoneId, page, pageSize, ct);
+        var (items, total) = await repository.GetAsync(projectId, milestoneId, page, pageSize);
         return new PaginationItemsResponse<PhotoDto>
         {
             Items = PhotoDto.FromEntities(items),
@@ -41,8 +41,7 @@ public class PhotoService(
         Guid projectId,
         Guid? milestoneId,
         int page,
-        int pageSize,
-        CancellationToken ct = default)
+        int pageSize)
     {
         var project = await projectRepository.GetByIdAsync(projectId);
         if (project == null || project.Isdeleted)
@@ -53,9 +52,9 @@ public class PhotoService(
             throw new UnauthorizedAccessException("You are not allowed to view this project's photos");
 
         if (milestoneId.HasValue)
-            await EnsureMilestone(projectId, milestoneId.Value, ct);
+            await EnsureMilestone(projectId, milestoneId.Value);
 
-        var (items, total) = await repository.GetAsync(projectId, milestoneId, page, pageSize, ct);
+        var (items, total) = await repository.GetAsync(projectId, milestoneId, page, pageSize);
         return new PaginationItemsResponse<PhotoDto>
         {
             Items = PhotoDto.FromEntities(items),
@@ -65,7 +64,7 @@ public class PhotoService(
         };
     }
 
-    public async Task<PhotoDto> CreateAsync(Guid projectId, CreatePhotoDto dto, Stream fileStream, string fileName, string contentType, long fileSize, Guid uploadedBy, CancellationToken ct = default)
+    public async Task<PhotoDto> CreateAsync(Guid projectId, CreatePhotoDto dto, Stream fileStream, string fileName, string contentType, long fileSize, Guid uploadedBy)
     {
         if (fileSize <= 0 || fileSize > MaxPhotoSizeBytes)
             throw new ApplicationException("Photo file size exceeds allowed limit (10 MB).");
@@ -77,11 +76,11 @@ public class PhotoService(
         string fileUrl = string.Empty;
         try
         {
-            await EnsureProjectExists(projectId, ct);
+            await EnsureProjectExists(projectId);
             if (dto.MilestoneId.HasValue)
-                await EnsureMilestone(projectId, dto.MilestoneId.Value, ct);
+                await EnsureMilestone(projectId, dto.MilestoneId.Value);
 
-            fileUrl = await storage.UploadPhotoAsync(fileStream, fileName, contentType, projectId, dto.MilestoneId, ct);
+            fileUrl = await storage.UploadPhotoAsync(fileStream, fileName, contentType, projectId, dto.MilestoneId);
 
             var entity = new Photo
             {
@@ -97,7 +96,7 @@ public class PhotoService(
                 Createdat = DateTime.UtcNow
             };
 
-            var saved = await repository.InsertAsync(entity, ct);
+            var saved = await repository.InsertAsync(entity);
             await unitOfWork.CommitAsync();
             logger.LogInformation("Photo {PhotoId} created for project {ProjectId} by {UserId}", saved.Id, projectId, uploadedBy);
             return PhotoDto.FromEntity(saved);
@@ -106,29 +105,29 @@ public class PhotoService(
         {
             await unitOfWork.RollbackAsync();
             if (!string.IsNullOrEmpty(fileUrl))
-                await storage.DeleteFileAsync(fileUrl, ct);
+                await storage.DeleteFileAsync(fileUrl);
             logger.LogError(ex, "Failed to create photo for project {ProjectId}", projectId);
             throw;
         }
     }
 
-    public async Task<PhotoDto> UpdateAsync(Guid projectId, Guid photoId, UpdatePhotoDto dto, Guid performedBy, CancellationToken ct = default)
+    public async Task<PhotoDto> UpdateAsync(Guid projectId, Guid photoId, UpdatePhotoDto dto, Guid performedBy)
     {
         await unitOfWork.BeginAsync();
         try
         {
-            var photo = await repository.GetByIdAsync(photoId, ct) ?? throw new KeyNotFoundException("Photo not found");
+            var photo = await repository.GetByIdAsync(photoId) ?? throw new KeyNotFoundException("Photo not found");
             if (photo.Projectid != projectId)
                 throw new UnauthorizedAccessException("Photo does not belong to this project");
 
             if (dto.MilestoneId.HasValue)
-                await EnsureMilestone(projectId, dto.MilestoneId.Value, ct);
+                await EnsureMilestone(projectId, dto.MilestoneId.Value);
 
             photo.Milestoneid = dto.MilestoneId ?? photo.Milestoneid;
             photo.Caption = dto.Caption ?? photo.Caption;
             photo.Takenat = dto.TakenAt ?? photo.Takenat;
 
-            var updated = await repository.UpdateAsync(photo, ct);
+            var updated = await repository.UpdateAsync(photo);
             await unitOfWork.CommitAsync();
             logger.LogInformation("Photo {PhotoId} updated by {UserId}", photoId, performedBy);
             return PhotoDto.FromEntity(updated);
@@ -141,18 +140,18 @@ public class PhotoService(
         }
     }
 
-    public async Task DeleteAsync(Guid projectId, Guid photoId, Guid performedBy, CancellationToken ct = default)
+    public async Task DeleteAsync(Guid projectId, Guid photoId, Guid performedBy)
     {
         await unitOfWork.BeginAsync();
         try
         {
-            var photo = await repository.GetByIdAsync(photoId, ct) ?? throw new KeyNotFoundException("Photo not found");
+            var photo = await repository.GetByIdAsync(photoId) ?? throw new KeyNotFoundException("Photo not found");
             if (photo.Projectid != projectId)
                 throw new UnauthorizedAccessException("Photo does not belong to this project");
 
-            await repository.SoftDeleteAsync(photoId, ct);
+            await repository.SoftDeleteAsync(photoId);
             if (!string.IsNullOrEmpty(photo.Fileurl))
-                await storage.DeleteFileAsync(photo.Fileurl, ct);
+                await storage.DeleteFileAsync(photo.Fileurl);
 
             await unitOfWork.CommitAsync();
             logger.LogInformation("Photo {PhotoId} deleted by {UserId}", photoId, performedBy);
@@ -165,16 +164,16 @@ public class PhotoService(
         }
     }
 
-    private async Task EnsureProjectExists(Guid projectId, CancellationToken ct)
+    private async Task EnsureProjectExists(Guid projectId)
     {
         var project = await projectRepository.GetByIdAsync(projectId);
         if (project == null || project.Isdeleted)
             throw new KeyNotFoundException("Project not found");
     }
 
-    private async Task EnsureMilestone(Guid projectId, Guid milestoneId, CancellationToken ct)
+    private async Task EnsureMilestone(Guid projectId, Guid milestoneId)
     {
-        if (!await milestoneRepository.BelongsToProjectAsync(milestoneId, projectId, ct))
+        if (!await milestoneRepository.BelongsToProjectAsync(milestoneId, projectId))
             throw new ApplicationException("Milestone does not belong to the project.");
     }
 }

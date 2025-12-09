@@ -1054,13 +1054,21 @@
         }
       }
     },
-    "/api/client/dashboard": {
+    "/api/client/dashboard/GetClientProjects": {
       "get": {
         "tags": [
           "ClientDashboard"
         ],
-        "operationId": "ClientDashboard_GetDashboard",
+        "operationId": "ClientDashboard_GetClientProjects",
         "parameters": [
+          {
+            "name": "userIdFromClient",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
           {
             "name": "projectId",
             "in": "query",
@@ -1069,7 +1077,7 @@
               "format": "guid",
               "nullable": true
             },
-            "x-position": 1
+            "x-position": 2
           },
           {
             "name": "updatesLimit",
@@ -1079,7 +1087,7 @@
               "format": "int32",
               "default": 5
             },
-            "x-position": 2
+            "x-position": 3
           }
         ],
         "responses": {
@@ -3035,6 +3043,9 @@
             "format": "guid"
           },
           "title": {
+            "type": "string"
+          },
+          "notes": {
             "type": "string"
           },
           "address": {
