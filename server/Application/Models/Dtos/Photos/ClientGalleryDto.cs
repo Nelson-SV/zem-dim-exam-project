@@ -1,4 +1,9 @@
+using Core.Domain.Entities;
+
 namespace Application.Models.Dtos.Photos;
+
+public record ClientGalleryProjectDto(Guid Id, string Title, IReadOnlyCollection<ClientGalleryStageDto> Stages);
+public record ClientGalleryStageDto(Guid Id, string Title, int OrderIndex);
 
 public class ClientGalleryDto
 {
@@ -23,6 +28,6 @@ public class ClientGalleryDto
         CreatedAt = p.Createdat
     };
 
-    public static IReadOnlyCollection<ClientPhotoDto> FromEntities(IEnumerable<Photo> photos) =>
+    public static IReadOnlyCollection<ClientGalleryDto> FromEntities(IEnumerable<Photo> photos) =>
         photos.Select(FromEntity).ToList();
 }

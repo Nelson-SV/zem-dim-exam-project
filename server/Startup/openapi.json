@@ -1104,7 +1104,40 @@
         }
       }
     },
-    "/api/client/projects/{projectId}/photos": {
+    "/api/client/gallery/GetProjects": {
+      "get": {
+        "tags": [
+          "ClientProjectPhotos"
+        ],
+        "operationId": "ClientProjectPhotos_GetProjects",
+        "parameters": [
+          {
+            "name": "userIdFromClient",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClientGalleryProjectDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/client/gallery/GetProjectPhotos": {
       "get": {
         "tags": [
           "ClientProjectPhotos"
@@ -1113,13 +1146,20 @@
         "parameters": [
           {
             "name": "projectId",
-            "in": "path",
-            "required": true,
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "guid"
             },
             "x-position": 1
+          },
+          {
+            "name": "userIdFromClient",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
           },
           {
             "name": "milestoneId",
@@ -1129,7 +1169,7 @@
               "format": "guid",
               "nullable": true
             },
-            "x-position": 2
+            "x-position": 3
           },
           {
             "name": "page",
@@ -1139,7 +1179,7 @@
               "format": "int32",
               "default": 1
             },
-            "x-position": 3
+            "x-position": 4
           },
           {
             "name": "pageSize",
@@ -1149,7 +1189,7 @@
               "format": "int32",
               "default": 20
             },
-            "x-position": 4
+            "x-position": 5
           }
         ],
         "responses": {
@@ -3201,6 +3241,42 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          }
+        }
+      },
+      "ClientGalleryProjectDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientGalleryStageDto"
+            }
+          }
+        }
+      },
+      "ClientGalleryStageDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "orderIndex": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

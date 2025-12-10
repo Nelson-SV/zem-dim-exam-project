@@ -1,39 +1,52 @@
-using System.Security.Claims;
+using Api.Rest.AuthExtensions;
 using Application.Interfaces.Services;
 using Application.Models.Dtos.Common;
+using Application.Models.Dtos.Photos;
 using Application.Models.Dtos.Project;
+using Application.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Rest.Controllers.Client;
 
-[ApiController]
-[Route("api/client/projects/{projectId:guid}/photos")]
-[Authorize]
-public class ClientProjectPhotosController : ControllerBase
+public class ClientProjectPhotosController(
+    IClientGalleryService galleryService,
+    ILogger<ClientProjectPhotosController> logger) : ControllerBase
 {
-    private readonly IPhotoService _photoService;
-    private readonly ILogger<ClientProjectPhotosController> _logger;
-
-    public ClientProjectPhotosController(IPhotoService photoService, ILogger<ClientProjectPhotosController> logger)
-    {
-        _photoService = photoService;
-        _logger = logger;
-    }
-
+    public const string ControllerRoute = "api/client/gallery/";
+    public const string GetProjectsRoute = ControllerRoute + nameof(GetProjects);
+    public const string GetGalleryRoute = ControllerRoute + nameof(GetProjectPhotos);
+    
     [HttpGet]
+    [Authorize(Policy = AuthorizationRoles.User)]
+    [Route(GetProjectsRoute)]
+    public async Task<ActionResult<IEnumerable<ClientGalleryProjectDto>>> GetProjects([FromQuery] string userIdFromClient)
+    {
+        var userId = User.GetUserId();
+        if (userId != Guid.Parse(userIdFromClient)) return Forbid();
+
+        var projects = await galleryService.GetProjectsAsync(userId);
+        return Ok(projects);
+    }
+    
+    [HttpGet]
+    [Authorize(Policy = AuthorizationRoles.User)]
+    [Route(GetGalleryRoute)]
     public async Task<ActionResult<PaginationItemsResponse<PhotoDto>>> GetProjectPhotos(
         Guid projectId,
+        [FromQuery] string userIdFromClient,
         [FromQuery] Guid? milestoneId,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
         try
         {
-            var requesterId = GetUserIdFromToken();
-            var role = GetUserRoleFromToken();
+            var userId = User.GetUserId();
 
-            var result = await _photoService.GetForClientAsync(requesterId, role, projectId, milestoneId, page, pageSize);
+            if (userId != Guid.Parse(userIdFromClient))
+                return Forbid();
+            
+            var result = await galleryService.GetPhotosAsync(userId, projectId, milestoneId, page, pageSize);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -46,31 +59,9 @@ public class ClientProjectPhotosController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get photos for project {ProjectId}", projectId);
+            logger.LogError(ex, "Failed to get photos for project {ProjectId}", projectId);
             return StatusCode(500, new { error = "Internal server error" });
         }
-    }
-
-    private Guid GetUserIdFromToken()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                          ?? User.FindFirst("id")?.Value;
-
-        if (string.IsNullOrEmpty(userIdClaim))
-            throw new UnauthorizedAccessException("User ID not found in token");
-
-        return Guid.Parse(userIdClaim);
-    }
-
-    private string GetUserRoleFromToken()
-    {
-        var role = User.FindFirst(ClaimTypes.Role)?.Value
-                   ?? User.FindFirst("role")?.Value;
-
-        if (string.IsNullOrEmpty(role))
-            throw new UnauthorizedAccessException("User role not found in token");
-
-        return role;
     }
 }
 

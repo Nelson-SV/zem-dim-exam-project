@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { http } from '../lib/api';
-import type { ClientDashboardProjectDto, PhotoDto } from '../generated-client';
+import type { ClientGalleryProjectDto, PhotoDto } from '../generated-client';
 import { PaginationComponent } from '../components/PaginationComponent';
 import { useAuth } from '../contexts/useAuth';
 
@@ -28,7 +28,7 @@ const formatDisplayDate = (value?: Date | string) => {
 };
 
 export function PhotoGallery() {
-  const [projects, setProjects] = useState<ClientDashboardProjectDto[]>([]);
+  const [projects, setProjects] = useState<ClientGalleryProjectDto[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedStage, setSelectedStage] = useState<string>('all');
   const [photos, setPhotos] = useState<PhotoDto[]>([]);
@@ -39,14 +39,59 @@ export function PhotoGallery() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const { user } = useAuth();
 
+  const downloadPhoto = async (photo: PhotoDto) => {
+    if (!photo.fileUrl) return;
+
+    const filenameFromUrl = () => {
+      try {
+        const pathname = new URL(photo.fileUrl!).pathname;
+        const lastSegment = pathname.split('/').filter(Boolean).pop();
+        return lastSegment || 'photo.jpg';
+      } catch (err) {
+        console.warn('Could not parse filename from URL', err);
+        return 'photo.jpg';
+      }
+    };
+
+    const suggestedName = photo.caption?.trim() ? `${photo.caption}.jpg` : filenameFromUrl();
+
+    try {
+      const res = await fetch(photo.fileUrl);
+      if (!res.ok) throw new Error(`Download failed with status ${res.status}`);
+
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = suggestedName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Failed to download photo', err);
+      // Fall back to opening in a new tab if direct download fails
+      const fallbackUrl = `${photo.fileUrl}${photo.fileUrl.includes('?') ? '&' : '?'}download`;
+      window.open(fallbackUrl, '_blank', 'noopener');
+    }
+  };
+
   // Load projects (and their stages) from the client dashboard
   useEffect(() => {
     const load = async () => {
+      if (!user?.id) {
+        setProjects([]);
+        setSelectedProjectId(null);
+        setLoadingProjects(false);
+        return;
+      }
+
       setLoadingProjects(true);
       setError(null);
       try {
-        const res = await http.clientDashboard.getClientProjects(user?.id, undefined, 3);
-        const list = res.projects ?? [];
+        const list = await http.clientProjectPhotos.getProjects(user.id);
         setProjects(list);
         setSelectedProjectId(prev => prev ?? list[0]?.id ?? null);
       } catch (err) {
@@ -58,11 +103,11 @@ export function PhotoGallery() {
     };
 
     load();
-  }, []);
+  }, [user?.id]);
 
   // Load photos when project or stage changes
   useEffect(() => {
-    if (!selectedProjectId) {
+    if (!selectedProjectId || !user?.id) {
       setPhotos([]);
       setCurrentPage(1);
       return;
@@ -74,6 +119,7 @@ export function PhotoGallery() {
       try {
         const res = await http.clientProjectPhotos.getProjectPhotos(
           selectedProjectId,
+          user?.id,
           selectedStage === 'all' ? null : selectedStage,
           1,
           PAGE_SIZE,
@@ -264,21 +310,18 @@ export function PhotoGallery() {
                             <Maximize2 className="size-5 text-foreground" />
                           </Button>
 
-                          <a
-                            href={photo.fileUrl}
-                            download
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex"
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="bg-white/90 hover:bg-white"
+                            aria-label="Download photo"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              downloadPhoto(photo);
+                            }}
                           >
-                            <Button
-                              size="icon"
-                              variant="secondary"
-                              className="bg-white/90 hover:bg-white"
-                              aria-label="Download photo"
-                            >
-                              <Download className="size-5 text-foreground" />
-                            </Button>
-                          </a>
+                            <Download className="size-5 text-foreground" />
+                          </Button>
                         </div>
                       </div>
                     )}

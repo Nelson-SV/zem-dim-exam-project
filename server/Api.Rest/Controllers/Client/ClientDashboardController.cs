@@ -1,10 +1,9 @@
-using System.Security.Claims;
+using Api.Rest.AuthExtensions;
 using Application.Interfaces.Services;
 using Application.Models.Dtos.Dashboard;
 using Application.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Api.Rest.Controllers.Client;
 
@@ -23,7 +22,7 @@ public class ClientDashboardController(IClientDashboardService dashboardService,
     {
         try
         {
-            var userId = GetUserIdFromToken();
+            var userId = User.GetUserId();
 
             if (userId != Guid.Parse(userIdFromClient))
                 return Forbid();
@@ -45,27 +44,5 @@ public class ClientDashboardController(IClientDashboardService dashboardService,
             logger.LogError(ex, "Failed to fetch client dashboard");
             return StatusCode(500, new { error = "Internal server error" });
         }
-    }
-
-    private Guid GetUserIdFromToken()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                          ?? User.FindFirst("id")?.Value;
-
-        if (string.IsNullOrEmpty(userIdClaim))
-            throw new UnauthorizedAccessException("User ID not found in token");
-
-        return Guid.Parse(userIdClaim);
-    }
-
-    private string GetUserRoleFromToken()
-    {
-        var role = User.FindFirst(ClaimTypes.Role)?.Value
-                   ?? User.FindFirst("role")?.Value;
-
-        if (string.IsNullOrEmpty(role))
-            throw new UnauthorizedAccessException("User role not found in token");
-
-        return role;
     }
 }

@@ -1264,51 +1264,93 @@ export class ClientProjectPhotosClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    getProjectPhotos(projectId: string, milestoneId: string | null | undefined, page: number | undefined, pageSize: number | undefined): Promise<PaginationItemsResponseOfPhotoDto> {
-        let url_ = this.baseUrl + "/api/client/projects/{projectId}/photos?";
-        if (projectId === undefined || projectId === null)
-            throw new globalThis.Error("The parameter 'projectId' must be defined.");
-        url_ = url_.replace("{projectId}", encodeURIComponent("" + projectId));
-        if (milestoneId !== undefined && milestoneId !== null)
-            url_ += "milestoneId=" + encodeURIComponent("" + milestoneId) + "&";
-        if (page === null)
-            throw new globalThis.Error("The parameter 'page' cannot be null.");
-        else if (page !== undefined)
-            url_ += "page=" + encodeURIComponent("" + page) + "&";
-        if (pageSize === null)
-            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
-        else if (pageSize !== undefined)
-            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetProjectPhotos(_response);
-        });
-    }
-
-    protected processGetProjectPhotos(response: Response): Promise<PaginationItemsResponseOfPhotoDto> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as PaginationItemsResponseOfPhotoDto;
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+    getProjects(userIdFromClient: string | undefined): Promise<ClientGalleryProjectDto[]> {
+            let url_ = this.baseUrl + "/api/client/gallery/GetProjects?";
+            if (userIdFromClient === null)
+                throw new globalThis.Error("The parameter 'userIdFromClient' cannot be null.");
+            else if (userIdFromClient !== undefined)
+                url_ += "userIdFromClient=" + encodeURIComponent("" + userIdFromClient) + "&";
+            url_ = url_.replace(/[?&]$/, "");
+    
+            let options_: RequestInit = {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+            };
+    
+            return this.http.fetch(url_, options_).then((_response: Response) => {
+                return this.processGetProjects(_response);
             });
         }
-        return Promise.resolve<PaginationItemsResponseOfPhotoDto>(null as any);
-    }
+    
+        protected processGetProjects(response: Response): Promise<ClientGalleryProjectDto[]> {
+            const status = response.status;
+            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+            if (status === 200) {
+                return response.text().then((_responseText) => {
+                let result200: any = null;
+                result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as ClientGalleryProjectDto[];
+                return result200;
+                });
+            } else if (status !== 200 && status !== 204) {
+                return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+                });
+            }
+            return Promise.resolve<ClientGalleryProjectDto[]>(null as any);
+        }
+    
+        getProjectPhotos(projectId: string | undefined, userIdFromClient: string | undefined, milestoneId: string | null | undefined, page: number | undefined, pageSize: number | undefined): Promise<PaginationItemsResponseOfPhotoDto> {
+            let url_ = this.baseUrl + "/api/client/gallery/GetProjectPhotos?";
+            if (projectId === null)
+                throw new globalThis.Error("The parameter 'projectId' cannot be null.");
+            else if (projectId !== undefined)
+                url_ += "projectId=" + encodeURIComponent("" + projectId) + "&";
+            if (userIdFromClient === null)
+                throw new globalThis.Error("The parameter 'userIdFromClient' cannot be null.");
+            else if (userIdFromClient !== undefined)
+                url_ += "userIdFromClient=" + encodeURIComponent("" + userIdFromClient) + "&";
+            if (milestoneId !== undefined && milestoneId !== null)
+                url_ += "milestoneId=" + encodeURIComponent("" + milestoneId) + "&";
+            if (page === null)
+                throw new globalThis.Error("The parameter 'page' cannot be null.");
+            else if (page !== undefined)
+                url_ += "page=" + encodeURIComponent("" + page) + "&";
+            if (pageSize === null)
+                throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+            else if (pageSize !== undefined)
+                url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+            url_ = url_.replace(/[?&]$/, "");
+    
+            let options_: RequestInit = {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+            };
+    
+            return this.http.fetch(url_, options_).then((_response: Response) => {
+                return this.processGetProjectPhotos(_response);
+            });
+        }
+    
+        protected processGetProjectPhotos(response: Response): Promise<PaginationItemsResponseOfPhotoDto> {
+            const status = response.status;
+            let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+            if (status === 200) {
+                return response.text().then((_responseText) => {
+                let result200: any = null;
+                result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as PaginationItemsResponseOfPhotoDto;
+                return result200;
+                });
+            } else if (status !== 200 && status !== 204) {
+                return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+                });
+            }
+            return Promise.resolve<PaginationItemsResponseOfPhotoDto>(null as any);
+        }
 }
 
 export class AuthClient {
@@ -2718,6 +2760,18 @@ export interface UpdateDto {
     createdById?: string;
     createdByName?: string | undefined;
     createdAt?: Date | undefined;
+}
+
+export interface ClientGalleryProjectDto {
+    id?: string;
+    title?: string;
+    stages?: ClientGalleryStageDto[];
+}
+
+export interface ClientGalleryStageDto {
+    id?: string;
+    title?: string;
+    orderIndex?: number;
 }
 
 export interface PaginationItemsResponseOfPhotoDto {
