@@ -32,7 +32,7 @@ public class ClientDashboardService(
         var projectDtos = new List<ClientDashboardProjectDto>(projects.Count);
         foreach (var project in projects)
         {
-            var stages = await milestoneRepository.GetAllByProjectAsync(project.Id);
+            var stages = await milestoneRepository.GetMilestonesByProjectAsync(project.Id);
             var stageDtos = stages
                 .Select(ClientDashboardStageDto.FromEntity)
                 .OrderBy(s => s.OrderIndex)

@@ -29,7 +29,7 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
       setLoading(true);
       try {
         const data = await http.projects.getProject(projectId);
-        setProject(data as ProjectDto);
+        setProject(data);
       } catch (err: any) {
         toast.error(err?.message ?? 'Unable to load project details.');
       } finally {

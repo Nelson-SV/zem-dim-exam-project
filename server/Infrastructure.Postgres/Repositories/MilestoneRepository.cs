@@ -38,7 +38,7 @@ public class MilestoneRepository(AppDbContext ctx) : IMilestoneRepository
         return (items, total);
     }
 
-    public async Task<IReadOnlyCollection<Milestone>> GetAllByProjectAsync(Guid projectId)
+    public async Task<IReadOnlyCollection<Milestone>> GetMilestonesByProjectAsync(Guid projectId)
     {
         return await ctx.Milestones
             .Where(m => m.Projectid == projectId && m.Isdeleted == false)

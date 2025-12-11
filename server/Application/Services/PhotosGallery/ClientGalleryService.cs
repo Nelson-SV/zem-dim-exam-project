@@ -17,7 +17,7 @@ public class ClientGalleryService(
 
         foreach (var project in projects)
         {
-            var stages = await milestoneRepository.GetAllByProjectAsync(project.Id);
+            var stages = await milestoneRepository.GetMilestonesByProjectAsync(project.Id);
             result.Add(new ClientGalleryProjectDto(
                 project.Id,
                 project.Title,

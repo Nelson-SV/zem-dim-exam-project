@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { format } from 'date-fns';
@@ -32,7 +32,14 @@ export function Viewer3D() {
     return groups;
   }, [userScans]);
 
-  if (loading) return <p>Loading scans...</p>;
+  if (loading) {
+    return (
+      <div className="flex items-center gap-3 text-muted-foreground">
+        <Loader2 className="size-5 animate-spin" />
+        <span>Loading projects…</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

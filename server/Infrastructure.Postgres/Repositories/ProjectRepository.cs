@@ -32,6 +32,7 @@ public class ProjectRepository : IProjectRepository
     {
         var query = _context.Projects
             .Include(p => p.Client)
+            .Include(p => p.Milestones) 
             .Where(p => p.Isdeleted == false);
 
         if (!string.IsNullOrWhiteSpace(search))

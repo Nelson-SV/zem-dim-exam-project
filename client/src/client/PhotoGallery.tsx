@@ -279,8 +279,7 @@ export function PhotoGallery() {
               {stagePhotos.map(photo => (
                 <Card
                   key={photo.id}
-                  className="overflow-hidden cursor-pointer hover:shadow-lg transition-all group"
-                  onClick={() => photo.fileUrl && setSelectedPhoto(photo.fileUrl)}
+                  className="overflow-hidden cursor-default hover:shadow-lg transition-all group"
                 >
                   <div className="aspect-video relative overflow-hidden bg-muted">
                     {photo.fileUrl ? (
@@ -297,23 +296,23 @@ export function PhotoGallery() {
                     {photo.fileUrl && (
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                         <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="bg-white/90 hover:bg-white"
-                            aria-label="View full screen"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPhoto(photo.fileUrl!);
-                            }}
-                          >
-                            <Maximize2 className="size-5 text-foreground" />
-                          </Button>
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="bg-white/90 hover:bg-white cursor-pointer"
+                              aria-label="View full screen"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPhoto(photo.fileUrl!);
+                              }}
+                            >
+                              <Maximize2 className="size-5 text-foreground" />
+                            </Button>
 
                           <Button
                             size="icon"
                             variant="secondary"
-                            className="bg-white/90 hover:bg-white"
+                            className="bg-white/90 hover:bg-white cursor-pointer"
                             aria-label="Download photo"
                             onClick={(e) => {
                               e.stopPropagation();

@@ -601,29 +601,6 @@
         }
       }
     },
-    "/api/Projects/api/admin/projects/GetMyProjects": {
-      "get": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_GetMyProjects",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ProjectDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Projects/api/admin/projects/GetUserProjects": {
       "get": {
         "tags": [
@@ -838,162 +815,12 @@
         }
       }
     },
-    "/api/Projects/api/admin/projects/UpdateProjectStatus": {
-      "patch": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_UpdateProjectStatus",
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "dto",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProjectStatusDto"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProjectDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Projects/api/admin/projects/UpdateProjectProgress": {
-      "patch": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_UpdateProjectProgress",
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "dto",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProjectProgressDto"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProjectDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Projects/api/admin/projects/DeleteProject": {
       "delete": {
         "tags": [
           "Projects"
         ],
         "operationId": "Projects_DeleteProject",
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Projects/api/admin/projects/RestoreProject": {
-      "post": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_RestoreProject",
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Projects/api/admin/projects/PermanentDeleteProject": {
-      "delete": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_PermanentDeleteProject",
         "parameters": [
           {
             "name": "projectId",
@@ -2671,6 +2498,10 @@
           "status": {
             "type": "string"
           },
+          "currentStageTitle": {
+            "type": "string",
+            "nullable": true
+          },
           "startDate": {
             "type": "string",
             "format": "date"
@@ -2983,35 +2814,6 @@
             "type": "string",
             "maxLength": 500,
             "nullable": true
-          }
-        }
-      },
-      "UpdateProjectStatusDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "status"
-        ],
-        "properties": {
-          "status": {
-            "type": "string",
-            "maxLength": 50,
-            "minLength": 1
-          }
-        }
-      },
-      "UpdateProjectProgressDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "progressPercentage"
-        ],
-        "properties": {
-          "progressPercentage": {
-            "type": "integer",
-            "format": "int32",
-            "maximum": 100.0,
-            "minimum": 0.0
           }
         }
       },

@@ -198,7 +198,7 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
                   </div>
                   <div>
                     <p className="text-muted-foreground">Current stage</p>
-                    <p>{'Here we still need to check which is the last stage of the project'}</p>
+                    <p>{project.currentStageTitle ?? '-'}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Area</p>
