@@ -199,7 +199,7 @@ export function AdminThreeDScanModal({
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
 
-          <div className="rounded-xl border bg-muted/30 p-3">
+          <div className="rounded-xl p-3">
             {displayUrl ? (
               <RoomViewer
                 zoom={zoom}
