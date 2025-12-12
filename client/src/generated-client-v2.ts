@@ -1161,7 +1161,7 @@ export class User3DScansClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    getClientScans(clientId: string | undefined): Promise<User3DScanDto[]> {
+    getClientScans(clientId: string | undefined): Promise<User3DScanProjectDto[]> {
         let url_ = this.baseUrl + "/api/client/3dscans/GetClientScans?";
         if (clientId === null)
             throw new globalThis.Error("The parameter 'clientId' cannot be null.");
@@ -1181,13 +1181,13 @@ export class User3DScansClient {
         });
     }
 
-    protected processGetClientScans(response: Response): Promise<User3DScanDto[]> {
+    protected processGetClientScans(response: Response): Promise<User3DScanProjectDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
-            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as User3DScanDto[];
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as User3DScanProjectDto[];
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -1195,7 +1195,7 @@ export class User3DScansClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<User3DScanDto[]>(null as any);
+        return Promise.resolve<User3DScanProjectDto[]>(null as any);
     }
 }
 
@@ -2594,15 +2594,19 @@ export interface UpdateProjectProgressDto {
     progressPercentage: number;
 }
 
+export interface User3DScanProjectDto {
+    projectId?: string;
+    projectTitle?: string;
+    scanCount?: number;
+    scans?: User3DScanDto[];
+}
+
 export interface User3DScanDto {
     id?: string;
     roomName?: string;
     roomArea?: number | undefined;
     scannedAt?: Date | undefined;
     fileUrl?: string;
-    fileFormat?: string;
-    projectId?: string;
-    projectTitle?: string;
     notes?: string | undefined;
 }
 

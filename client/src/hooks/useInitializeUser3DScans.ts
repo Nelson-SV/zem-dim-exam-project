@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { User3DScanDto } from "../generated-client";
+import type { User3DScanProjectDto } from "../generated-client";
 import { http } from "../lib/api";
 
 export function useInitializeUser3DScans({ userId }: { userId?: string }) {
 
-    const [scans, setScans] = useState<User3DScanDto[]>([]);
+    const [scans, setScans] = useState<User3DScanProjectDto[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
