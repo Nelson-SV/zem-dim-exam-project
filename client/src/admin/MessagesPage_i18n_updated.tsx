@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/useAuth';
-import { ProjectsSidebar } from './ProjectsSidebar';
-import { MessagesChat } from './MessagesChat';
+import { ProjectsSidebar } from '../client/ProjectsSidebar';
+import { MessagesChat } from '../client/MessagesChat';
 import { Card } from '../components/ui/card';
 import { MessageSquare, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { http } from '../lib/api';
 import type { ProjectDto, ProjectParticipantsDto } from '../generated-client';
 
@@ -43,7 +43,7 @@ export function MessagesPage() {
         const data = await http.projects.getProjectParticipants(selectedProjectId);
         setParticipants(data);
       } catch (err) {
-        console.error('❌ Failed to load participants:', err);
+        console.error('Failed to load participants:', err);
         setParticipants(null);
       } finally {
         setLoadingParticipants(false);
@@ -75,7 +75,7 @@ export function MessagesPage() {
   return (
       <div className="w-full">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-1">{t('messages.title')}</h2>
+          <h2 className="text-2xl font-bold mb-1">{t('nav.messages')}</h2>
           <p className="text-muted-foreground">
             {user?.role.toLowerCase() === 'admin' ? t('messagesPage.communicateWithClients') : t('messagesPage.chatWithManager')}
           </p>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Save, Bell, Building, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Card } from '../components/ui/card';
 import { Label } from '../components/ui/label';
@@ -31,6 +32,8 @@ interface UserSettingsData {
 const API_URL = 'http://localhost:5001';
 
 export function AdminSettings() {
+  const { t } = useTranslation();
+
   // Loading states
   const [loading, setLoading] = useState(true);
   const [savingCompany, setSavingCompany] = useState(false);
@@ -95,7 +98,7 @@ export function AdminSettings() {
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
-      toast.error('Failed to load settings');
+      toast.error(t('errors.failedToLoadSettings'));
     } finally {
       setLoading(false);
     }
@@ -122,13 +125,13 @@ export function AdminSettings() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update company information');
+        throw new Error(errorData.error || t('errors.failedToUpdate'));
       }
 
-      toast.success('Company information updated successfully');
+      toast.success(t('success.companyUpdated'));
     } catch (error) {
       console.error('Error updating company:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update company information');
+      toast.error(error instanceof Error ? error.message : t('errors.failedToUpdate'));
     } finally {
       setSavingCompany(false);
     }
@@ -152,13 +155,13 @@ export function AdminSettings() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update notification settings');
+        throw new Error(errorData.error || t('errors.failedToUpdate'));
       }
 
-      toast.success('Notification settings updated successfully');
+      toast.success(t('success.notificationsUpdated'));
     } catch (error) {
       console.error('Error updating notifications:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update notification settings');
+      toast.error(error instanceof Error ? error.message : t('errors.failedToUpdate'));
     } finally {
       setSavingNotifications(false);
     }
@@ -168,7 +171,7 @@ export function AdminSettings() {
     return (
       <div className="flex items-center gap-3 text-muted-foreground">
         <Loader2 className="size-5 animate-spin" />
-        <span>Loading settings...</span>
+        <span>{t('settings.loadingSettings')}</span>
       </div>
     );
   }
@@ -177,79 +180,79 @@ export function AdminSettings() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="mb-2">Settings</h2>
-        <p className="text-muted-foreground">Manage system settings and preferences</p>
+        <h2 className="mb-2">{t('settings.title')}</h2>
+        <p className="text-muted-foreground">{t('settings.subtitle')}</p>
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
         <TabsList>
           <TabsTrigger value="general">
             <Building className="size-4 mr-2" />
-            General
+            {t('settings.general')}
           </TabsTrigger>
           <TabsTrigger value="notifications">
             <Bell className="size-4 mr-2" />
-            Notifications
+            {t('settings.notifications')}
           </TabsTrigger>
         </TabsList>
 
         {/* General Settings */}
         <TabsContent value="general" className="space-y-6">
           <Card className="p-6">
-            <h3 className="mb-6">Company information</h3>
+            <h3 className="mb-6">{t('settings.companyInfo')}</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="company-name">Company name</Label>
+                  <Label htmlFor="company-name">{t('settings.companyName')}</Label>
                   <Input
                     id="company-name"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="Company name"
+                    placeholder={t('settings.placeholders.companyName')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="company-email">Company email</Label>
+                  <Label htmlFor="company-email">{t('settings.companyEmail')}</Label>
                   <Input
                     id="company-email"
                     type="email"
                     value={companyEmail}
                     onChange={(e) => setCompanyEmail(e.target.value)}
-                    placeholder="Company email"
+                    placeholder={t('settings.placeholders.companyEmail')}
                   />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="company-phone">Phone</Label>
+                  <Label htmlFor="company-phone">{t('common.phone')}</Label>
                   <Input
                     id="company-phone"
                     value={companyPhone}
                     onChange={(e) => setCompanyPhone(e.target.value)}
-                    placeholder="Phone number"
+                    placeholder={t('settings.placeholders.phone')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="company-website">Website</Label>
+                  <Label htmlFor="company-website">{t('settings.website')}</Label>
                   <Input
                     id="company-website"
                     value={companyWebsite}
                     onChange={(e) => setCompanyWebsite(e.target.value)}
-                    placeholder="Website URL"
+                    placeholder={t('settings.placeholders.website')}
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="company-address">Office address</Label>
+                <Label htmlFor="company-address">{t('settings.officeAddress')}</Label>
                 <Input
                   id="company-address"
                   value={companyAddress}
                   onChange={(e) => setCompanyAddress(e.target.value)}
-                  placeholder="Office address"
+                  placeholder={t('settings.placeholders.address')}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="currency">Currency</Label>
+                <Label htmlFor="currency">{t('settings.currency')}</Label>
                 <Select value={currency} onValueChange={setCurrency}>
                   <SelectTrigger id="currency">
                     <SelectValue />
@@ -273,12 +276,12 @@ export function AdminSettings() {
               {savingCompany ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
-                  Saving...
+                  {t('common.saving')}
                 </>
               ) : (
                 <>
                   <Save className="size-4 mr-2" />
-                  Save changes
+                  {t('common.save')} {t('common.changes')}
                 </>
               )}
             </Button>
@@ -288,35 +291,35 @@ export function AdminSettings() {
         {/* Notification Settings */}
         <TabsContent value="notifications" className="space-y-6">
           <Card className="p-6">
-            <h3 className="mb-6">Notification preferences</h3>
+            <h3 className="mb-6">{t('settings.notificationPreferences')}</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Email alerts</Label>
-                  <p className="text-muted-foreground">Receive notifications by email</p>
+                  <Label>{t('settings.emailAlerts')}</Label>
+                  <p className="text-muted-foreground">{t('settings.emailAlertsDesc')}</p>
                 </div>
                 <Switch checked={emailAlerts} onCheckedChange={setEmailAlerts} />
               </div>
               <Separator />
               <div className="space-y-2">
-                <Label htmlFor="report-frequency">Report frequency</Label>
+                <Label htmlFor="report-frequency">{t('settings.reportFrequency')}</Label>
                 <Select value={reportFrequency} onValueChange={setReportFrequency}>
                   <SelectTrigger id="report-frequency">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Daily">Daily</SelectItem>
-                    <SelectItem value="Weekly">Weekly</SelectItem>
-                    <SelectItem value="Monthly">Monthly</SelectItem>
+                    <SelectItem value="Daily">{t('settings.frequencies.Daily')}</SelectItem>
+                    <SelectItem value="Weekly">{t('settings.frequencies.Weekly')}</SelectItem>
+                    <SelectItem value="Monthly">{t('settings.frequencies.Monthly')}</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-muted-foreground text-sm">How often you receive summary reports</p>
+                <p className="text-muted-foreground text-sm">{t('settings.reportFrequencyDesc')}</p>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Client updates</Label>
-                  <p className="text-muted-foreground">Alerts about new client messages and activity</p>
+                  <Label>{t('settings.clientUpdates')}</Label>
+                  <p className="text-muted-foreground">{t('settings.clientUpdatesDesc')}</p>
                 </div>
                 <Switch checked={clientUpdates} onCheckedChange={setClientUpdates} />
               </div>
@@ -332,12 +335,12 @@ export function AdminSettings() {
               {savingNotifications ? (
                 <>
                   <Loader2 className="size-4 mr-2 animate-spin" />
-                  Saving...
+                  {t('common.saving')}
                 </>
               ) : (
                 <>
                   <Save className="size-4 mr-2" />
-                  Save notification settings
+                  {t('settings.saveNotifications')}
                 </>
               )}
             </Button>

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Download } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { format } from 'date-fns';
+import { uk, enUS } from 'date-fns/locale';
 import RoomViewer from '../components/3d-files/RoomViewer';
 import type { User3DScanDto } from '../generated-client';
 import { useAuth } from '../contexts/useAuth';
@@ -10,6 +12,8 @@ import { useInitializeUser3DScans } from '../hooks/useInitializeUser3DScans';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion';
 
 export function Viewer3D() {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'uk' ? uk : enUS;
   const { user } = useAuth();
 
   const [userScans, setUserScans] = useState<User3DScanDto[]>([]);
@@ -32,11 +36,11 @@ export function Viewer3D() {
     return groups;
   }, [userScans]);
 
-  if (loading) return <p>Loading scans...</p>;
+  if (loading) return <p>{t('viewer3D.loadingScans')}</p>;
 
   return (
     <div className="space-y-6">
-      <h2>3D Room Scans</h2>
+      <h2>{t('viewer3D.title')}</h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
@@ -49,7 +53,7 @@ export function Viewer3D() {
 
             {!selectedScan ? (
               <p className="text-muted-foreground text-lg">
-                No scan selected
+                {t('viewer3D.noScanSelected')}
               </p>
             ) : (
               <RoomViewer
@@ -68,10 +72,10 @@ export function Viewer3D() {
           {selectedScan && (
             <div className="pb-6 px-6">
               <div className="grid grid-cols-2 sm:grid-cols-4">
-                <div><p>Room</p><p>{selectedScan.roomName}</p></div>
-                <div><p>Area</p><p>{selectedScan.roomArea} m²</p></div>
-                <div><p>Scan date</p><p>{format(new Date(selectedScan.scannedAt!), 'dd MMM yyyy')}</p></div>
-                <div><p>Project</p><p>{selectedScan.projectTitle}</p></div>
+                <div><p>{t('viewer3D.room')}</p><p>{selectedScan.roomName}</p></div>
+                <div><p>{t('viewer3D.area')}</p><p>{selectedScan.roomArea} m²</p></div>
+                <div><p>{t('viewer3D.scanDate')}</p><p>{format(new Date(selectedScan.scannedAt!), 'dd MMM yyyy', { locale })}</p></div>
+                <div><p>{t('viewer3D.project')}</p><p>{selectedScan.projectTitle}</p></div>
               </div>
 
               <Button
@@ -79,7 +83,7 @@ export function Viewer3D() {
                 onClick={() => window.open(selectedScan.fileUrl)}
               >
                 <Download className="size-4" />
-                Download 3D model
+                {t('viewer3D.downloadModel')}
               </Button>
             </div>
           )}
@@ -88,15 +92,15 @@ export function Viewer3D() {
         {/* Scans List */}
         <Card className="pl-4 pr-4">
           <div className="pb-4 border-b">
-            <p>Total scans</p>
+            <p>{t('viewer3D.totalScans')}</p>
             <p className="text-2xl">{userScans.length}</p>
           </div>
 
-          <h4 className="mb-2">Projects</h4>
+          <h4 className="mb-2">{t('viewer3D.projects')}</h4>
 
           <Accordion type="single" collapsible className="w-full">
             {Object.entries(grouped).map(([projectId, scans]) => {
-              const title = scans[0]?.projectTitle ?? "Untitled Project";
+              const title = scans[0]?.projectTitle ?? t('viewer3D.untitledProject');
 
               return (
                 <AccordionItem key={projectId} value={projectId}>

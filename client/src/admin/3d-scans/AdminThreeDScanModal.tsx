@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -36,6 +37,7 @@ export function AdminThreeDScanModal({
   onClose,
   onSubmit,
 }: Props) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<AdminThreeDScanModalFormValues>({
     roomName: '',
     milestoneId: undefined,
@@ -84,7 +86,7 @@ export function AdminThreeDScanModal({
     }
 
     if (!file.name.toLowerCase().endsWith('.glb')) {
-      setError('Only .glb files are allowed.');
+      setError(t('scanModal.onlyGlbAllowed'));
       setForm(prev => ({ ...prev, file: undefined }));
       return;
     }
@@ -96,11 +98,11 @@ export function AdminThreeDScanModal({
 
   const handleSubmit = async () => {
     if (!form.roomName.trim()) {
-      setError('Room name is required.');
+      setError(t('scanModal.roomNameRequired'));
       return;
     }
     if (mode === 'create' && !form.file) {
-      setError('Please select a .glb file to upload.');
+      setError(t('scanModal.fileRequired'));
       return;
     }
     await onSubmit({
@@ -117,36 +119,36 @@ export function AdminThreeDScanModal({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && !submitting && onClose()}>
       <DialogContent className="sm:max-w-[800px]">
         <DialogHeader>
-          <DialogTitle>{mode === 'create' ? 'Upload new 3D scan' : '3D scan details'}</DialogTitle>
+          <DialogTitle>{mode === 'create' ? t('scanModal.uploadScan') : t('scanModal.editScan')}</DialogTitle>
           <DialogDescription>
             {mode === 'create'
-              ? 'Attach the .glb model and fill in the metadata.'
-              : 'Review or edit the scan metadata. File preview is read-only.'}
+              ? t('scanModal.uploadNewScan')
+              : t('scanModal.updateScanDetails')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 py-4 lg:grid-cols-2">
           <div className="space-y-4">
             <div>
-              <Label>Room name</Label>
+              <Label>{t('scanModal.roomName')}</Label>
               <Input
                 value={form.roomName}
                 onChange={(e) => setForm(prev => ({ ...prev, roomName: e.target.value }))}
-                placeholder="Kitchen, Living room..."
+                placeholder={t('scanModal.roomNamePlaceholder')}
               />
             </div>
 
             <div>
-              <Label>Milestone</Label>
+              <Label>{t('scanModal.milestone')}</Label>
               <Select
                 value={form.milestoneId ?? 'none'}
                 onValueChange={(value) => setForm(prev => ({ ...prev, milestoneId: value === 'none' ? undefined : value }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select milestone" />
+                  <SelectValue placeholder={t('scanModal.selectMilestone')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No milestone</SelectItem>
+                  <SelectItem value="none">{t('scanModal.noMilestone')}</SelectItem>
                   {milestones.map(m => (
                     <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                   ))}
@@ -156,7 +158,7 @@ export function AdminThreeDScanModal({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Room area (m²)</Label>
+                <Label>{t('scanModal.roomArea')}</Label>
                 <Input
                   type="number"
                   min="0"
@@ -166,7 +168,7 @@ export function AdminThreeDScanModal({
                 />
               </div>
               <div>
-                <Label>Scan date</Label>
+                <Label>{t('scanModal.scanDate')}</Label>
                 <Input
                   type="date"
                   value={form.scannedAt ?? ''}
@@ -176,18 +178,18 @@ export function AdminThreeDScanModal({
             </div>
 
             <div>
-              <Label>Notes</Label>
+              <Label>{t('scanModal.notes')}</Label>
               <Textarea
                 rows={4}
                 value={form.notes ?? ''}
                 onChange={(e) => setForm(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Optional notes for the scan…"
+                placeholder={t('scanModal.notesPlaceholder')}
               />
             </div>
 
             {mode === 'create' && (
               <div>
-                <Label>3D model (.glb)</Label>
+                <Label>{t('scanModal.scanFile')}</Label>
                 <Input
                   type="file"
                   accept=".glb,model/gltf-binary"
@@ -211,7 +213,7 @@ export function AdminThreeDScanModal({
               />
             ) : (
               <div className="flex h-full min-h-[260px] items-center justify-center text-center text-muted-foreground">
-                {mode === 'create' ? 'Select a .glb file to preview the scan.' : 'This scan does not have a preview yet.'}
+                {mode === 'create' ? t('scanModal.selectFileToPreview') : t('scanModal.noPreview')}
               </div>
             )}
           </div>
@@ -219,10 +221,10 @@ export function AdminThreeDScanModal({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={submitting}>
-            Cancel
+            {t('scanModal.cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={submitting || (mode === 'create' && !form.file)}>
-            {submitting ? 'Saving…' : mode === 'create' ? 'Upload scan' : 'Save changes'}
+            {submitting ? t('scanModal.saving') : mode === 'create' ? t('scanModal.uploadScanButton') : t('scanModal.saveChanges')}
           </Button>
         </DialogFooter>
       </DialogContent>

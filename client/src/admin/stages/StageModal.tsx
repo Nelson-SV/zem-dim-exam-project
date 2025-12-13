@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Button } from "../../components/ui/button";
 import { Label } from "../../components/ui/label";
@@ -64,16 +65,17 @@ const toInputDate = (value?: string | Date | null) => {
   return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
 };
 
-const statusOptions = [
-  { value: "In Progress", label: "In Progress" },
-  { value: "Completed", label: "Completed" },
-];
-
 export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: Props) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
 
   const isEdit = mode === "edit";
+
+  const statusOptions = [
+    { value: "In Progress", label: t('stageModal.inProgress') },
+    { value: "Completed", label: t('stageModal.completed') },
+  ];
 
   useEffect(() => {
     if (!open) return;
@@ -96,9 +98,9 @@ export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: P
 
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
-    if (!form.title.trim()) e.title = "Title is required";
+    if (!form.title.trim()) e.title = t('stageModal.stageNameRequired');
     return e;
-  }, [form.title]);
+  }, [form.title, t]);
 
   const buildPayload = (): CreateMilestoneDto | UpdateMilestoneDto => ({
     title: form.title.trim(),
@@ -114,7 +116,7 @@ export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: P
 
   const handleSave = async () => {
     if (Object.keys(errors).length > 0) {
-      toast.error("Please fill required fields");
+      toast.error(t('stageModal.fillAllFields'));
       return;
     }
     setSaving(true);
@@ -123,15 +125,15 @@ export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: P
       let result: MilestoneDto;
       if (isEdit && stage) {
         result = await http.adminStages.updateStage(projectId, stage.id, payload as UpdateMilestoneDto);
-        toast.success("Stage updated.");
+        toast.success(t('stageModal.stageUpdated'));
       } else {
         result = await http.adminStages.createStage(projectId, payload as CreateMilestoneDto);
-        toast.success("Stage created.");
+        toast.success(t('stageModal.stageUpdated'));
       }
       onSaved(result, isEdit ? "edit" : "create");
       onClose();
     } catch (err: any) {
-      toast.error(err?.message ?? "Failed to save stage.");
+      toast.error(err?.message ?? t('stageModal.operationFailed'));
     } finally {
       setSaving(false);
     }
@@ -141,29 +143,29 @@ export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: P
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="sm:max-w-[560px]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit stage" : "Add stage"}</DialogTitle>
-          <DialogDescription>Set the key dates, status and progress for this stage.</DialogDescription>
+          <DialogTitle>{isEdit ? t('stageModal.editStage') : t('stageModal.editStage')}</DialogTitle>
+          <DialogDescription>{t('stageModal.updateStageDetails')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Title</Label>
-            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+            <Label>{t('stageModal.stageName')}</Label>
+            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('stageModal.stageNamePlaceholder')} />
             {errors.title && <p className="text-destructive text-sm">{errors.title}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label>Notes</Label>
-            <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
+            <Label>{t('stageModal.description')}</Label>
+            <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} placeholder={t('stageModal.descriptionPlaceholder')} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Planned start</Label>
+              <Label>{t('stageModal.plannedStart')}</Label>
               <Input type="date" value={form.plannedStartDate} onChange={(e) => setForm({ ...form, plannedStartDate: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Planned finish</Label>
+              <Label>{t('stageModal.plannedFinish')}</Label>
               <Input type="date" value={form.plannedEndDate} onChange={(e) => setForm({ ...form, plannedEndDate: e.target.value })} />
             </div>
           </div>
@@ -171,18 +173,18 @@ export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: P
           {isEdit && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Actual start</Label>
+                <Label>{t('stageModal.actualStart')}</Label>
                 <Input type="date" value={form.actualStartDate} onChange={(e) => setForm({ ...form, actualStartDate: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label>Actual finish</Label>
+                <Label>{t('stageModal.actualFinish')}</Label>
                 <Input type="date" value={form.actualEndDate} onChange={(e) => setForm({ ...form, actualEndDate: e.target.value })} />
               </div>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label>Status</Label>
+            <Label>{t('stageModal.status')}</Label>
             <Select value={form.status} onValueChange={(val) => setForm({ ...form, status: val })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -192,20 +194,20 @@ export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: P
           </div>
 
           <div className="space-y-2">
-            <Label>Progress: {form.progressPercentage}%</Label>
+            <Label>{t('stageModal.progress')}: {form.progressPercentage}%</Label>
             <Slider value={[form.progressPercentage]} onValueChange={([v]) => setForm({ ...form, progressPercentage: v })} max={100} step={5} />
           </div>
 
           <div className="space-y-2">
-            <Label>Order (optional)</Label>
-            <Input type="number" value={form.orderIndex} onChange={(e) => setForm({ ...form, orderIndex: e.target.value })} />
+            <Label>{t('stageModal.order')}</Label>
+            <Input type="number" value={form.orderIndex} onChange={(e) => setForm({ ...form, orderIndex: e.target.value })} placeholder={t('stageModal.orderPlaceholder')} />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button variant="outline" onClick={onClose} disabled={saving}>{t('stageModal.cancel')}</Button>
           <Button onClick={handleSave} disabled={saving} className="bg-[#F97316] hover:bg-[#F97316]/90">
-            {saving ? "Saving…" : "Save"}
+            {saving ? t('stageModal.saving') : t('stageModal.saveChanges')}
           </Button>
         </DialogFooter>
       </DialogContent>

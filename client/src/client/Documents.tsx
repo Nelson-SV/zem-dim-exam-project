@@ -1,5 +1,6 @@
 // Documents.tsx - UPDATED
 import { useEffect, useState, useRef, type ChangeEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileText, Download, Eye, Upload, PenLine, CheckCircle, Clock, Filter } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -10,7 +11,7 @@ import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Checkbox } from '../components/ui/checkbox';
 import { format } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { uk, enUS } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { http } from '../lib/api';
 import type { DocumentDto, ProjectDto } from '../generated-client';
@@ -25,6 +26,8 @@ interface SignaturePosition {
 }
 
 export function Documents() {
+    const { t, i18n } = useTranslation();
+    const locale = i18n.language === 'uk' ? uk : enUS;
     const [documents, setDocuments] = useState<DocumentDto[]>([]);
     const [projects, setProjects] = useState<ProjectDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +52,7 @@ export function Documents() {
             setDocuments(data ?? []);
         } catch (err: any) {
             console.error(err);
-            toast.error('Failed to load documents', {
+            toast.error(t('clientDocuments.failedToLoad'), {
                 description: err.message ?? 'Unknown error',
             });
         } finally {
@@ -63,7 +66,7 @@ export function Documents() {
             setProjects(data ?? []);
         } catch (err: any) {
             console.error(err);
-            toast.error('Failed to load projects', {
+            toast.error(t('clientDocuments.failedToLoadProjects'), {
                 description: err.message ?? 'Unknown error',
             });
         }
@@ -115,12 +118,12 @@ export function Documents() {
                 pageNumber: position.pageNumber,
             });
 
-            toast.success('Document signed successfully! ✅');
+            toast.success(t('clientDocuments.documentSigned'));
             await fetchDocuments();
             setSigningDoc(null);
         } catch (err: any) {
             console.error(err);
-            toast.error('Failed to sign document', {
+            toast.error(t('clientDocuments.failedToSign'), {
                 description: err.message ?? 'Unknown error',
             });
             throw err;
@@ -136,7 +139,7 @@ export function Documents() {
         if (!file) return;
 
         if (!file.name.toLowerCase().endsWith('.pdf')) {
-            toast.error('Only PDF files are allowed');
+            toast.error(t('clientDocuments.onlyPdfAllowed'));
             e.target.value = '';
             return;
         }
@@ -150,7 +153,7 @@ export function Documents() {
 
     const handleUpload = async () => {
         if (!selectedFile || !selectedProjectId) {
-            toast.error('Please select a project');
+            toast.error(t('clientDocuments.pleaseSelectProject'));
             return;
         }
 
@@ -163,7 +166,7 @@ export function Documents() {
                 requiresSignature
             );
 
-            toast.success('Document uploaded successfully! 📄');
+            toast.success(t('clientDocuments.documentUploadedSuccess'));
 
             setShowUploadModal(false);
             setSelectedFile(null);
@@ -174,7 +177,7 @@ export function Documents() {
             await fetchDocuments();
         } catch (error: any) {
             console.error(error);
-            toast.error('Upload error', { description: error.message ?? 'Unknown error' });
+            toast.error(t('clientDocuments.uploadError'), { description: error.message ?? 'Unknown error' });
         } finally {
             setIsUploading(false);
         }
@@ -214,7 +217,7 @@ export function Documents() {
                                     <span>•</span>
                                     <span>
                                         {format(new Date(doc.createdAt as any), 'dd MMM yyyy', {
-                                            locale: enUS,
+                                            locale,
                                         })}
                                     </span>
                                 </>
@@ -224,8 +227,8 @@ export function Documents() {
                                 <>
                                     <span>•</span>
                                     <span className="text-green-600">
-                                        Signed on{' '}
-                                        {format(new Date(doc.signedAt as any), 'dd MMM yyyy')}
+                                        {t('clientDocuments.signedOn')}{' '}
+                                        {format(new Date(doc.signedAt as any), 'dd MMM yyyy', { locale })}
                                     </span>
                                 </>
                             )}
@@ -242,7 +245,7 @@ export function Documents() {
                             onClick={() =>
                                 window.open(doc.signedFileUrl || doc.fileUrl!, '_blank')
                             }
-                            title={doc.isSigned ? 'View signed document' : 'View document'}
+                            title={doc.isSigned ? t('clientDocuments.viewSignedDocument') : t('clientDocuments.viewDocument')}
                         >
                             <Eye className="size-4" />
                         </Button>
@@ -254,7 +257,7 @@ export function Documents() {
                             onClick={() =>
                                 window.open(doc.signedFileUrl || doc.fileUrl!, '_blank')
                             }
-                            title="Download"
+                            title={t('common.download')}
                         >
                             <Download className="size-4" />
                         </Button>
@@ -265,7 +268,7 @@ export function Documents() {
                                 size="icon"
                                 type="button"
                                 onClick={() => setSigningDoc(doc)}
-                                title="Sign document"
+                                title={t('clientDocuments.signDocument')}
                                 className="text-[#F97316] hover:text-[#F97316]"
                             >
                                 <PenLine className="size-4" />
@@ -278,7 +281,7 @@ export function Documents() {
     );
 
     if (isLoading) {
-        return <div className="flex items-center justify-center h-64">Loading...</div>;
+        return <div className="flex items-center justify-center h-64">{t('common.loading')}...</div>;
     }
 
     // Filter documents based on selected project
@@ -304,9 +307,9 @@ export function Documents() {
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                     <div>
-                        <h2 className="mb-1">Documents</h2>
+                        <h2 className="mb-1">{t('clientDocuments.title')}</h2>
                         <p className="text-muted-foreground">
-                            Here you can see documents from the company and your own uploads.
+                            {t('clientDocuments.subtitle')}
                         </p>
                     </div>
 
@@ -316,7 +319,7 @@ export function Documents() {
                         onClick={onUploadClick}
                     >
                         <Upload className="size-4 mr-2" />
-                        Upload document
+                        {t('clientDocuments.uploadDocument')}
                     </Button>
 
                     <input
@@ -333,19 +336,19 @@ export function Documents() {
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
                             <Filter className="size-5 text-muted-foreground" />
-                            <span className="font-medium">Filter by Project:</span>
+                            <span className="font-medium">{t('clientDocuments.filterByProject')}</span>
                         </div>
                         <Select
                             value={selectedFilterProjectId}
                             onValueChange={setSelectedFilterProjectId}
                         >
                             <SelectTrigger className="w-[300px]">
-                                <SelectValue placeholder="Select a project..." />
+                                <SelectValue placeholder={t('clientDocuments.selectProject')} />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">
                                     <div className="flex items-center gap-2">
-                                        <span>All Projects</span>
+                                        <span>{t('clientDocuments.allProjects')}</span>
                                         <Badge variant="secondary">{documents.length}</Badge>
                                     </div>
                                 </SelectItem>
@@ -371,7 +374,7 @@ export function Documents() {
                                 onClick={() => setSelectedFilterProjectId('all')}
                                 className="text-muted-foreground hover:text-foreground"
                             >
-                                Clear filter
+                                {t('clientDocuments.clearFilter')}
                             </Button>
                         )}
                     </div>
@@ -379,7 +382,7 @@ export function Documents() {
 
                 <div>
                     <div className="flex items-center gap-3 mb-4">
-                        <h3>From the company</h3>
+                        <h3>{t('clientDocuments.fromCompany')}</h3>
                         <Badge variant="secondary">{companyDocs.length}</Badge>
                     </div>
                     <Card className="p-6">
@@ -387,7 +390,7 @@ export function Documents() {
                             <DocumentsList docs={companyDocs} />
                         ) : (
                             <div className="text-center py-8 text-muted-foreground">
-                                No documents from the company yet.
+                                {t('clientDocuments.noCompanyDocuments')}
                             </div>
                         )}
                     </Card>
@@ -395,7 +398,7 @@ export function Documents() {
 
                 <div>
                     <div className="flex items-center gap-3 mb-4">
-                        <h3>My documents</h3>
+                        <h3>{t('clientDocuments.myDocuments')}</h3>
                         <Badge variant="secondary">{clientDocs.length}</Badge>
                     </div>
                     <Card className="p-6">
@@ -403,7 +406,7 @@ export function Documents() {
                             <DocumentsList docs={clientDocs} />
                         ) : (
                             <div className="text-center py-12 text-muted-foreground">
-                                You have not uploaded any documents yet.
+                                {t('clientDocuments.noOwnDocuments')}
                             </div>
                         )}
                     </Card>
@@ -423,12 +426,12 @@ export function Documents() {
             <Dialog open={showUploadModal} onOpenChange={setShowUploadModal}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Upload Document</DialogTitle>
+                        <DialogTitle>{t('clientDocuments.uploadTitle')}</DialogTitle>
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label>File</Label>
+                            <Label>{t('clientDocuments.file')}</Label>
                             <Input
                                 value={selectedFile?.name || ''}
                                 disabled
@@ -437,13 +440,13 @@ export function Documents() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Select Project *</Label>
+                            <Label>{t('clientDocuments.selectProjectRequired')}</Label>
                             <Select
                                 value={selectedProjectId}
                                 onValueChange={setSelectedProjectId}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Choose a project..." />
+                                    <SelectValue placeholder={t('clientDocuments.chooseProject')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {projects.map((project) => (
@@ -456,11 +459,11 @@ export function Documents() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Title (optional)</Label>
+                            <Label>{t('clientDocuments.titleOptional')}</Label>
                             <Input
                                 value={documentTitle}
                                 onChange={(e) => setDocumentTitle(e.target.value)}
-                                placeholder="Enter document title or leave blank to use filename"
+                                placeholder={t('clientDocuments.titlePlaceholder')}
                             />
                         </div>
 
@@ -474,14 +477,14 @@ export function Documents() {
                                 htmlFor="requiresSignature"
                                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                             >
-                                This document requires a signature from the company
+                                {t('clientDocuments.requiresSignature')}
                             </Label>
                         </div>
 
                         <div className="text-sm text-muted-foreground">
                             {requiresSignature
-                                ? 'The company will be notified to sign this document.'
-                                : 'This document will be sent to the company without requiring a signature.'}
+                                ? t('clientDocuments.signatureNote')
+                                : t('clientDocuments.noSignatureNote')}
                         </div>
                     </div>
 
@@ -497,14 +500,14 @@ export function Documents() {
                             }}
                             disabled={isUploading}
                         >
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             onClick={handleUpload}
                             disabled={isUploading || !selectedProjectId}
                             className="bg-[#F97316] hover:bg-[#F97316]/90"
                         >
-                            {isUploading ? 'Uploading...' : 'Upload'}
+                            {isUploading ? t('clientDocuments.uploading') : t('clientDocuments.upload')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

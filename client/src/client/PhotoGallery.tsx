@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Download, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { mockPhotos, mockProjects } from '../lib/mock-data';
 import { format } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { uk, enUS } from 'date-fns/locale';
 import {
   Select,
   SelectContent,
@@ -15,9 +16,11 @@ import {
 } from '../components/ui/select';
 
 export function PhotoGallery() {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'uk' ? uk : enUS;
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedStage, setSelectedStage] = useState<string>('all');
-  
+
   const project = mockProjects[0];
   
   const filteredPhotos = selectedStage === 'all' 
@@ -52,17 +55,17 @@ export function PhotoGallery() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
-          <h2 className="mb-1">Photo gallery</h2>
-          <p className="text-muted-foreground">{filteredPhotos.length} photos</p>
+          <h2 className="mb-1">{t('photoGallery.title')}</h2>
+          <p className="text-muted-foreground">{t('photoGallery.photosCount', { count: filteredPhotos.length })}</p>
         </div>
-        
+
         <Select value={selectedStage} onValueChange={setSelectedStage}>
           <SelectTrigger className="w-[200px]">
             <Filter className="size-4 mr-2" />
-            <SelectValue placeholder="All stages" />
+            <SelectValue placeholder={t('photoGallery.allStages')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All stages</SelectItem>
+            <SelectItem value="all">{t('photoGallery.allStages')}</SelectItem>
             {project.stages.map(stage => (
               <SelectItem key={stage.id} value={stage.id}>
                 {stage.name}
@@ -105,7 +108,7 @@ export function PhotoGallery() {
                   <div className="p-4">
                     <p className="mb-1">{photo.description}</p>
                     <p className="text-muted-foreground">
-                      {format(new Date(photo.uploadDate), 'dd MMMM yyyy', { locale: enUS })}
+                      {format(new Date(photo.uploadDate), 'dd MMMM yyyy', { locale })}
                     </p>
                   </div>
                 </Card>
@@ -164,7 +167,7 @@ export function PhotoGallery() {
           />
 
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full">
-            {currentPhotoIndex + 1} / {filteredPhotos.length}
+            {t('photoGallery.photosCounter', { current: currentPhotoIndex + 1, total: filteredPhotos.length })}
           </div>
         </div>
       )}

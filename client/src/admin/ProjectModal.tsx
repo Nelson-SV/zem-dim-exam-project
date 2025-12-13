@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { Button } from "../components/ui/button";
@@ -59,6 +60,7 @@ const toInputDate = (value?: string | Date | null): string => {
 };
 
 export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectModalProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<FormState>(emptyForm);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [file, setFile] = useState<File | null>(null);
@@ -80,13 +82,13 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
         }));
         setClients(mapped);
       } catch (err: any) {
-        toast.error(err?.message ?? "Failed to load clients");
+        toast.error(err?.message ?? t('projectModal.failedToLoadClients'));
       } finally {
         setLoadingClients(false);
       }
     };
     loadClients();
-  }, [open]);
+  }, [open, t]);
 
   useEffect(() => {
     if (!open) return;
@@ -122,15 +124,15 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
 
   const validationErrors = useMemo(() => {
     const errors: Record<string, string> = {};
-    if (!form.title.trim()) errors.title = "Title is required";
-    if (!form.address.trim()) errors.address = "Address is required";
-    if (!form.city.trim()) errors.city = "City is required";
-    if (!form.postalCode.trim()) errors.postalCode = "Postal code is required";
-    if (!form.startDate) errors.startDate = "Start date is required";
-    if (!form.clientId) errors.clientId = "Client is required";
-    if (form.totalArea === "") errors.totalArea = "Area is required";
+    if (!form.title.trim()) errors.title = t('projectModal.titleRequired');
+    if (!form.address.trim()) errors.address = t('projectModal.addressRequired');
+    if (!form.city.trim()) errors.city = t('projectModal.cityRequired');
+    if (!form.postalCode.trim()) errors.postalCode = t('projectModal.postalCodeRequired');
+    if (!form.startDate) errors.startDate = t('projectModal.startDateRequired');
+    if (!form.clientId) errors.clientId = t('projectModal.clientRequired');
+    if (form.totalArea === "") errors.totalArea = t('projectModal.areaRequired');
     return errors;
-  }, [form]);
+  }, [form, t]);
 
   const handleNumber = (value: string) => {
     if (value === "") return 0;
@@ -140,7 +142,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
 
   const handleSubmit = async () => {
     if (Object.keys(validationErrors).length > 0) {
-      toast.error("Please fill in all required fields");
+      toast.error(t('projectModal.fillAllFields'));
       return;
     }
 
@@ -148,11 +150,11 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
     const budgetNum = handleNumber(form.budget);
 
     if (Number.isNaN(totalAreaNum) || totalAreaNum < 0) {
-      toast.error("Total area must be zero or a positive number");
+      toast.error(t('projectModal.areaMustBePositive'));
       return;
     }
     if (Number.isNaN(budgetNum) || budgetNum < 0) {
-      toast.error("Budget must be zero or a positive number");
+      toast.error(t('projectModal.budgetMustBePositive'));
       return;
     }
 
@@ -183,7 +185,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
 
         const updated = await http.projects.updateProject(project.id, dto);
         onSaved(updated, "edit");
-        toast.success("Project updated");
+        toast.success(t('projectModal.projectUpdated'));
       } else {
         const dto: CreateProjectDto = {
           clientId: form.clientId,
@@ -225,11 +227,11 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
         }
 
         onSaved(result, "create");
-        toast.success("Project created");
+        toast.success(t('projectModal.projectCreated'));
       }
       onClose();
     } catch (err: any) {
-      toast.error(err?.message ?? "Operation failed");
+      toast.error(err?.message ?? t('projectModal.operationFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -239,53 +241,53 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="sm:max-w-[620px]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit project" : "Create a new project"}</DialogTitle>
+          <DialogTitle>{isEdit ? t('projectModal.editProject') : t('projectModal.createNewProject')}</DialogTitle>
           <DialogDescription>
-            {isEdit ? "Update the project details below." : "Enter the basic information for the new project."}
+            {isEdit ? t('projectModal.updateDetails') : t('projectModal.enterBasicInfo')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="project-name">Project name</Label>
+            <Label htmlFor="project-name">{t('projectModal.projectName')}</Label>
             <Input
               id="project-name"
               value={form.title}
               onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Cottage in Vyshneve"
+              placeholder={t('projectModal.projectNamePlaceholder')}
             />
             {validationErrors.title && <p className="text-destructive text-sm">{validationErrors.title}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="project-address">Address</Label>
+            <Label htmlFor="project-address">{t('projectModal.address')}</Label>
             <Input
               id="project-address"
               value={form.address}
               onChange={(e) => setForm(prev => ({ ...prev, address: e.target.value }))}
-              placeholder="15 Sosnova St, Vyshneve"
+              placeholder={t('projectModal.addressPlaceholder')}
             />
             {validationErrors.address && <p className="text-destructive text-sm">{validationErrors.address}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="project-city">City</Label>
+              <Label htmlFor="project-city">{t('projectModal.city')}</Label>
               <Input
                 id="project-city"
                 value={form.city}
                 onChange={(e) => setForm(prev => ({ ...prev, city: e.target.value }))}
-                placeholder="Vyshneve"
+                placeholder={t('projectModal.cityPlaceholder')}
               />
               {validationErrors.city && <p className="text-destructive text-sm">{validationErrors.city}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="project-postal">Postal code</Label>
+              <Label htmlFor="project-postal">{t('projectModal.postalCode')}</Label>
               <Input
                 id="project-postal"
                 value={form.postalCode}
                 onChange={(e) => setForm(prev => ({ ...prev, postalCode: e.target.value }))}
-                placeholder="08132"
+                placeholder={t('projectModal.postalCodePlaceholder')}
               />
               {validationErrors.postalCode && <p className="text-destructive text-sm">{validationErrors.postalCode}</p>}
             </div>
@@ -293,37 +295,37 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="project-area">Area (m²)</Label>
+              <Label htmlFor="project-area">{t('projectModal.area')}</Label>
               <Input
                 id="project-area"
                 type="number"
                 value={form.totalArea}
                 onChange={(e) => setForm(prev => ({ ...prev, totalArea: e.target.value }))}
-                placeholder="180"
+                placeholder={t('projectModal.areaPlaceholder')}
               />
               {validationErrors.totalArea && <p className="text-destructive text-sm">{validationErrors.totalArea}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="project-budget">Budget</Label>
+              <Label htmlFor="project-budget">{t('projectModal.budget')}</Label>
               <Input
                 id="project-budget"
                 type="number"
                 value={form.budget}
                 onChange={(e) => setForm(prev => ({ ...prev, budget: e.target.value }))}
-                placeholder="100000"
+                placeholder={t('projectModal.budgetPlaceholder')}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Client</Label>
+            <Label>{t('projectModal.client')}</Label>
             <Select
               value={form.clientId}
               onValueChange={(v) => setForm(prev => ({ ...prev, clientId: v }))}
               disabled={isEdit}
             >
               <SelectTrigger>
-                <SelectValue placeholder={loadingClients ? "Loading..." : "Select a client"} />
+                <SelectValue placeholder={loadingClients ? t('projectModal.loading') : t('projectModal.selectClient')} />
               </SelectTrigger>
               <SelectContent>
                 {clients.map(c => (
@@ -335,21 +337,21 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
           </div>
 
           <div className="space-y-2">
-            <Label>Status</Label>
+            <Label>{t('projectModal.status')}</Label>
             <Select value={form.status} onValueChange={(v) => setForm(prev => ({ ...prev, status: v }))}>
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder={t('projectModal.selectStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
+                <SelectItem value="In Progress">{t('projectModal.inProgress')}</SelectItem>
+                <SelectItem value="Completed">{t('projectModal.completed')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="start-date">Start date</Label>
+              <Label htmlFor="start-date">{t('projectModal.startDate')}</Label>
               <Input
                 id="start-date"
                 type="date"
@@ -360,7 +362,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
               {validationErrors.startDate && <p className="text-destructive text-sm">{validationErrors.startDate}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="planned-end-date">Expected completion</Label>
+              <Label htmlFor="planned-end-date">{t('projectModal.expectedCompletion')}</Label>
               <Input
                 id="planned-end-date"
                 type="date"
@@ -372,7 +374,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
 
           {isEdit && (
             <div className="space-y-2">
-              <Label htmlFor="actual-end-date">Actual end date</Label>
+              <Label htmlFor="actual-end-date">{t('projectModal.actualEndDate')}</Label>
               <Input
                 id="actual-end-date"
                 type="date"
@@ -383,7 +385,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="thumbnail">Project photo (optional)</Label>
+            <Label htmlFor="thumbnail">{t('projectModal.projectPhoto')}</Label>
             <Input
               id="thumbnail"
               type="file"
@@ -396,22 +398,22 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="project-notes">Notes (optional)</Label>
+            <Label htmlFor="project-notes">{t('projectModal.notes')}</Label>
             <Textarea
               id="project-notes"
               value={form.notes}
               onChange={(e) => setForm(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="Additional notes about the project"
+              placeholder={t('projectModal.notesPlaceholder')}
             />
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={submitting}>
-            Cancel
+            {t('projectModal.cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={submitting} className="bg-[#F97316] hover:bg-[#F97316]/90">
-            {submitting ? (isEdit ? "Saving..." : "Creating...") : (isEdit ? "Save changes" : "Create project")}
+            {submitting ? (isEdit ? t('projectModal.saving') : t('projectModal.creating')) : (isEdit ? t('projectModal.saveChanges') : t('projectModal.createProject'))}
           </Button>
         </DialogFooter>
       </DialogContent>

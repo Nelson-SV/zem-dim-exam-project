@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -6,6 +7,7 @@ import { PaginationComponent } from '../../components/PaginationComponent';
 import { toast } from 'sonner';
 import { http } from '../../lib/api';
 import { format } from 'date-fns';
+import { uk, enUS } from 'date-fns/locale';
 import ConfirmationWindowModal from '../../components/ConfirmationWindowModal';
 import { Pencil, Trash2 } from 'lucide-react';
 import { StageModal, type MilestoneViewModel } from './StageModal';
@@ -17,6 +19,8 @@ interface Props {
 }
 
 export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'uk' ? uk : enUS;
   const [stages, setStages] = useState<MilestoneViewModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -52,11 +56,11 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
       setTotal(res.totalItems ?? items.length);
       onMilestonesChanged?.(items);
     } catch (err: any) {
-      toast.error(err?.message ?? 'Unable to load stages.');
+      toast.error(err?.message ?? t('stagesView.unableToLoad'));
     } finally {
       setLoading(false);
     }
-  }, [projectId, page, pageSize, onMilestonesChanged]);
+  }, [projectId, page, pageSize, onMilestonesChanged, t]);
 
   useEffect(() => {
     setPage(1);
@@ -83,11 +87,11 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
     setDeleting(true);
     try {
       await http.adminStages.deleteStage(projectId, pendingDelete.id);
-      toast.success('Stage deleted.');
+      toast.success(t('stagesView.stageDeleted'));
       setPendingDelete(null);
       fetchStages();
     } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to delete stage.');
+      toast.error(err?.message ?? t('stagesView.failedToDelete'));
     } finally {
       setDeleting(false);
     }
@@ -96,16 +100,16 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold">Construction stages</h3>
+        <h3 className="text-xl font-semibold">{t('stagesView.title')}</h3>
         <Button className="bg-[#F97316] hover:bg-[#F97316]/90" onClick={openCreate}>
-          Add stage
+          {t('stagesView.addStage')}
         </Button>
       </div>
 
       {loading ? (
-        <Card className="p-6 animate-pulse text-muted-foreground">Loading stages…</Card>
+        <Card className="p-6 animate-pulse text-muted-foreground">{t('stagesView.loadingStages')}</Card>
       ) : stages.length === 0 ? (
-        <Card className="p-6 text-muted-foreground">No stages for this project yet.</Card>
+        <Card className="p-6 text-muted-foreground">{t('stagesView.noStages')}</Card>
       ) : (
         <div className="space-y-4">
           {stages.map((stage, idx) => (
@@ -134,21 +138,21 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
                   </div>
                   <div className="text-sm text-muted-foreground flex gap-4 flex-wrap">
                     {stage.plannedStartDate && (
-                      <span>Planned start: {format(new Date(stage.plannedStartDate), 'dd MMM yyyy')}</span>
+                      <span>{t('stagesView.plannedStart')}: {format(new Date(stage.plannedStartDate), 'dd MMM yyyy', { locale })}</span>
                     )}
                     {stage.plannedEndDate && (
-                      <span>Planned finish: {format(new Date(stage.plannedEndDate), 'dd MMM yyyy')}</span>
+                      <span>{t('stagesView.plannedFinish')}: {format(new Date(stage.plannedEndDate), 'dd MMM yyyy', { locale })}</span>
                     )}
                     {stage.actualStartDate && (
-                      <span>Actual start: {format(new Date(stage.actualStartDate), 'dd MMM yyyy')}</span>
+                      <span>{t('stagesView.actualStart')}: {format(new Date(stage.actualStartDate), 'dd MMM yyyy', { locale })}</span>
                     )}
                     {stage.actualEndDate && (
-                      <span>Actual finish: {format(new Date(stage.actualEndDate), 'dd MMM yyyy')}</span>
+                      <span>{t('stagesView.actualFinish')}: {format(new Date(stage.actualEndDate), 'dd MMM yyyy', { locale })}</span>
                     )}
                   </div>
                   <div className="mt-1">
                     <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Progress</span>
+                      <span>{t('stagesView.progress')}</span>
                       <span>{stage.progressPercentage}%</span>
                     </div>
                     <div className="h-2 rounded bg-muted mt-1 overflow-hidden">
@@ -177,8 +181,8 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
 
       <ConfirmationWindowModal
         isOpen={!!pendingDelete}
-        title="Delete this stage?"
-        message={`Are you sure you want to delete the stage "${pendingDelete?.title}"?`}
+        title={t('stagesView.deleteTitle')}
+        message={t('stagesView.deleteMessage', { stageName: pendingDelete?.title || '' })}
         onConfirm={handleDelete}
         onCancel={() => setPendingDelete(null)}
       />

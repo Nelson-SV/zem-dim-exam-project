@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Clock, TrendingUp, Camera, MessageCircle, CheckCircle2, Loader2, Building } from 'lucide-react';
-import { enUS } from 'date-fns/locale';
+import { uk, enUS } from 'date-fns/locale';
 import { formatDistanceToNow, differenceInDays, format } from 'date-fns';
 import { Badge } from '../components/ui/badge';
 import { Card } from '../components/ui/card';
@@ -29,7 +30,9 @@ function UpdateIcon(type?: string) {
 }
 
 export function ClientDashboard() {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const locale = i18n.language === 'uk' ? uk : enUS;
 
   const [projects, setProjects] = useState<ClientDashboardProjectDto[]>([]);
   const [clientName, setClientName] = useState<string>('');
@@ -48,7 +51,7 @@ export function ClientDashboard() {
         setSelectedProjectId(prev => prev ?? res.projects?.[0]?.id ?? null);
       } catch (err) {
         console.error('Failed to load dashboard', err);
-        setError('Could not load your dashboard. Please try again.');
+        setError(t('clientDashboard.couldNotLoad'));
       } finally {
         setLoading(false);
       }
@@ -76,7 +79,7 @@ export function ClientDashboard() {
     return (
       <div className="flex items-center gap-3 text-muted-foreground">
         <Loader2 className="size-5 animate-spin" />
-        <span>Loading dashboard...</span>
+        <span>{t('clientDashboard.loadingDashboard')}</span>
       </div>
     );
   }
@@ -88,8 +91,8 @@ export function ClientDashboard() {
   if (!project) {
     return (
       <Card className="p-8">
-        <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
-        <p className="text-muted-foreground">When a project is assigned to you, it will appear here.</p>
+        <h3 className="text-xl font-semibold mb-2">{t('dashboard.noProjects')}</h3>
+        <p className="text-muted-foreground">{t('dashboard.noProjectsDesc')}</p>
       </Card>
     );
   }
@@ -99,7 +102,7 @@ export function ClientDashboard() {
   const area = project.totalArea ?? undefined;
 
   const formatDisplayDate = (date: Date | null, fallback = '—') =>
-    date ? format(date, 'dd MMMM yyyy', { locale: enUS }) : fallback;
+    date ? format(date, 'dd MMMM yyyy', { locale }) : fallback;
 
   const badgeVariant = (status?: string) => {
     const normalized = normalizeStatus(status);
@@ -129,12 +132,12 @@ export function ClientDashboard() {
 
       {/* Welcome Banner */}
       <div className="bg-linear-to-r from-[#F97316] to-[#F59E0B] rounded-lg p-8 text-white">
-        <h2 className="mb-2">Welcome, {clientName || 'Client'}!</h2>
+        <h2 className="mb-2">{t('clientDashboard.welcomeClient', { name: clientName || t('dashboard.client') })}</h2>
         <p className="opacity-90">
-          Your project is {progress}% complete.
+          {t('clientDashboard.projectPercentComplete', { percent: progress })}
           {' '}
           {daysRemaining !== null && (
-            <span>{daysRemaining} days remaining until the finish date.</span>
+            <span>{t('clientDashboard.daysRemainingUntil', { days: daysRemaining })}</span>
           )}
         </p>
       </div>
@@ -150,7 +153,7 @@ export function ClientDashboard() {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              <Building className="size-8 mr-2" /> No image available
+              <Building className="size-8 mr-2" /> {t('clientDashboard.noImageAvailable')}
             </div>
           )}
         </div>
@@ -165,7 +168,7 @@ export function ClientDashboard() {
             <div className="flex flex-wrap gap-3">
               <Badge className="bg-[#10B981]">
                 <CheckCircle2 className="size-3 mr-1" />
-                {progress}% complete
+                {progress}% {t('dashboard.completed').toLowerCase()}
               </Badge>
               {area !== undefined && (
                 <Badge variant="outline">
@@ -181,7 +184,7 @@ export function ClientDashboard() {
                 <Calendar className="size-5 text-primary" />
               </div>
               <div>
-                <p className="text-muted-foreground">Start date</p>
+                <p className="text-muted-foreground">{t('clientDashboard.startDate')}</p>
                 <p>{formatDisplayDate(projectStart)}</p>
               </div>
             </div>
@@ -190,7 +193,7 @@ export function ClientDashboard() {
                 <Clock className="size-5 text-[#F59E0B]" />
               </div>
               <div>
-                <p className="text-muted-foreground">Planned completion</p>
+                <p className="text-muted-foreground">{t('clientDashboard.plannedCompletion')}</p>
                 <p>{formatDisplayDate(plannedEnd)}</p>
               </div>
             </div>
@@ -198,7 +201,7 @@ export function ClientDashboard() {
 
           <div className="space-y-3 mb-6">
             <div className="flex items-center justify-between">
-              <span>Overall progress</span>
+              <span>{t('clientDashboard.overallProgress')}</span>
               <span>{progress}%</span>
             </div>
             <Progress value={progress} className="h-3" />
@@ -208,7 +211,7 @@ export function ClientDashboard() {
             <div className="flex items-center gap-3">
               <TrendingUp className="size-5 text-primary" />
               <div>
-                <p>Current stage</p>
+                <p>{t('dashboard.currentStage')}</p>
                 <p className="text-muted-foreground">{currentStage}</p>
               </div>
             </div>
@@ -218,7 +221,7 @@ export function ClientDashboard() {
 
       {/* Project Stages Timeline */}
       <div>
-        <h3 className="mb-6">Construction stages</h3>
+        <h3 className="mb-6">{t('clientDashboard.constructionStages')}</h3>
         <Card className="p-6">
           <div className="space-y-4">
             {(project.stages ?? []).map((stage, index) => {
@@ -244,14 +247,14 @@ export function ClientDashboard() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                       <h4>{stage.title}</h4>
                       <Badge variant={badgeVariant(stage.status)}>
-                        {isCompleted ? 'Completed' : isInProgress ? 'In Progress' : (stage.status ?? 'Pending')}
+                        {isCompleted ? t('clientDashboard.completed') : isInProgress ? t('clientDashboard.inProgress') : (stage.status ?? t('clientDashboard.pending'))}
                       </Badge>
                     </div>
                     <p className="text-muted-foreground mb-3">
-                      {stage.notes || 'No description provided.'}
+                      {stage.notes || t('clientDashboard.noDescriptionProvided')}
                     </p>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-muted-foreground">Progress</span>
+                      <span className="text-muted-foreground">{t('clientDashboard.progress')}</span>
                       <span>{stage.progressPercentage ?? 0}%</span>
                     </div>
                     <Progress value={stage.progressPercentage ?? 0} className="h-2" />
@@ -265,10 +268,10 @@ export function ClientDashboard() {
 
       {/* Recent Updates */}
       <div>
-        <h3 className="mb-6">Latest updates</h3>
+        <h3 className="mb-6">{t('clientDashboard.latestUpdates')}</h3>
         <Card className="divide-y">
           {(project.latestUpdates ?? []).length === 0 && (
-            <div className="p-4 text-muted-foreground">No updates yet.</div>
+            <div className="p-4 text-muted-foreground">{t('clientDashboard.noUpdatesYet')}</div>
           )}
           {(project.latestUpdates ?? []).map((activity: UpdateDto) => {
             const IconComponent = UpdateIcon(activity.updateType);
@@ -284,8 +287,8 @@ export function ClientDashboard() {
                 </div>
                 <span className="text-muted-foreground whitespace-nowrap">
                   {createdAt
-                    ? formatDistanceToNow(createdAt, { addSuffix: true, locale: enUS })
-                    : 'Just now'}
+                    ? formatDistanceToNow(createdAt, { addSuffix: true, locale })
+                    : t('clientDashboard.justNow')}
                 </span>
               </div>
             );

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Search, Filter, Plus, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { uk, enUS } from 'date-fns/locale';
 import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
@@ -21,6 +22,7 @@ interface AdminProjectsListProps {
 }
 
 export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
+  const { t, i18n } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [projects, setProjects] = useState<ProjectDto[]>([]);
@@ -33,6 +35,7 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
   const [projectModalMode, setProjectModalMode] = useState<'create' | 'edit'>('create');
   const [selectedProject, setSelectedProject] = useState<ProjectDto | null>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const locale = i18n.language === 'uk' ? uk : enUS;
 
   useEffect(() => {
     setPage(1);
@@ -49,9 +52,9 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
       setProjects(res.items ?? []);
       setTotal(res.totalItems ?? (res.items?.length ?? 0));
     } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to load projects');
+      toast.error(err?.message ?? t('projects.failedToLoadProjects'));
     }
-  }, [searchQuery, statusFilter, page, pageSize]);
+  }, [searchQuery, statusFilter, page, pageSize, t]);
 
   useEffect(() => {
     loadProjects();
@@ -86,15 +89,15 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
 
   const handleDeleteConfirm = async () => {
     if (!selectedProject?.id) {
-      toast.error('Project not found');
+      toast.error(t('projects.projectNotFound'));
       return;
     }
     try {
       await http.projects.deleteProject(selectedProject.id);
-      toast.success('Project deleted');
+      toast.success(t('projects.projectDeleted'));
       loadProjects();
     } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to delete project');
+      toast.error(err?.message ?? t('projects.failedToDeleteProject'));
     } finally {
       setConfirmDeleteOpen(false);
       setSelectedProject(null);
@@ -111,12 +114,12 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <p className="text-muted-foreground">
-            Projects: {total}
+            {t('projects.count')}: {total}
           </p>
         </div>
         <Button className="bg-[#F97316] hover:bg-[#F97316]/90" onClick={openCreateModal}>
           <Plus className="size-4 mr-2" />
-          New project
+          {t('projects.newProject')}
         </Button>
       </div>
 
@@ -124,7 +127,7 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Search projects..."
+            placeholder={t('projects.searchProjects')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -136,9 +139,9 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="In Progress">In Progress</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
+            <SelectItem value="all">{t('projects.allStatuses')}</SelectItem>
+            <SelectItem value="In Progress">{t('projects.inProgress')}</SelectItem>
+            <SelectItem value="Completed">{t('projects.completed')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -148,7 +151,7 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
           <Card key={project.id} className="p-6 hover:shadow-lg transition-all">
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="w-full lg:w-48 h-32 rounded-lg overflow-hidden bg-muted shrink-0">
-                {project.thumbnailUrl == null || project.thumbnailUrl === "" ? 'Project of Client: ' + project.clientName
+                {project.thumbnailUrl == null || project.thumbnailUrl === "" ? t('projects.projectOfClient') + ': ' + project.clientName
                   : (<img
                     src={project.thumbnailUrl}
                     alt={project.title}
@@ -179,13 +182,13 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => onViewProject?.(project.id!)}>
-                        View
+                        {t('common.view')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openEditModal(project)}>
-                        Edit
+                        {t('common.edit')}
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive" onClick={() => openDeleteModal(project)}>
-                        Delete
+                        {t('common.delete')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -193,22 +196,22 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <p className="text-muted-foreground">Client</p>
+                    <p className="text-muted-foreground">{t('projects.client')}</p>
                     <p>{project.clientName}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Current stage</p>
+                    <p className="text-muted-foreground">{t('projects.currentStage')}</p>
                     <p>{'Here we still need to check which is the last stage of the project'}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">Area</p>
+                    <p className="text-muted-foreground">{t('projects.area')}</p>
                     <p>{project.totalArea ?? 0} m²</p>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-muted-foreground">Project progress</span>
+                    <span className="text-muted-foreground">{t('projects.projectProgress')}</span>
                     <span>{project.progressPercentage ?? 0}%</span>
                   </div>
                   <Progress value={project.progressPercentage ?? 0} className="h-2" />
@@ -216,14 +219,14 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
 
                 <div className="flex items-center justify-between text-muted-foreground pt-2 border-t">
                   <span>
-                    {project.startDate && format(new Date(project.startDate), 'dd MMM yyyy', { locale: enUS })} - {project.plannedEndDate && format(new Date(project.plannedEndDate), 'dd MMM yyyy', { locale: enUS })}
+                    {project.startDate && format(new Date(project.startDate), 'dd MMM yyyy', { locale })} - {project.plannedEndDate && format(new Date(project.plannedEndDate), 'dd MMM yyyy', { locale })}
                   </span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => onViewProject?.(project.id!)}
                   >
-                    View details
+                    {t('dashboard.viewDetails')}
                   </Button>
                 </div>
               </div>
@@ -246,8 +249,8 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
 
       <ConfirmationWindowModal
         isOpen={confirmDeleteOpen}
-        title="Confirm deletion"
-        message={`Are you sure you want to delete the project "${selectedProject?.title}"?`}
+        title={t('projects.confirmDelete')}
+        message={`${t('projects.confirmDeleteMessage')} "${selectedProject?.title}"?`}
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
       />

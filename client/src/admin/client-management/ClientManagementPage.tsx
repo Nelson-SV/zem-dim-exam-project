@@ -6,7 +6,8 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/ui/avatar';
 import { format } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { uk, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useDebounce } from "use-debounce";
 import { AddNewClientModal } from './AddNewClientModal';
@@ -21,6 +22,8 @@ import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 
 export function ClientManagementPage() {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'uk' ? uk : enUS;
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch] = useDebounce(searchQuery, 300);
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,15 +54,14 @@ export function ClientManagementPage() {
         if (r !== null || r !== undefined) {
           setCurrentPage(1);
           setReloadFlag(prev => prev + 1);
-          toast.success("User added successfully.");
+          toast.success(t('clientManagement.userAddedSuccess'));
 
         } else {
-          toast.error(`Failed to register the user: ${userData.email}. 
-                        Please insert this account again.`);
+          toast.error(t('clientManagement.failedToRegister', { email: userData.email }));
         }
       });
     } catch (error) {
-      toast.error("Error performing operation for the user: " + error);
+      toast.error(t('clientManagement.errorPerformingOperation') + error);
     } finally {
       setModalOpen(false);
     }
@@ -72,15 +74,14 @@ export function ClientManagementPage() {
         if (r !== null && r !== undefined) {
           setUsersDetails((prevUsers) =>
             prevUsers.map((user) => (user.userId === r.userId ? r : user)));
-          toast.success("User updated successfully.");
+          toast.success(t('clientManagement.userUpdatedSuccess'));
 
         } else {
-          toast.error(`Failed to update the user: ${userData.email}. 
-                        Please try again.`);
+          toast.error(t('clientManagement.failedToUpdate', { email: userData.email }));
         }
       });
     } catch (error) {
-      toast.error("Error performing operation for the user: " + error);
+      toast.error(t('clientManagement.errorPerformingOperation') + error);
     } finally {
       setModalOpen(false);
     }
@@ -95,17 +96,17 @@ export function ClientManagementPage() {
             setUsersDetails((prevUsers) =>
               prevUsers.filter((user) => user.userId !== selectedUser.userId)
             );
-            toast.success("User deleted successfully.");
+            toast.success(t('clientManagement.userDeletedSuccess'));
           } else {
-            toast.error("Error deleting user.");
+            toast.error(t('clientManagement.errorDeletingUser'));
           }
         }
         else {
-          toast.error("An unexpected error occurred, please try again later.");
+          toast.error(t('clientManagement.unexpectedError'));
         }
       }
     } catch (error) {
-      toast.error("An unexpected error occurred: " + error);
+      toast.error(t('clientManagement.unexpectedError') + ": " + error);
     } finally {
       handleConfirmationModalClose();
     }
@@ -142,7 +143,7 @@ export function ClientManagementPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or email..."
+              placeholder={t('clientManagement.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 pr-8 w-64"
@@ -160,7 +161,7 @@ export function ClientManagementPage() {
           {/* 🧩 Filter toggle */}
           <div className="flex items-center gap-2">
             <Label htmlFor="user-active" className="text-sm text-muted-foreground">
-              Status:
+              {t('common.status')}:
             </Label>
             <Switch
               id="user-active"
@@ -171,7 +172,7 @@ export function ClientManagementPage() {
               className={`text-sm font-medium ${isActiveFilter ? "text-green-600" : "text-gray-500"
                 }`}
             >
-              {isActiveFilter ? "Active" : "Inactive"}
+              {isActiveFilter ? t('common.active') : t('common.inactive')}
             </span>
           </div>
         </div>
@@ -193,8 +194,8 @@ export function ClientManagementPage() {
       {usersDetails.length === 0 ? (
         <div className="text-center text-muted-foreground py-10">
           {debouncedSearch
-            ? "No users found for this search."
-            : "No users available yet. Add your first client!"}
+            ? t('clientManagement.noUsersFound')
+            : t('clientManagement.noUsersYet')}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -209,7 +210,7 @@ export function ClientManagementPage() {
                 <div className="flex-1">
                   <h4 className="mb-1">{client.firstName + " " + client.lastName}</h4>
                   <Badge variant="secondary">
-                    {client.projects?.length} {client.projects?.length === 1 ? 'project' : 'projects'}
+                    {client.projects?.length} {client.projects?.length === 1 ? t('clientManagement.project') : t('clientManagement.projects')}
                   </Badge>
                 </div>
               </div>
@@ -226,7 +227,7 @@ export function ClientManagementPage() {
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <Building className="size-4 shrink-0" />
                   <span>
-                    Registered: {format(new Date(client.createdAt!), 'dd MMM yyyy', { locale: enUS })}
+                    {t('clientManagement.registered')}: {format(new Date(client.createdAt!), 'dd MMM yyyy', { locale })}
                   </span>
                 </div>
               </div>
@@ -234,11 +235,11 @@ export function ClientManagementPage() {
               <div className="flex gap-2 mt-6 pt-4 border-t">
                 <Button variant="outline" className="flex-1" size="sm">
                   <Eye className="size-4 mr-1" />
-                  Overview
+                  {t('clientManagement.overview')}
                 </Button>
                 <Button variant="outline" className="flex-1" size="sm" onClick={() => openEditModal(client)}>
                   <Edit className="size-4 mr-1" />
-                  Edit
+                  {t('common.edit')}
                 </Button>
                 <Button
                   variant="outline"
@@ -262,8 +263,8 @@ export function ClientManagementPage() {
 
       <ConfirmationWindowModal
         isOpen={openConfirmDeleteModal}
-        title="Confirm deletion"
-        message={`Are you sure you want to delete the user ${selectedUser?.email}?`}
+        title={t('clientManagement.confirmDeletion')}
+        message={t('clientManagement.confirmDeleteMessage', { email: selectedUser?.email })}
         onConfirm={handleDeleteUser}
         onCancel={handleConfirmationModalClose}
       />

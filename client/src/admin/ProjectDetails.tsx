@@ -7,6 +7,8 @@ import {Progress} from '../components/ui/progress';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '../components/ui/tabs';
 import {toast} from 'sonner';
 import {format} from 'date-fns';
+import {uk, enUS} from 'date-fns/locale';
+import {useTranslation} from 'react-i18next';
 import {Admin3DScansView} from './3d-scans/Admin3DScansView';
 import {AdminStagesView, type MilestoneViewModel} from './stages/AdminStagesView';
 import {AdminPhotosView} from './photos/AdminPhotosView';
@@ -20,6 +22,8 @@ interface ProjectDetailsProps {
 }
 
 export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'uk' ? uk : enUS;
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [milestones, setMilestones] = useState<MilestoneViewModel[]>([]);
   const [loading, setLoading] = useState(false);
@@ -31,7 +35,7 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
         const data = await http.projects.getProject(projectId);
         setProject(data as ProjectDto);
       } catch (err: any) {
-        toast.error(err?.message ?? 'Unable to load project details.');
+        toast.error(err?.message ?? t('projectDetails.failedToLoad'));
       } finally {
         setLoading(false);
       }
@@ -46,8 +50,8 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
 
   const currentStageName = useMemo(() => {
     const active = milestones.find(m => m.status?.toLowerCase() !== 'completed');
-    return active?.title ?? 'Completed';
-  }, [milestones]);
+    return active?.title ?? t('dashboard.completed');
+  }, [milestones, t]);
 
   const daysRemaining = useMemo(() => {
     const end = project?.plannedEndDate ?? project?.actualEndDate;
@@ -58,10 +62,10 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
   }, [project]);
 
   if (loading) {
-    return <Card className="p-6">Loading project…</Card>;
+    return <Card className="p-6">{t('projectDetails.loading')}</Card>;
   }
 
-  if (!project) return <div>Project not found</div>;
+  if (!project) return <div>{t('projects.projectNotFound')}</div>;
 
   return (
     <div className="space-y-6">
@@ -87,8 +91,8 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
                 <div className="flex items-center gap-2">
                   <Calendar className="size-4" />
                   <span>
-                    {project.startDate && format(new Date(project.startDate as any), 'dd MMM yyyy')}
-                    {project.plannedEndDate && ` - ${format(new Date(project.plannedEndDate as any), 'dd MMM yyyy')}`}
+                    {project.startDate && format(new Date(project.startDate as any), 'dd MMM yyyy', { locale })}
+                    {project.plannedEndDate && ` - ${format(new Date(project.plannedEndDate as any), 'dd MMM yyyy', { locale })}`}
                   </span>
                 </div>
               </div>
@@ -105,18 +109,18 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
           <div>
             <div className="text-center mb-4">
               <div className="text-5xl font-bold text-[#F97316] mb-2">{project.progressPercentage ?? 0}%</div>
-              <p className="text-muted-foreground">Overall progress</p>
+              <p className="text-muted-foreground">{t('projectDetails.overallProgress')}</p>
             </div>
             <Progress value={project.progressPercentage ?? 0} className="h-3" />
           </div>
 
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <span className="text-muted-foreground">Area</span>
+              <span className="text-muted-foreground">{t('projectDetails.area')}</span>
               <span>{project.totalArea ?? 0} m²</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <span className="text-muted-foreground">Current stage</span>
+              <span className="text-muted-foreground">{t('dashboard.currentStage')}</span>
               <span>{currentStageName}</span>
             </div>
           </div>
@@ -125,14 +129,14 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
             <div className="flex items-center justify-between p-3 bg-[#10B981]/10 rounded-lg">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="size-4 text-[#10B981]" />
-                <span className="text-muted-foreground">Completed stages</span>
+                <span className="text-muted-foreground">{t('projectDetails.completedStages')}</span>
               </div>
               <span>{completedStages}/{milestones.length}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-[#F59E0B]/10 rounded-lg">
               <div className="flex items-center gap-2">
                 <Clock className="size-4 text-[#F59E0B]" />
-                <span className="text-muted-foreground">Days remaining</span>
+                <span className="text-muted-foreground">{t('projectDetails.daysRemaining')}</span>
               </div>
               <span>{daysRemaining}</span>
             </div>
@@ -144,19 +148,19 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="stages">
             <TrendingUp className="size-4 mr-2" />
-            Stages
+            {t('projectDetails.stages')}
           </TabsTrigger>
           <TabsTrigger value="photos">
             <Camera className="size-4 mr-2" />
-            Photos
+            {t('projectDetails.photos')}
           </TabsTrigger>
           <TabsTrigger value="3d">
             <Box className="size-4 mr-2" />
-            3D Scans
+            {t('projectDetails.scans3D')}
           </TabsTrigger>
           <TabsTrigger value="documents">
             <FileText className="size-4 mr-2" />
-            Documents
+            {t('nav.documents')}
           </TabsTrigger>
         </TabsList>
 
@@ -187,7 +191,7 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
 
       {project.notes && (
         <Card className="p-4">
-          <h4 className="font-semibold mb-2">Project Notes</h4>
+          <h4 className="font-semibold mb-2">{t('projectDetails.projectNotes')}</h4>
           <p className="text-muted-foreground">{project.notes}</p>
         </Card>
       )}
