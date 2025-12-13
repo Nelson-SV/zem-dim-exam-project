@@ -129,6 +129,12 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
     if (!form.startDate) errors.startDate = "Start date is required";
     if (!form.clientId) errors.clientId = "Client is required";
     if (form.totalArea === "") errors.totalArea = "Area is required";
+    const start = form.startDate ? new Date(`${form.startDate}T00:00:00`) : null;
+    const plannedEnd = form.plannedEndDate ? new Date(`${form.plannedEndDate}T00:00:00`) : null;
+    const actualEnd = form.actualEndDate ? new Date(`${form.actualEndDate}T00:00:00`) : null;
+    if (plannedEnd && start && plannedEnd < start) errors.plannedEndDate = "Expected completion cannot be before the start date.";
+    if (actualEnd && start && actualEnd < start) errors.actualEndDate = "Actual end date cannot be before the start date.";
+    if (actualEnd && plannedEnd && actualEnd < plannedEnd) errors.actualEndDate = "Actual end date cannot be before expected completion.";
     return errors;
   }, [form]);
 
@@ -365,8 +371,10 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
                 id="planned-end-date"
                 type="date"
                 value={form.plannedEndDate}
+                min={form.startDate || undefined}
                 onChange={(e) => setForm(prev => ({ ...prev, plannedEndDate: e.target.value }))}
               />
+              {validationErrors.plannedEndDate && <p className="text-destructive text-sm">{validationErrors.plannedEndDate}</p>}
             </div>
           </div>
 
@@ -377,8 +385,10 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
                 id="actual-end-date"
                 type="date"
                 value={form.actualEndDate}
+                min={form.startDate || undefined}
                 onChange={(e) => setForm(prev => ({ ...prev, actualEndDate: e.target.value }))}
               />
+              {validationErrors.actualEndDate && <p className="text-destructive text-sm">{validationErrors.actualEndDate}</p>}
             </div>
           )}
 

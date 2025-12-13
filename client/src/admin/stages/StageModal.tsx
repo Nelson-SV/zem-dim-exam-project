@@ -29,6 +29,8 @@ type Props = {
   open: boolean;
   mode: Mode;
   projectId: string;
+  projectStart?: string | null;
+  projectEnd?: string | null;
   stage: MilestoneViewModel | null;
   onClose: () => void;
   onSaved: (stage: MilestoneDto, mode: Mode) => void;
@@ -64,12 +66,16 @@ const toInputDate = (value?: string | Date | null) => {
   return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
 };
 
+const toDate = (value?: string | null) => (value ? new Date(`${value}T00:00:00`) : null);
+
 const statusOptions = [
   { value: "In Progress", label: "In Progress" },
   { value: "Completed", label: "Completed" },
 ];
 
-export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: Props) {
+const toDateOrUndefined = (value?: string | null) => (value ? new Date(`${value}T00:00:00`) : undefined);
+
+export function StageModal({ open, mode, projectId, projectStart, projectEnd, stage, onClose, onSaved }: Props) {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
 
@@ -97,24 +103,60 @@ export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: P
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
     if (!form.title.trim()) e.title = "Title is required";
+
+    const projStart = toDate(projectStart);
+    const projEnd = toDate(projectEnd);
+    const plannedStart = toDate(form.plannedStartDate);
+    const plannedEnd = toDate(form.plannedEndDate);
+    const actualStart = toDate(form.actualStartDate);
+    const actualEnd = toDate(form.actualEndDate);
+
+    if (plannedStart && projStart && plannedStart < projStart) {
+      e.plannedStartDate = "Planned start cannot be before the project start date.";
+    }
+    if (plannedEnd && plannedStart && plannedEnd < plannedStart) {
+      e.plannedEndDate = "Planned finish must be on or after the planned start date.";
+    }
+    if (plannedEnd && projEnd && plannedEnd > projEnd) {
+      e.plannedEndDate = "Planned finish cannot be after the project end date.";
+    }
+
+    if (actualStart && projStart && actualStart < projStart) {
+      e.actualStartDate = "Actual start cannot be before the project start date.";
+    }
+    if (actualEnd && actualStart && actualEnd < actualStart) {
+      e.actualEndDate = "Actual finish must be on or after the actual start date.";
+    }
+    if (actualEnd && projEnd && actualEnd > projEnd) {
+      e.actualEndDate = "Actual finish cannot be after the project end date.";
+    }
+
     return e;
-  }, [form.title]);
+  }, [
+    form.actualEndDate,
+    form.actualStartDate,
+    form.plannedEndDate,
+    form.plannedStartDate,
+    form.title,
+    projectEnd,
+    projectStart,
+  ]);
 
   const buildPayload = (): CreateMilestoneDto | UpdateMilestoneDto => ({
     title: form.title.trim(),
     progressPercentage: form.progressPercentage,
     status: form.status,
-    plannedStartDate: form.plannedStartDate || undefined,
-    plannedEndDate: form.plannedEndDate || undefined,
-    actualStartDate: isEdit ? form.actualStartDate || undefined : undefined,
-    actualEndDate: isEdit ? form.actualEndDate || undefined : undefined,
+    plannedStartDate: toDateOrUndefined(form.plannedStartDate),
+    plannedEndDate: toDateOrUndefined(form.plannedEndDate),
+    actualStartDate: isEdit ? toDateOrUndefined(form.actualStartDate) : undefined,
+    actualEndDate: isEdit ? toDateOrUndefined(form.actualEndDate) : undefined,
     notes: form.notes || undefined,
     orderIndex: form.orderIndex ? Number(form.orderIndex) : undefined,
   });
 
   const handleSave = async () => {
     if (Object.keys(errors).length > 0) {
-      toast.error("Please fill required fields");
+      toast.error(Object.values(errors)[0] ?? "Please fix the highlighted errors");
       return;
     }
     setSaving(true);
@@ -160,11 +202,25 @@ export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: P
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Planned start</Label>
-              <Input type="date" value={form.plannedStartDate} onChange={(e) => setForm({ ...form, plannedStartDate: e.target.value })} />
+              <Input
+                type="date"
+                value={form.plannedStartDate}
+                min={projectStart || undefined}
+                max={projectEnd || undefined}
+                onChange={(e) => setForm({ ...form, plannedStartDate: e.target.value })}
+              />
+              {errors.plannedStartDate && <p className="text-destructive text-sm">{errors.plannedStartDate}</p>}
             </div>
             <div className="space-y-2">
               <Label>Planned finish</Label>
-              <Input type="date" value={form.plannedEndDate} onChange={(e) => setForm({ ...form, plannedEndDate: e.target.value })} />
+              <Input
+                type="date"
+                value={form.plannedEndDate}
+                min={form.plannedStartDate || projectStart || undefined}
+                max={projectEnd || undefined}
+                onChange={(e) => setForm({ ...form, plannedEndDate: e.target.value })}
+              />
+              {errors.plannedEndDate && <p className="text-destructive text-sm">{errors.plannedEndDate}</p>}
             </div>
           </div>
 
@@ -172,11 +228,25 @@ export function StageModal({ open, mode, projectId, stage, onClose, onSaved }: P
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Actual start</Label>
-                <Input type="date" value={form.actualStartDate} onChange={(e) => setForm({ ...form, actualStartDate: e.target.value })} />
+                <Input
+                  type="date"
+                  value={form.actualStartDate}
+                  min={projectStart || undefined}
+                  max={projectEnd || undefined}
+                  onChange={(e) => setForm({ ...form, actualStartDate: e.target.value })}
+                />
+                {errors.actualStartDate && <p className="text-destructive text-sm">{errors.actualStartDate}</p>}
               </div>
               <div className="space-y-2">
                 <Label>Actual finish</Label>
-                <Input type="date" value={form.actualEndDate} onChange={(e) => setForm({ ...form, actualEndDate: e.target.value })} />
+                <Input
+                  type="date"
+                  value={form.actualEndDate}
+                  min={form.actualStartDate || projectStart || undefined}
+                  max={projectEnd || undefined}
+                  onChange={(e) => setForm({ ...form, actualEndDate: e.target.value })}
+                />
+                {errors.actualEndDate && <p className="text-destructive text-sm">{errors.actualEndDate}</p>}
               </div>
             </div>
           )}

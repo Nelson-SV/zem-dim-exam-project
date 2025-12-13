@@ -17,9 +17,11 @@ interface Props {
   projectId: string;
   projectName: string;
   milestones: { id: string; name: string }[];
+  projectStart?: string | null;
+  projectEnd?: string | null;
 }
 
-export function Admin3DScansView({ projectId, projectName, milestones }: Props) {
+export function Admin3DScansView({ projectId, projectName, milestones, projectStart, projectEnd }: Props) {
   const { scans, loading, page, setPage, pageSize, total, refresh } = useInitializeAdmin3DScans(projectId);
   const [modalState, setModalState] = useState<{ open: boolean; mode: 'create' | 'edit'; scan?: AdminThreeDScanDto | null }>({
     open: false,
@@ -92,6 +94,7 @@ export function Admin3DScansView({ projectId, projectName, milestones }: Props) 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xl font-semibold">3D room scans</h3>
+          <p className="text-muted-foreground text-sm">{projectName}</p>
         </div>
         <Button className="bg-[#F97316] hover:bg-[#F97316]/90" onClick={openCreateModal}>
           <Upload className="size-4 mr-2" />
@@ -174,6 +177,8 @@ export function Admin3DScansView({ projectId, projectName, milestones }: Props) 
         mode={modalState.mode}
         scan={modalState.scan}
         milestones={milestones}
+        projectStart={projectStart}
+        projectEnd={projectEnd}
         submitting={submitting}
         onClose={closeModal}
         onSubmit={handleSubmit}

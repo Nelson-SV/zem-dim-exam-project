@@ -13,10 +13,12 @@ export type { MilestoneViewModel } from './StageModal';
 
 interface Props {
   projectId: string;
+  projectStart?: string | null;
+  projectEnd?: string | null;
   onMilestonesChanged?: (milestones: MilestoneViewModel[]) => void;
 }
 
-export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
+export function AdminStagesView({ projectId, projectStart, projectEnd, onMilestonesChanged }: Props) {
   const [stages, setStages] = useState<MilestoneViewModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -29,7 +31,6 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedStage, setSelectedStage] = useState<MilestoneViewModel | null>(null);
   const [pendingDelete, setPendingDelete] = useState<MilestoneViewModel | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   const fetchStages = useCallback(async () => {
     if (!projectId) return;
@@ -80,7 +81,6 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
 
   const handleDelete = async () => {
     if (!pendingDelete) return;
-    setDeleting(true);
     try {
       await http.adminStages.deleteStage(projectId, pendingDelete.id);
       toast.success('Stage deleted.');
@@ -88,8 +88,6 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
       fetchStages();
     } catch (err: any) {
       toast.error(err?.message ?? 'Failed to delete stage.');
-    } finally {
-      setDeleting(false);
     }
   };
 
@@ -170,6 +168,8 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
         open={modalOpen}
         mode={modalMode}
         projectId={projectId}
+        projectStart={projectStart}
+        projectEnd={projectEnd}
         stage={selectedStage}
         onClose={() => { setModalOpen(false); setSelectedStage(null); }}
         onSaved={() => fetchStages()}
