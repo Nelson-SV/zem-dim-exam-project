@@ -8,57 +8,33 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Services.ClientDashboardService;
 
-public class ClientDashboardService : IClientDashboardService
+public class ClientDashboardService(
+    IUserManagementRepository userRepository,
+    IProjectRepository projectRepository,
+    IMilestoneRepository milestoneRepository,
+    IUpdateRepository updateRepository) : IClientDashboardService
 {
     private const int DefaultUpdatesLimit = 5;
     private const int MaxUpdatesLimit = 50;
 
-    private readonly IUserManagementRepository _userRepository;
-    private readonly IProjectRepository _projectRepository;
-    private readonly IMilestoneRepository _milestoneRepository;
-    private readonly IUpdateRepository _updateRepository;
-    private readonly ILogger<ClientDashboardService> _logger;
-
-    public ClientDashboardService(
-        IUserManagementRepository userRepository,
-        IProjectRepository projectRepository,
-        IMilestoneRepository milestoneRepository,
-        IUpdateRepository updateRepository,
-        ILogger<ClientDashboardService> logger)
-    {
-        _userRepository = userRepository;
-        _projectRepository = projectRepository;
-        _milestoneRepository = milestoneRepository;
-        _updateRepository = updateRepository;
-        _logger = logger;
-    }
-
     public async Task<ClientDashboardResponseDto> GetDashboardAsync(
         Guid requesterId,
-        string requesterRole,
         Guid? projectId,
-        int latestUpdatesLimit = DefaultUpdatesLimit,
-        CancellationToken ct = default)
+        int latestUpdatesLimit = DefaultUpdatesLimit)
     {
         latestUpdatesLimit = NormalizeUpdatesLimit(latestUpdatesLimit);
 
-        var requester = await _userRepository.GetByIdAsync(requesterId)
+        var requester = await userRepository.GetByIdAsync(requesterId)
                          ?? throw new UnauthorizedAccessException("User not found or inactive");
 
-        if (requester.Isactive != true || requester.Isdeleted == true)
-            throw new UnauthorizedAccessException("User is not active");
-
-        var isAdmin = requesterRole.Equals("Admin", StringComparison.OrdinalIgnoreCase)
-                      || requester.Role?.Equals("Admin", StringComparison.OrdinalIgnoreCase) == true;
-
-        var projects = await LoadProjectsAsync(requesterId, isAdmin, projectId, ct);
+        var projects = await LoadProjectsAsync(requesterId, projectId);
 
         var projectDtos = new List<ClientDashboardProjectDto>(projects.Count);
         foreach (var project in projects)
         {
-            var stages = await _milestoneRepository.GetAllByProjectAsync(project.Id, ct);
+            var stages = await milestoneRepository.GetMilestonesByProjectAsync(project.Id);
             var stageDtos = stages
-                .Select(MapStage)
+                .Select(ClientDashboardStageDto.FromEntity)
                 .OrderBy(s => s.OrderIndex)
                 .ToList();
 
@@ -67,18 +43,18 @@ public class ClientDashboardService : IClientDashboardService
                                    ?.Title
                                ?? stageDtos.LastOrDefault()?.Title;
 
-            var (updates, _) = await _updateRepository.GetUpdatesAsync(
+            var (updates, _) = await updateRepository.GetUpdatesAsync(
                 page: 1,
                 pageSize: latestUpdatesLimit,
                 projectId: project.Id,
                 updateType: null,
-                search: null,
-                ct);
+                search: null);
 
             projectDtos.Add(new ClientDashboardProjectDto
             {
                 Id = project.Id,
                 Title = project.Title,
+                Notes =  project.Notes ?? string.Empty,
                 Address = project.Address,
                 City = project.City,
                 PostalCode = project.Postalcode,
@@ -95,8 +71,6 @@ public class ClientDashboardService : IClientDashboardService
             });
         }
 
-        _logger.LogInformation("Built dashboard for user {UserId} with {ProjectCount} project(s)", requesterId, projectDtos.Count);
-
         return new ClientDashboardResponseDto
         {
             ClientId = requesterId,
@@ -105,38 +79,18 @@ public class ClientDashboardService : IClientDashboardService
         };
     }
 
-    private async Task<List<Project>> LoadProjectsAsync(Guid requesterId, bool isAdmin, Guid? projectId, CancellationToken ct)
+    private async Task<List<Project>> LoadProjectsAsync(Guid requesterId, Guid? projectId)
     {
         if (projectId.HasValue)
         {
-            var project = await _projectRepository.GetByIdAsync(projectId.Value)
+            var project = await projectRepository.GetByIdAsync(projectId.Value)
                          ?? throw new KeyNotFoundException("Project not found");
-
-            if (!isAdmin && project.Clientid != requesterId)
-                throw new UnauthorizedAccessException("You are not allowed to access this project");
 
             return new List<Project> { project };
         }
 
-        return isAdmin
-            ? await _projectRepository.GetAllAsync()
-            : await _projectRepository.GetByClientIdAsync(requesterId);
+        return await projectRepository.GetByClientIdAsync(requesterId);
     }
-
-    private static ClientDashboardStageDto MapStage(Milestone milestone) =>
-        new()
-        {
-            Id = milestone.Id,
-            Title = milestone.Title,
-            Status = milestone.Status,
-            ProgressPercentage = milestone.Progresspercentage,
-            OrderIndex = milestone.Orderindex,
-            Notes = milestone.Notes,
-            PlannedStartDate = milestone.Plannedstartdate,
-            PlannedEndDate = milestone.Plannedenddate,
-            ActualStartDate = milestone.Actualstartdate,
-            ActualEndDate = milestone.Actualenddate
-        };
 
     private static int NormalizeUpdatesLimit(int limit)
     {

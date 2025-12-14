@@ -234,7 +234,7 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
                   </div>
 
                   <div className="pt-3 border-t text-base leading-relaxed space-y-3 min-h-[108px]">
-                    <p className="text-muted-foreground line-clamp-2" title={project.notes ?? ''}>Current stage: <span className="text-foreground">{project.notes ?? '—'}</span></p>
+                    <p className="text-muted-foreground line-clamp-2" title={project.notes ?? ''}>Current stage: <span className="text-foreground">{project.currentStageTitle ?? '-'}</span></p>
                     <p className="text-muted-foreground">Client: <span className="text-foreground">{project.clientName}</span></p>
                   </div>
                 </div>

@@ -15,7 +15,7 @@ public interface IProjectService
     /// <summary>
     /// Get paged projects with optional search and status filters (Admin)
     /// </summary>
-    Task<PaginationItemsResponse<ProjectDto>> GetPagedAsync(string? search, string? status, int page, int pageSize, CancellationToken ct = default);
+    Task<PaginationItemsResponse<ProjectDto>> GetPagedAsync(string? search, string? status, int page, int pageSize);
 
     /// <summary>
     /// Get projects for specific user

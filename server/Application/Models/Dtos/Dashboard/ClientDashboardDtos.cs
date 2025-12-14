@@ -1,4 +1,5 @@
 using Application.Models.Dtos.Update;
+using Core.Domain.Entities;
 
 namespace Application.Models.Dtos.Dashboard;
 
@@ -13,6 +14,7 @@ public class ClientDashboardProjectDto
 {
     public Guid Id { get; set; }
     public string Title { get; set; } = string.Empty;
+    public string Notes { get; set; } = string.Empty;
     public string? Address { get; set; }
     public string? City { get; set; }
     public string? PostalCode { get; set; }
@@ -40,4 +42,21 @@ public class ClientDashboardStageDto
     public DateOnly? PlannedEndDate { get; set; }
     public DateOnly? ActualStartDate { get; set; }
     public DateOnly? ActualEndDate { get; set; }
+    
+    public static ClientDashboardStageDto FromEntity(Milestone milestone)
+    {
+        return new ClientDashboardStageDto
+        {
+            Id = milestone.Id,
+            Title = milestone.Title,
+            Status = milestone.Status,
+            ProgressPercentage = milestone.Progresspercentage,
+            OrderIndex = milestone.Orderindex,
+            Notes = milestone.Notes,
+            PlannedStartDate = milestone.Plannedstartdate,
+            PlannedEndDate = milestone.Plannedenddate,
+            ActualStartDate = milestone.Actualstartdate,
+            ActualEndDate = milestone.Actualenddate
+        };
+    }
 }

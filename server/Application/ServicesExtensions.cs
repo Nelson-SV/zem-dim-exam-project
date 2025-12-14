@@ -12,6 +12,7 @@ using Application.Services.ClientDashboardService;
 using Application.Services.Documents;
 using Application.Services.Email;
 using Application.Services.MessageService;
+using Application.Services.PhotosGallery;
 using Application.Services.ProjectService;
 using Application.Services.Security;
 using Application.Services.UpdateService;
@@ -38,7 +39,6 @@ public static class ServicesExtensions
         {
             services.Configure<AppOptions>(options =>
             {
-                options.SendGridApiKey = sendGridApiKey; // Set the API key from environment variables
                 options.SendGridApiKey = sendGridApiKey; // Set the API key from environment variables
             });
         }
@@ -67,6 +67,8 @@ public static class ServicesExtensions
         services.AddScoped<IPdfSignatureService, PdfSignatureService>();
         services.AddScoped<IStorageService, SupabaseStorageService>();
         services.AddScoped<IDocumentsService, DocumentsService>();
+        services.AddScoped<IClientGalleryService, ClientGalleryService>();
+
         
         services.AddHttpClient<ResendClient>();
         services.Configure<ResendClientOptions>( o =>

@@ -14,11 +14,11 @@ public class MilestoneService(
     IDbUnitOfWork unitOfWork,
     ILogger<MilestoneService> logger) : IMilestoneService
 {
-    public async Task<PaginationItemsResponse<MilestoneDto>> GetByProjectAsync(Guid projectId, int page, int pageSize, CancellationToken ct = default)
+    public async Task<PaginationItemsResponse<MilestoneDto>> GetByProjectAsync(Guid projectId, int page, int pageSize)
     {
-        await EnsureProjectExists(projectId, ct);
+        await EnsureProjectExists(projectId);
 
-        var (items, total) = await repository.GetByProjectAsync(projectId, page, pageSize, ct);
+        var (items, total) = await repository.GetByProjectAsync(projectId, page, pageSize);
         return new PaginationItemsResponse<MilestoneDto>
         {
             Items = MilestoneDto.FromEntities(items),
@@ -28,12 +28,12 @@ public class MilestoneService(
         };
     }
 
-    public async Task<MilestoneDto> CreateAsync(Guid projectId, CreateMilestoneDto dto, Guid performedBy, CancellationToken ct = default)
+    public async Task<MilestoneDto> CreateAsync(Guid projectId, CreateMilestoneDto dto, Guid performedBy)
     {
         await unitOfWork.BeginAsync();
         try
         {
-            await EnsureProjectExists(projectId, ct);
+            await EnsureProjectExists(projectId);
 
             var entity = new Milestone
             {
@@ -52,7 +52,7 @@ public class MilestoneService(
                 Updatedat = DateTime.UtcNow
             };
 
-            var saved = await repository.InsertAsync(entity, ct);
+            var saved = await repository.InsertAsync(entity);
             await unitOfWork.CommitAsync();
             logger.LogInformation("Milestone {MilestoneId} created for project {ProjectId} by {UserId}", saved.Id, projectId, performedBy);
             return MilestoneDto.FromEntity(saved);
@@ -65,12 +65,12 @@ public class MilestoneService(
         }
     }
 
-    public async Task<MilestoneDto> UpdateAsync(Guid projectId, Guid milestoneId, UpdateMilestoneDto dto, Guid performedBy, CancellationToken ct = default)
+    public async Task<MilestoneDto> UpdateAsync(Guid projectId, Guid milestoneId, UpdateMilestoneDto dto, Guid performedBy)
     {
         await unitOfWork.BeginAsync();
         try
         {
-            var milestone = await GetAndValidate(projectId, milestoneId, ct);
+            var milestone = await GetAndValidate(projectId, milestoneId);
 
             milestone.Title = dto.Title.Trim();
             milestone.Status = dto.Status;
@@ -83,7 +83,7 @@ public class MilestoneService(
             milestone.Orderindex = dto.OrderIndex;
             milestone.Updatedat = DateTime.UtcNow;
 
-            var updated = await repository.UpdateAsync(milestone, ct);
+            var updated = await repository.UpdateAsync(milestone);
             await unitOfWork.CommitAsync();
             logger.LogInformation("Milestone {MilestoneId} updated by {UserId}", milestoneId, performedBy);
             return MilestoneDto.FromEntity(updated);
@@ -96,12 +96,12 @@ public class MilestoneService(
         }
     }
 
-    public async Task<MilestoneDto> PatchAsync(Guid projectId, Guid milestoneId, PatchMilestoneDto dto, Guid performedBy, CancellationToken ct = default)
+    public async Task<MilestoneDto> PatchAsync(Guid projectId, Guid milestoneId, PatchMilestoneDto dto, Guid performedBy)
     {
         await unitOfWork.BeginAsync();
         try
         {
-            var milestone = await GetAndValidate(projectId, milestoneId, ct);
+            var milestone = await GetAndValidate(projectId, milestoneId);
 
             if (!string.IsNullOrWhiteSpace(dto.Title)) milestone.Title = dto.Title.Trim();
             if (dto.Status != null) milestone.Status = dto.Status;
@@ -114,7 +114,7 @@ public class MilestoneService(
             if (dto.OrderIndex.HasValue) milestone.Orderindex = dto.OrderIndex.Value;
             milestone.Updatedat = DateTime.UtcNow;
 
-            var updated = await repository.UpdateAsync(milestone, ct);
+            var updated = await repository.UpdateAsync(milestone);
             await unitOfWork.CommitAsync();
             logger.LogInformation("Milestone {MilestoneId} patched by {UserId}", milestoneId, performedBy);
             return MilestoneDto.FromEntity(updated);
@@ -127,13 +127,13 @@ public class MilestoneService(
         }
     }
 
-    public async Task DeleteAsync(Guid projectId, Guid milestoneId, Guid performedBy, CancellationToken ct = default)
+    public async Task DeleteAsync(Guid projectId, Guid milestoneId, Guid performedBy)
     {
         await unitOfWork.BeginAsync();
         try
         {
-            await GetAndValidate(projectId, milestoneId, ct);
-            await repository.SoftDeleteAsync(milestoneId, ct);
+            await GetAndValidate(projectId, milestoneId);
+            await repository.SoftDeleteAsync(milestoneId);
             await unitOfWork.CommitAsync();
             logger.LogInformation("Milestone {MilestoneId} deleted by {UserId}", milestoneId, performedBy);
         }
@@ -145,16 +145,16 @@ public class MilestoneService(
         }
     }
 
-    private async Task EnsureProjectExists(Guid projectId, CancellationToken ct)
+    private async Task EnsureProjectExists(Guid projectId)
     {
         var project = await projectRepository.GetByIdAsync(projectId);
         if (project == null || project.Isdeleted)
             throw new KeyNotFoundException("Project not found");
     }
 
-    private async Task<Milestone> GetAndValidate(Guid projectId, Guid milestoneId, CancellationToken ct)
+    private async Task<Milestone> GetAndValidate(Guid projectId, Guid milestoneId)
     {
-        var milestone = await repository.GetByIdAsync(milestoneId, ct)
+        var milestone = await repository.GetByIdAsync(milestoneId)
                         ?? throw new KeyNotFoundException("Milestone not found");
 
         if (milestone.Projectid != projectId)

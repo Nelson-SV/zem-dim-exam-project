@@ -15,13 +15,12 @@ public class UpdateService(IUpdateRepository repository, ILogger<UpdateService> 
         int pageSize,
         Guid? projectId,
         string? updateType,
-        string? search,
-        CancellationToken ct = default)
+        string? search)
     {
         if (page < 1) page = 1;
         if (pageSize <= 0 || pageSize > MaxPageSize) pageSize = 20;
 
-        var (items, total) = await repository.GetUpdatesAsync(page, pageSize, projectId, updateType, search, ct);
+        var (items, total) = await repository.GetUpdatesAsync(page, pageSize, projectId, updateType, search);
 
         logger.LogInformation("Fetched {Count} updates (page {Page}/{TotalPages})", items.Count, page, (int)Math.Ceiling(total / (double)pageSize));
 
