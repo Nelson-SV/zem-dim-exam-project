@@ -18,6 +18,8 @@ using Application.Services.Security;
 using Application.Services.UpdateService;
 using Application.Services.Storage;
 using Application.Services.Users._3DScans;
+using Application.Services.Profile;
+using Application.Services.Settings;
 using Application.Validators.Admin._3DScans;
 using Application.Validators.Admin.UserManagement;
 using FluentValidation;
@@ -67,6 +69,8 @@ public static class ServicesExtensions
         services.AddScoped<IPdfSignatureService, PdfSignatureService>();
         services.AddScoped<IStorageService, SupabaseStorageService>();
         services.AddScoped<IDocumentsService, DocumentsService>();
+        services.AddScoped<IProfileService, ProfileService>();
+        services.AddScoped<ISettingsService, SettingsService>();
         services.AddScoped<IClientGalleryService, ClientGalleryService>();
 
         

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../../components/ui/dialog";
 import { Button } from "../../components/ui/button";
 import { Plus } from "lucide-react";
@@ -20,6 +21,7 @@ interface AddNewClientModalProps {
 }
 
 export function AddNewClientModal({ addUser, updateUser, mode, user, isOpen, onOpenAdd, onClose }: AddNewClientModalProps) {
+    const { t } = useTranslation();
 
     const [errors, setErrors] = useState({
         firstName: "",
@@ -90,16 +92,16 @@ export function AddNewClientModal({ addUser, updateUser, mode, user, isOpen, onO
         const newErrors = { firstName: "", lastName: "", email: "", phoneNumber: "" };
 
         if (!formData.firstName) {
-            newErrors.firstName = "First Name is required.";
+            newErrors.firstName = t('clientManagement.firstNameRequired');
         }
         if (!formData.lastName) {
-            newErrors.lastName = "Last Name is required.";
+            newErrors.lastName = t('clientManagement.lastNameRequired');
         }
         if (!formData.email || !validateEmail(formData.email)) {
-            newErrors.email = "Invalid email.";
+            newErrors.email = t('clientManagement.invalidEmail');
         }
         if (!formData.phoneNumber || !validatePhoneNumber(formData.phoneNumber)) {
-            newErrors.phoneNumber = "Phone number must contain only digits (optionally start with +).";
+            newErrors.phoneNumber = t('clientManagement.invalidPhoneNumber');
         }
 
         setErrors(newErrors);
@@ -109,7 +111,7 @@ export function AddNewClientModal({ addUser, updateUser, mode, user, isOpen, onO
 
     const handleSave = () => {
         if (!validateForm()) {
-            toast.error('Please fill in all fields');
+            toast.error(t('clientManagement.fillAllFields'));
             return;
         }
 
@@ -159,23 +161,23 @@ export function AddNewClientModal({ addUser, updateUser, mode, user, isOpen, onO
                         onClick={onOpenAdd}
                     >
                         <Plus className="size-4" />
-                        Add client
+                        {t('clientManagement.addClient')}
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>
-                            {mode === "edit" ? "Edit User" : "Add a new client"}
+                            {mode === "edit" ? t('clientManagement.editUser') : t('clientManagement.addNewClient')}
                         </DialogTitle>
                         <DialogDescription>
                             {mode === "edit"
-                                ? "Update the client details below"
-                                : "Enter the client details to register them in the system"}
+                                ? t('clientManagement.updateClientDetails')
+                                : t('clientManagement.enterClientDetails')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="client-first-name">First Name</Label>
+                            <Label htmlFor="client-first-name">{t('clientManagement.firstName')}</Label>
                             <Input
                                 id="client-first-name"
                                 value={formData.firstName}
@@ -186,7 +188,7 @@ export function AddNewClientModal({ addUser, updateUser, mode, user, isOpen, onO
                             {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName}</p>}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="client-last-name">Last Name</Label>
+                            <Label htmlFor="client-last-name">{t('clientManagement.lastName')}</Label>
                             <Input
                                 id="client-last-name"
                                 value={formData.lastName}
@@ -197,7 +199,7 @@ export function AddNewClientModal({ addUser, updateUser, mode, user, isOpen, onO
                             {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName}</p>}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="client-email">Email</Label>
+                            <Label htmlFor="client-email">{t('common.email')}</Label>
                             <Input
                                 id="client-email"
                                 type="email"
@@ -209,7 +211,7 @@ export function AddNewClientModal({ addUser, updateUser, mode, user, isOpen, onO
                             {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="client-phone">Phone</Label>
+                            <Label htmlFor="client-phone">{t('common.phone')}</Label>
                             <Input
                                 id="client-phone"
                                 type="tel"
@@ -221,25 +223,25 @@ export function AddNewClientModal({ addUser, updateUser, mode, user, isOpen, onO
                             {errors.phoneNumber && <p className="text-red-500 text-sm">{errors.phoneNumber}</p>}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="client-phone">Choose Language</Label>
+                            <Label htmlFor="client-phone">{t('clientManagement.chooseLanguage')}</Label>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="secondary">
                                         <span className="hidden sm:inline">
-                                            {formData.language ? formData.language : "Options"}
+                                            {formData.language ? formData.language : t('clientManagement.options')}
                                         </span>
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="start">
-                                    <DropdownMenuItem onSelect={() => setFormData((prev) => ({ ...prev, language: "ENG" }))}>English</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => setFormData((prev) => ({ ...prev, language: "ENG" }))}>{t('clientManagement.english')}</DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem onSelect={() => setFormData((prev) => ({ ...prev, language: "UKR" }))}>Ukranian</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => setFormData((prev) => ({ ...prev, language: "UKR" }))}>{t('clientManagement.ukrainian')}</DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
                         {mode === "edit" &&
                             <div className="flex items-center space-x-2">
-                                <Label htmlFor="user-active">Status</Label>
+                                <Label htmlFor="user-active">{t('common.status')}</Label>
                                 <Switch
                                     id="user-active"
                                     checked={formData.isActive}
@@ -252,18 +254,18 @@ export function AddNewClientModal({ addUser, updateUser, mode, user, isOpen, onO
                                     }
                                 />
                                 <span className={formData.isActive ? "text-green-600 font-medium" : "text-gray-500"}>
-                                    {formData.isActive ? "Active" : "Inactive"}
+                                    {formData.isActive ? t('common.active') : t('common.inactive')}
                                 </span>
                             </div>}
                     </div>
                     <DialogFooter>
                         <DialogClose asChild>
                             <Button variant="outline" onClick={handleCancel}>
-                                Cancel
+                                {t('common.cancel')}
                             </Button>
                         </DialogClose>
                         <Button onClick={handleSave} className="bg-[#F97316] hover:bg-[#F97316]/90">
-                            {mode === "edit" ? "Save changes" : "Add client"}
+                            {mode === "edit" ? t('clientManagement.saveChanges') : t('clientManagement.addClient')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

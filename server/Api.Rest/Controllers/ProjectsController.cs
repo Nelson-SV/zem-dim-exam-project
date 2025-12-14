@@ -15,13 +15,14 @@ public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _projectService;
     private readonly ILogger<ProjectsController> _logger;
-    
+
     public const string ControllerRoute = "api/admin/projects/";
     public const string GetAllProjectsList = ControllerRoute + nameof(GetAllProjects);
     public const string Search = ControllerRoute + nameof(SearchProjects);
     public const string Create = ControllerRoute + nameof(CreateProject);
     public const string GetUser = ControllerRoute + nameof(GetUserProjects);
     public const string GetOnlyProject = ControllerRoute + nameof(GetProject);
+    
     public const string ProjectParticipants = ControllerRoute + nameof(GetProjectParticipants);
     public const string Update = ControllerRoute + nameof(UpdateProject);
     public const string Patch = ControllerRoute + nameof(PatchProject);

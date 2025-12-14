@@ -76,14 +76,16 @@ public class DocumentsService : IDocumentsService
         string contentType,
         Guid projectId,
         string title,
-        Guid uploadedById)
+        Guid uploadedById,
+        bool isVisibleToClient = false,
+        bool requiresSignature = false)
     {
         var fileUrl = await _storageService.UploadProjectDocumentAsync(
             fileStream,
             fileName,
             contentType
         );
-        
+
         Console.WriteLine("URL HERE: " + fileUrl);
 
         var document = new Document
@@ -100,10 +102,9 @@ public class DocumentsService : IDocumentsService
             Uploadedbyid = uploadedById,
             Isdeleted = false,
 
-            // Default state: hidden from the client
-            // until an admin marks "RequiresSignature + VisibleToClient"
-            Isvisibletoclient = false,
-            Requiressignature = false,
+            // Admin uploads: visibility and signature requirement are independent
+            Isvisibletoclient = isVisibleToClient, // Admin decides if client can see
+            Requiressignature = requiresSignature, // Admin decides if client needs to sign
             Issigned = false
         };
 
@@ -113,7 +114,52 @@ public class DocumentsService : IDocumentsService
     }
 
     // ============================================================
-    // SIGN DOCUMENT (client signs)
+    // UPLOAD DOCUMENT FOR CLIENT (client uploads)
+    // ============================================================
+
+    public async Task<DocumentDto> UploadDocumentForClientAsync(
+        Stream fileStream,
+        string fileName,
+        string contentType,
+        Guid projectId,
+        string? title,
+        bool requiresSignature,
+        Guid uploadedById)
+    {
+        var fileUrl = await _storageService.UploadProjectDocumentAsync(
+            fileStream,
+            fileName,
+            contentType
+        );
+
+        Console.WriteLine("Client upload URL: " + fileUrl);
+
+        var document = new Document
+        {
+            Id = Guid.NewGuid(),
+            Projectid = projectId,
+            Title = title ?? fileName, // Use filename if title is not provided
+            Filename = fileName,
+            Fileurl = fileUrl,
+            Filesize = fileStream.Length,
+            Createdat = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+            Documenttype = "pdf",
+            Uploadedbyid = uploadedById,
+            Isdeleted = false,
+
+            // Client uploads are automatically visible to both client and admin
+            Isvisibletoclient = true,
+            Requiressignature = requiresSignature, // Client decides if signature is needed
+            Issigned = false
+        };
+
+        await _documentRepository.AddAsync(document);
+
+        return MapToDto(document);
+    }
+
+    // ============================================================
+    // SIGN DOCUMENT (client or admin signs)
     // ============================================================
 
     public async Task<string> SignDocumentAsync(
@@ -125,6 +171,7 @@ public class DocumentsService : IDocumentsService
         double height,
         int pageNumber,
         Guid userId,
+        string userRole,
         string? ipAddress)
     {
         var document = await _documentRepository.GetByIdWithProjectAsync(documentId);
@@ -137,8 +184,11 @@ public class DocumentsService : IDocumentsService
         if (document.Project == null)
             throw new InvalidOperationException("Document is not linked to any project.");
 
-        // 🔒 Critical: clients may only sign documents from their own projects
-        if (document.Project.Clientid != userId)
+        var normalizedRole = userRole?.ToLowerInvariant() ?? "";
+        var isAdmin = normalizedRole == Roles.AdminRole;
+
+        // 🔒 Access control: clients may only sign documents from their own projects, admins can sign any
+        if (!isAdmin && document.Project.Clientid != userId)
             throw new InvalidOperationException("You are not allowed to sign this document.");
 
         if (document.Issigned == true)
@@ -229,6 +279,19 @@ public class DocumentsService : IDocumentsService
 
     private static DocumentDto MapToDto(Document d)
     {
+        // Map role to uploadedBy type
+        string uploadedBy = "unknown";
+        if (d.Uploadedby != null)
+        {
+            var role = d.Uploadedby.Role?.ToLowerInvariant();
+            uploadedBy = role switch
+            {
+                "admin" => "company",
+                "user" => "client",
+                _ => "unknown"
+            };
+        }
+
         return new DocumentDto
         {
             Id = d.Id,
@@ -241,7 +304,7 @@ public class DocumentsService : IDocumentsService
             FileSize = d.Filesize,
 
             CreatedAt = d.Createdat,
-            UploadedBy = d.Uploadedby?.Role ?? "unknown", // "admin" / "user"
+            UploadedBy = uploadedBy,
 
             DocumentType = d.Documenttype,
 

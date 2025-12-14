@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/useAuth';
 import { ProjectsSidebar } from './ProjectsSidebar';
 import { MessagesChat } from './MessagesChat';
@@ -8,6 +9,7 @@ import { http } from '../lib/api';
 import type { ProjectDto, ProjectParticipantsDto } from '../generated-client';
 
 export function MessagesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export function MessagesPage() {
 
   const chatData = useMemo(() => {
     if (!user || !selectedProjectId || !participants) {
-      return { receiverId: null, receiverName: 'Loading…' };
+      return { receiverId: null, receiverName: t('common.loading') };
     }
 
     const userRole = user.role.toLowerCase();
@@ -59,23 +61,23 @@ export function MessagesPage() {
     if (userRole === 'client') {
       return {
         receiverId: participants.adminId || null,
-        receiverName: 'Project Manager',
+        receiverName: t('messagesPage.projectManager'),
       };
     }
 
     const project = projects.find(p => p.id === selectedProjectId);
     return {
       receiverId: participants.clientId || null,
-      receiverName: project?.clientName || 'Client',
+      receiverName: project?.clientName || t('messagesPage.client'),
     };
-  }, [user, participants, selectedProjectId, projects]);
+  }, [user, participants, selectedProjectId, projects, t]);
 
   return (
       <div className="w-full">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-1">Messages</h2>
+          <h2 className="text-2xl font-bold mb-1">{t('messages.title')}</h2>
           <p className="text-muted-foreground">
-            {user?.role.toLowerCase() === 'admin' ? 'Communicate with your clients' : 'Chat with your project manager'}
+            {user?.role.toLowerCase() === 'admin' ? t('messagesPage.communicateWithClients') : t('messagesPage.chatWithManager')}
           </p>
         </div>
 
@@ -92,7 +94,7 @@ export function MessagesPage() {
                   <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
                       <MessageSquare className="size-16 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Select a project to start messaging</p>
+                      <p className="text-muted-foreground">{t('messagesPage.selectProject')}</p>
                     </div>
                   </div>
               )}
@@ -101,7 +103,7 @@ export function MessagesPage() {
                   <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
                       <Loader2 className="size-16 text-muted-foreground mx-auto mb-4 animate-spin" />
-                      <p className="text-muted-foreground">Loading chat...</p>
+                      <p className="text-muted-foreground">{t('messagesPage.loadingChat')}</p>
                     </div>
                   </div>
               )}

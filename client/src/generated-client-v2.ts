@@ -50,7 +50,7 @@ export class DocumentsClient {
         return Promise.resolve<DocumentDto[]>(null as any);
     }
 
-    upload(contentType: string | null | undefined, contentDisposition: string | null | undefined, headers: any[] | null | undefined, length: number | undefined, name: string | null | undefined, fileName: string | null | undefined, projectId: string | undefined, title: string | null | undefined): Promise<DocumentDto> {
+    upload(contentType: string | null | undefined, contentDisposition: string | null | undefined, headers: any[] | null | undefined, length: number | undefined, name: string | null | undefined, fileName: string | null | undefined, projectId: string | undefined, title: string | null | undefined, isVisibleToClient: boolean | undefined, requiresSignature: boolean | undefined): Promise<DocumentDto> {
         let url_ = this.baseUrl + "/api/Documents";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -75,6 +75,14 @@ export class DocumentsClient {
             content_.append("projectId", projectId.toString());
         if (title !== null && title !== undefined)
             content_.append("title", title.toString());
+        if (isVisibleToClient === null || isVisibleToClient === undefined)
+            throw new globalThis.Error("The parameter 'isVisibleToClient' cannot be null.");
+        else
+            content_.append("isVisibleToClient", isVisibleToClient.toString());
+        if (requiresSignature === null || requiresSignature === undefined)
+            throw new globalThis.Error("The parameter 'requiresSignature' cannot be null.");
+        else
+            content_.append("requiresSignature", requiresSignature.toString());
 
         let options_: RequestInit = {
             body: content_,
@@ -221,6 +229,66 @@ export class DocumentsClient {
             });
         }
         return Promise.resolve<FileResponse>(null as any);
+    }
+
+    clientUpload(contentType: string | null | undefined, contentDisposition: string | null | undefined, headers: any[] | null | undefined, length: number | undefined, name: string | null | undefined, fileName: string | null | undefined, projectId: string | undefined, title: string | null | undefined, requiresSignature: boolean | undefined): Promise<DocumentDto> {
+        let url_ = this.baseUrl + "/api/Documents/client-upload";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (contentType !== null && contentType !== undefined)
+            content_.append("ContentType", contentType.toString());
+        if (contentDisposition !== null && contentDisposition !== undefined)
+            content_.append("ContentDisposition", contentDisposition.toString());
+        if (headers !== null && headers !== undefined)
+            headers.forEach(item_ => content_.append("Headers", item_.toString()));
+        if (length === null || length === undefined)
+            throw new globalThis.Error("The parameter 'length' cannot be null.");
+        else
+            content_.append("Length", length.toString());
+        if (name !== null && name !== undefined)
+            content_.append("Name", name.toString());
+        if (fileName !== null && fileName !== undefined)
+            content_.append("FileName", fileName.toString());
+        if (projectId === null || projectId === undefined)
+            throw new globalThis.Error("The parameter 'projectId' cannot be null.");
+        else
+            content_.append("projectId", projectId.toString());
+        if (title !== null && title !== undefined)
+            content_.append("title", title.toString());
+        if (requiresSignature === null || requiresSignature === undefined)
+            throw new globalThis.Error("The parameter 'requiresSignature' cannot be null.");
+        else
+            content_.append("requiresSignature", requiresSignature.toString());
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processClientUpload(_response);
+        });
+    }
+
+    protected processClientUpload(response: Response): Promise<DocumentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as DocumentDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentDto>(null as any);
     }
 
     signDocument(documentId: string, request: SignDocumentRequest): Promise<SignedDocumentResponseDto> {
@@ -591,6 +659,129 @@ export class MessagesClient {
     }
 }
 
+export class ProfileClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getProfile(): Promise<GetProfileResponseDto> {
+        let url_ = this.baseUrl + "/api/Profile";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetProfile(_response);
+        });
+    }
+
+    protected processGetProfile(response: Response): Promise<GetProfileResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as GetProfileResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GetProfileResponseDto>(null as any);
+    }
+
+    updateProfile(dto: UpdateProfileDto): Promise<GetProfileResponseDto> {
+        let url_ = this.baseUrl + "/api/Profile";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateProfile(_response);
+        });
+    }
+
+    protected processUpdateProfile(response: Response): Promise<GetProfileResponseDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as GetProfileResponseDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GetProfileResponseDto>(null as any);
+    }
+
+    changePassword(dto: ChangePasswordDto): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/Profile/change-password";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processChangePassword(_response);
+        });
+    }
+
+    protected processChangePassword(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+}
+
 export class ProjectsClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -949,6 +1140,157 @@ export class ProjectsClient {
             });
         }
         return Promise.resolve<FileResponse>(null as any);
+    }
+}
+
+export class SettingsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getCompanyInfo(): Promise<CompanyDto> {
+        let url_ = this.baseUrl + "/api/Settings/company";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetCompanyInfo(_response);
+        });
+    }
+
+    protected processGetCompanyInfo(response: Response): Promise<CompanyDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as CompanyDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CompanyDto>(null as any);
+    }
+
+    updateCompanyInfo(dto: UpdateCompanyDto): Promise<CompanyDto> {
+        let url_ = this.baseUrl + "/api/Settings/company";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateCompanyInfo(_response);
+        });
+    }
+
+    protected processUpdateCompanyInfo(response: Response): Promise<CompanyDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as CompanyDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CompanyDto>(null as any);
+    }
+
+    getUserSettings(): Promise<UserSettingsDto> {
+        let url_ = this.baseUrl + "/api/Settings/notifications";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetUserSettings(_response);
+        });
+    }
+
+    protected processGetUserSettings(response: Response): Promise<UserSettingsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as UserSettingsDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UserSettingsDto>(null as any);
+    }
+
+    updateUserSettings(dto: UpdateUserSettingsDto): Promise<UserSettingsDto> {
+        let url_ = this.baseUrl + "/api/Settings/notifications";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(dto);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateUserSettings(_response);
+        });
+    }
+
+    protected processUpdateUserSettings(response: Response): Promise<UserSettingsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            result200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver) as UserSettingsDto;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UserSettingsDto>(null as any);
     }
 }
 
@@ -2407,6 +2749,31 @@ export interface SendMessageRequest {
     content?: string;
 }
 
+export interface GetProfileResponseDto {
+    id?: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string | undefined;
+    profileImageUrl?: string | undefined;
+    role?: string;
+    createdAt?: Date | undefined;
+    lastLoginAt?: Date | undefined;
+}
+
+export interface UpdateProfileDto {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber?: string | undefined;
+}
+
+export interface ChangePasswordDto {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+}
+
 export interface ProjectDto {
     id?: string;
     clientId?: string;
@@ -2489,6 +2856,39 @@ export interface PatchProjectDto {
     budget?: number;
     progressPercentage?: number | undefined;
     thumbnailUrl?: string | undefined;
+}
+
+export interface CompanyDto {
+    id?: string;
+    name?: string;
+    email?: string;
+    phone?: string | undefined;
+    website?: string | undefined;
+    address?: string | undefined;
+    currency?: string | undefined;
+}
+
+export interface UpdateCompanyDto {
+    name: string;
+    email: string;
+    phone?: string | undefined;
+    website?: string | undefined;
+    address?: string | undefined;
+    currency?: string | undefined;
+}
+
+export interface UserSettingsDto {
+    id?: string;
+    userId?: string;
+    emailAlerts?: boolean;
+    reportFrequency?: string;
+    clientUpdates?: boolean;
+}
+
+export interface UpdateUserSettingsDto {
+    emailAlerts?: boolean;
+    reportFrequency: string;
+    clientUpdates?: boolean;
 }
 
 export interface User3DScanProjectDto {

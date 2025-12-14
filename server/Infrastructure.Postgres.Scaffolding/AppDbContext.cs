@@ -12,6 +12,8 @@ public partial class AppDbContext : DbContext
     {
     }
 
+    public virtual DbSet<Company> Companies { get; set; }
+
     public virtual DbSet<Document> Documents { get; set; }
 
     public virtual DbSet<DocumentSignature> DocumentSignatures { get; set; }
@@ -34,6 +36,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<Usersetting> Usersettings { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
@@ -54,6 +58,40 @@ public partial class AppDbContext : DbContext
             .HasPostgresExtension("extensions", "uuid-ossp")
             .HasPostgresExtension("graphql", "pg_graphql")
             .HasPostgresExtension("vault", "supabase_vault");
+
+        modelBuilder.Entity<Company>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("company_pkey");
+
+            entity.ToTable("company", tb => tb.HasComment("Global company information and settings"));
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id");
+            entity.Property(e => e.Address).HasColumnName("address");
+            entity.Property(e => e.Createdat)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("createdat");
+            entity.Property(e => e.Currency)
+                .HasMaxLength(3)
+                .HasDefaultValueSql("'UAH'::character varying")
+                .HasColumnName("currency");
+            entity.Property(e => e.Email)
+                .HasMaxLength(255)
+                .HasColumnName("email");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .HasColumnName("name");
+            entity.Property(e => e.Phone)
+                .HasMaxLength(50)
+                .HasColumnName("phone");
+            entity.Property(e => e.Updatedat)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("updatedat");
+            entity.Property(e => e.Website)
+                .HasMaxLength(255)
+                .HasColumnName("website");
+        });
 
         modelBuilder.Entity<Document>(entity =>
         {
@@ -634,6 +672,42 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Updatedat)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updatedat");
+        });
+
+        modelBuilder.Entity<Usersetting>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("usersettings_pkey");
+
+            entity.ToTable("usersettings", tb => tb.HasComment("Per-user notification settings"));
+
+            entity.HasIndex(e => e.Userid, "idx_usersettings_userid");
+
+            entity.HasIndex(e => e.Userid, "unique_user_settings").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id");
+            entity.Property(e => e.Clientupdates)
+                .HasDefaultValue(true)
+                .HasColumnName("clientupdates");
+            entity.Property(e => e.Createdat)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("createdat");
+            entity.Property(e => e.Emailalerts)
+                .HasDefaultValue(true)
+                .HasColumnName("emailalerts");
+            entity.Property(e => e.Reportfrequency)
+                .HasMaxLength(20)
+                .HasDefaultValueSql("'Weekly'::character varying")
+                .HasColumnName("reportfrequency");
+            entity.Property(e => e.Updatedat)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("updatedat");
+            entity.Property(e => e.Userid).HasColumnName("userid");
+
+            entity.HasOne(d => d.User).WithOne(p => p.Usersetting)
+                .HasForeignKey<Usersetting>(d => d.Userid)
+                .HasConstraintName("fk_usersettings_user");
         });
 
         OnModelCreatingPartial(modelBuilder);

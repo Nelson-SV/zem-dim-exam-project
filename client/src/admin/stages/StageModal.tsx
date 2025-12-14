@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { Button } from "../../components/ui/button";
 import { Label } from "../../components/ui/label";
@@ -68,18 +69,20 @@ const toInputDate = (value?: string | Date | null) => {
 
 const toDate = (value?: string | null) => (value ? new Date(`${value}T00:00:00`) : null);
 
-const statusOptions = [
-  { value: "In Progress", label: "In Progress" },
-  { value: "Completed", label: "Completed" },
-];
+
 
 const toDateOrUndefined = (value?: string | null) => (value ? new Date(`${value}T00:00:00`) : undefined);
 
 export function StageModal({ open, mode, projectId, projectStart, projectEnd, stage, onClose, onSaved }: Props) {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
-
+    const { t } = useTranslation();
   const isEdit = mode === "edit";
+
+  const statusOptions = [
+    { value: "In Progress", label: t('stageModal.inProgress') },
+    { value: "Completed", label: t('stageModal.completed') },
+  ];
 
   useEffect(() => {
     if (!open) return;
@@ -131,16 +134,15 @@ export function StageModal({ open, mode, projectId, projectStart, projectEnd, st
       e.actualEndDate = "Actual finish cannot be after the project end date.";
     }
 
+    if (!form.title.trim()) e.title = t('stageModal.stageNameRequired');
     return e;
-  }, [
-    form.actualEndDate,
-    form.actualStartDate,
-    form.plannedEndDate,
-    form.plannedStartDate,
-    form.title,
-    projectEnd,
-    projectStart,
-  ]);
+  }, [form.actualEndDate,
+      form.actualStartDate,
+      form.plannedEndDate,
+      form.plannedStartDate,
+      form.title,
+      projectEnd,
+      projectStart, t]);
 
   const buildPayload = (): CreateMilestoneDto | UpdateMilestoneDto => ({
     title: form.title.trim(),
@@ -156,7 +158,7 @@ export function StageModal({ open, mode, projectId, projectStart, projectEnd, st
 
   const handleSave = async () => {
     if (Object.keys(errors).length > 0) {
-      toast.error(Object.values(errors)[0] ?? "Please fix the highlighted errors");
+      toast.error(t('stageModal.fillAllFields'));
       return;
     }
     setSaving(true);
@@ -165,15 +167,15 @@ export function StageModal({ open, mode, projectId, projectStart, projectEnd, st
       let result: MilestoneDto;
       if (isEdit && stage) {
         result = await http.adminStages.updateStage(projectId, stage.id, payload as UpdateMilestoneDto);
-        toast.success("Stage updated.");
+        toast.success(t('stageModal.stageUpdated'));
       } else {
         result = await http.adminStages.createStage(projectId, payload as CreateMilestoneDto);
-        toast.success("Stage created.");
+        toast.success(t('stageModal.stageUpdated'));
       }
       onSaved(result, isEdit ? "edit" : "create");
       onClose();
     } catch (err: any) {
-      toast.error(err?.message ?? "Failed to save stage.");
+      toast.error(err?.message ?? t('stageModal.operationFailed'));
     } finally {
       setSaving(false);
     }
@@ -183,25 +185,25 @@ export function StageModal({ open, mode, projectId, projectStart, projectEnd, st
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="sm:max-w-[560px]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit stage" : "Add stage"}</DialogTitle>
-          <DialogDescription>Set the key dates, status and progress for this stage.</DialogDescription>
+          <DialogTitle>{isEdit ? t('stageModal.editStage') : t('stageModal.editStage')}</DialogTitle>
+          <DialogDescription>{t('stageModal.updateStageDetails')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Title</Label>
-            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+            <Label>{t('stageModal.stageName')}</Label>
+            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('stageModal.stageNamePlaceholder')} />
             {errors.title && <p className="text-destructive text-sm">{errors.title}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label>Notes</Label>
-            <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
+            <Label>{t('stageModal.description')}</Label>
+            <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} placeholder={t('stageModal.descriptionPlaceholder')} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Planned start</Label>
+                <Label>{t('stageModal.plannedStart')}</Label>
               <Input
                 type="date"
                 value={form.plannedStartDate}
@@ -212,7 +214,7 @@ export function StageModal({ open, mode, projectId, projectStart, projectEnd, st
               {errors.plannedStartDate && <p className="text-destructive text-sm">{errors.plannedStartDate}</p>}
             </div>
             <div className="space-y-2">
-              <Label>Planned finish</Label>
+                <Label>{t('stageModal.plannedFinish')}</Label>
               <Input
                 type="date"
                 value={form.plannedEndDate}
@@ -227,7 +229,7 @@ export function StageModal({ open, mode, projectId, projectStart, projectEnd, st
           {isEdit && (
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Actual start</Label>
+                  <Label>{t('stageModal.actualStart')}</Label>
                 <Input
                   type="date"
                   value={form.actualStartDate}
@@ -238,7 +240,7 @@ export function StageModal({ open, mode, projectId, projectStart, projectEnd, st
                 {errors.actualStartDate && <p className="text-destructive text-sm">{errors.actualStartDate}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Actual finish</Label>
+                  <Label>{t('stageModal.actualFinish')}</Label>
                 <Input
                   type="date"
                   value={form.actualEndDate}
@@ -252,7 +254,7 @@ export function StageModal({ open, mode, projectId, projectStart, projectEnd, st
           )}
 
           <div className="space-y-2">
-            <Label>Status</Label>
+            <Label>{t('stageModal.status')}</Label>
             <Select value={form.status} onValueChange={(val) => setForm({ ...form, status: val })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -262,20 +264,20 @@ export function StageModal({ open, mode, projectId, projectStart, projectEnd, st
           </div>
 
           <div className="space-y-2">
-            <Label>Progress: {form.progressPercentage}%</Label>
+            <Label>{t('stageModal.progress')}: {form.progressPercentage}%</Label>
             <Slider value={[form.progressPercentage]} onValueChange={([v]) => setForm({ ...form, progressPercentage: v })} max={100} step={5} />
           </div>
 
           <div className="space-y-2">
-            <Label>Order (optional)</Label>
-            <Input type="number" value={form.orderIndex} onChange={(e) => setForm({ ...form, orderIndex: e.target.value })} />
+            <Label>{t('stageModal.order')}</Label>
+            <Input type="number" value={form.orderIndex} onChange={(e) => setForm({ ...form, orderIndex: e.target.value })} placeholder={t('stageModal.orderPlaceholder')} />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button variant="outline" onClick={onClose} disabled={saving}>{t('stageModal.cancel')}</Button>
           <Button onClick={handleSave} disabled={saving} className="bg-[#F97316] hover:bg-[#F97316]/90">
-            {saving ? "Saving…" : "Save"}
+            {saving ? t('stageModal.saving') : t('stageModal.saveChanges')}
           </Button>
         </DialogFooter>
       </DialogContent>

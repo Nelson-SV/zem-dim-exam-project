@@ -13,6 +13,17 @@ public interface IDocumentsService
         string contentType,
         Guid projectId,
         string title,
+        Guid uploadedById,
+        bool isVisibleToClient = false,
+        bool requiresSignature = false);
+
+    Task<DocumentDto> UploadDocumentForClientAsync(
+        Stream fileStream,
+        string fileName,
+        string contentType,
+        Guid projectId,
+        string? title,
+        bool requiresSignature,
         Guid uploadedById);
 
     Task<string> SignDocumentAsync(
@@ -24,6 +35,7 @@ public interface IDocumentsService
         double height,
         int pageNumber,
         Guid userId,
+        string userRole,
         string? ipAddress);
 
     Task UpdateAsync(Guid id, UpdateDocumentRequest request);

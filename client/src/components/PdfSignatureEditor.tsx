@@ -1,4 +1,4 @@
-﻿// PdfSignatureEditor.tsx - FIXED VERSION with visible lines
+﻿// PdfSignatureEditor.tsx - TWO-COLUMN LAYOUT with fixed scaling
 import { useState, useRef, useEffect } from 'react';
 import { X, PenLine, Trash2, Check, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Eraser } from 'lucide-react';
 import { Button } from './ui/button.tsx';
@@ -57,8 +57,7 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // DPI scaling for sharp lines
-    const DPI_SCALE = 2; // Fixed scale for stability
+    const DPI_SCALE = 2;
 
     const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
         console.log('✅ PDF loaded, pages:', numPages);
@@ -71,32 +70,20 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         setPageHeight(viewport.height);
     };
 
-    // Canvas setup - FIXED
     useEffect(() => {
         if (canvasRef.current && pageWidth && pageHeight) {
             const canvas = canvasRef.current;
-
-            // ❌ OLD ISSUE: canvas.width !== CSS width
-            // Set canvas dimensions with DPI in mind
             canvas.width = pageWidth * DPI_SCALE;
             canvas.height = pageHeight * DPI_SCALE;
 
             const ctx = canvas.getContext('2d');
             if (ctx) {
-                // Scale the context
                 ctx.scale(DPI_SCALE, DPI_SCALE);
-
-                // Smooth lines
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
 
-                // White background for visibility
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
-                ctx.fillRect(0, 0, pageWidth, pageHeight);
-
-                // Redraw all strokes
                 redrawAllStrokes();
             }
         }
@@ -109,16 +96,10 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Reset the transform and redraw
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.scale(DPI_SCALE, DPI_SCALE);
 
-        // White background
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
-        ctx.fillRect(0, 0, pageWidth, pageHeight);
-
-        // Settings for smooth lines
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
@@ -158,14 +139,11 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         if (!canvas) return;
 
         const rect = canvas.getBoundingClientRect();
-        // ✅ FIX: Correct coordinate scaling
         const x = (e.clientX - rect.left);
         const y = (e.clientY - rect.top);
 
         setIsDrawing(true);
         setCurrentStroke([{x, y}]);
-
-        console.log('🎨 Start drawing at:', x, y);
     };
 
     const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -181,7 +159,6 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Context settings
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.lineCap = 'round';
@@ -202,13 +179,10 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
 
             if (prev.length > 0) {
                 const lastPoint = prev[prev.length - 1];
-
                 ctx.beginPath();
                 ctx.moveTo(lastPoint.x, lastPoint.y);
                 ctx.lineTo(x, y);
                 ctx.stroke();
-
-                console.log('✏️ Drawing from', lastPoint, 'to', {x, y}, 'color:', penColor, 'width:', penSize);
             }
 
             return newStroke;
@@ -217,21 +191,15 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
 
     const stopDrawing = () => {
         if (!isDrawing) return;
-
-        console.log('✋ Stop drawing, stroke length:', currentStroke.length);
         setIsDrawing(false);
 
         if (currentStroke.length > 1) {
-            setAllStrokes(prev => {
-                const newStrokes = [...prev, {
-                    points: currentStroke,
-                    color: penColor,
-                    lineWidth: penSize,
-                    isEraser: isEraserMode
-                }];
-                console.log('💾 Saved stroke, total strokes:', newStrokes.length);
-                return newStrokes;
-            });
+            setAllStrokes(prev => [...prev, {
+                points: currentStroke,
+                color: penColor,
+                lineWidth: penSize,
+                isEraser: isEraserMode
+            }]);
         }
 
         setCurrentStroke([]);
@@ -248,44 +216,26 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.scale(DPI_SCALE, DPI_SCALE);
 
-        // White background
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
-        ctx.fillRect(0, 0, pageWidth, pageHeight);
-
         setAllStrokes([]);
         setCurrentStroke([]);
-
-        console.log('🗑️ Cleared signature');
     };
 
     const undoLastStroke = () => {
         if (allStrokes.length === 0) return;
-
-        setAllStrokes(prev => {
-            const newStrokes = prev.slice(0, -1);
-            console.log('↶ Undo, remaining strokes:', newStrokes.length);
-            return newStrokes;
-        });
+        setAllStrokes(prev => prev.slice(0, -1));
     };
 
     const startSignatureMode = () => {
-        console.log('🖊️ Starting signature mode');
         setIsDrawingMode(true);
         clearSignature();
     };
 
     const confirmSignature = async () => {
-        if (allStrokes.length === 0) {
-            console.log('❌ No signature to confirm');
-            return;
-        }
-
-        console.log('✅ Confirming signature with', allStrokes.length, 'strokes');
+        if (allStrokes.length === 0) return;
 
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        // Find the bounding box of all strokes
         const allPoints = allStrokes.flatMap(s => s.points);
         const xs = allPoints.map(p => p.x);
         const ys = allPoints.map(p => p.y);
@@ -301,9 +251,6 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         const boxWidth = (maxX - minX) + padding * 2;
         const boxHeight = (maxY - minY) + padding * 2;
 
-        console.log('📦 Signature box:', { boxX, boxY, boxWidth, boxHeight });
-
-        // Create a canvas for the signature
         const signatureCanvas = document.createElement('canvas');
         signatureCanvas.width = boxWidth * DPI_SCALE;
         signatureCanvas.height = boxHeight * DPI_SCALE;
@@ -311,18 +258,11 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         if (!ctx) return;
 
         ctx.scale(DPI_SCALE, DPI_SCALE);
-
-        // White background
-         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, boxWidth, boxHeight);
-
-        // Settings
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
-        // Draw the strokes
         allStrokes.forEach(stroke => {
             if (stroke.points.length < 2 || stroke.isEraser) return;
 
@@ -340,7 +280,6 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
         });
 
         const signatureBase64 = signatureCanvas.toDataURL('image/png');
-        console.log('📸 Generated signature image, length:', signatureBase64.length);
 
         setIsSigning(true);
         try {
@@ -351,7 +290,6 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
                 height: boxHeight,
                 pageNumber: currentPage
             });
-            console.log('✅ Signature confirmed and saved');
         } catch (error) {
             console.error('❌ Error saving signature:', error);
         } finally {
@@ -364,15 +302,13 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
 
     return (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-            <Card className="w-full max-w-7xl h-[90vh] flex flex-col bg-white">
+            <Card className="w-full max-w-[95vw] h-[95vh] flex flex-col bg-white">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b">
+                <div className="flex items-center justify-between p-4 border-b bg-white">
                     <div>
                         <h2 className="text-xl font-semibold">Sign Document</h2>
                         <p className="text-sm text-muted-foreground">
-                            {isDrawingMode
-                                ? '✍️ Draw your signature directly on the document'
-                                : 'Click "Start Signing" to add your signature'}
+                            Page {currentPage} of {numPages}
                         </p>
                     </div>
                     <Button variant="ghost" size="icon" onClick={onCancel}>
@@ -380,237 +316,274 @@ export function PdfSignatureEditor({ pdfUrl, onSign, onCancel }: PdfSignatureEdi
                     </Button>
                 </div>
 
-                {/* Toolbar */}
-                <div className="flex items-center justify-between p-3 bg-gray-50 border-b gap-4">
-                    {/* Page Navigation */}
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            disabled={currentPage === 1 || isDrawingMode}
-                        >
-                            <ChevronLeft className="size-4" />
-                        </Button>
-                        <span className="text-sm px-3 min-w-[100px] text-center">
-                            Page {currentPage} / {numPages}
-                        </span>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCurrentPage(p => Math.min(numPages, p + 1))}
-                            disabled={currentPage === numPages || isDrawingMode}
-                        >
-                            <ChevronRight className="size-4" />
-                        </Button>
-                    </div>
-
-                    {/* Zoom Controls */}
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={zoomOut} disabled={isDrawingMode}>
-                            <ZoomOut className="size-4" />
-                        </Button>
-                        <span className="text-sm w-16 text-center">
-                            {Math.round(scale * 100)}%
-                        </span>
-                        <Button variant="outline" size="sm" onClick={zoomIn} disabled={isDrawingMode}>
-                            <ZoomIn className="size-4" />
-                        </Button>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-2">
-                        {!isDrawingMode ? (
-                            <Button
-                                className="bg-[#F97316] hover:bg-[#F97316]/90"
-                                onClick={startSignatureMode}
-                            >
-                                <PenLine className="size-4 mr-2" />
-                                Start Signing
-                            </Button>
-                        ) : (
-                            <>
+                {/* TWO-COLUMN LAYOUT */}
+                <div className="flex flex-1 overflow-hidden">
+                    {/* LEFT SIDE - PDF VIEWER (70% width) */}
+                    <div className="flex-[7] flex flex-col border-r">
+                        {/* PDF Toolbar */}
+                        <div className="flex items-center justify-between p-3 bg-gray-50 border-b">
+                            <div className="flex items-center gap-2">
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={undoLastStroke}
-                                    disabled={allStrokes.length === 0}
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1 || isDrawingMode}
                                 >
-                                    ↶ Undo
+                                    <ChevronLeft className="size-4" />
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={clearSignature}>
-                                    <Trash2 className="size-4 mr-2" />
-                                    Clear
-                                </Button>
+                                <span className="text-sm px-3 min-w-[100px] text-center">
+                                    Page {currentPage} / {numPages}
+                                </span>
                                 <Button
                                     variant="outline"
-                                    onClick={() => {
-                                        setIsDrawingMode(false);
-                                        clearSignature();
-                                    }}
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.min(numPages, p + 1))}
+                                    disabled={currentPage === numPages || isDrawingMode}
                                 >
-                                    Cancel
+                                    <ChevronRight className="size-4" />
                                 </Button>
-                                <Button
-                                    className="bg-green-600 hover:bg-green-700"
-                                    onClick={confirmSignature}
-                                    disabled={allStrokes.length === 0 || isSigning}
-                                >
-                                    <Check className="size-4 mr-2" />
-                                    {isSigning ? 'Signing...' : 'Confirm'}
-                                </Button>
-                            </>
-                        )}
-                    </div>
-                </div>
+                            </div>
 
-                {/* Drawing Controls */}
-                {isDrawingMode && (
-                    <div className="flex items-center gap-6 p-4 bg-white border-b">
-                        {/* Pen/Eraser Toggle */}
-                        <div className="flex gap-2">
-                            <Button
-                                variant={!isEraserMode ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setIsEraserMode(false)}
-                                className={!isEraserMode ? 'bg-[#F97316] hover:bg-[#F97316]/90' : ''}
-                            >
-                                <PenLine className="size-4 mr-2" />
-                                Pen
-                            </Button>
-                            <Button
-                                variant={isEraserMode ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setIsEraserMode(true)}
-                            >
-                                <Eraser className="size-4 mr-2" />
-                                Eraser
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                <Button variant="outline" size="sm" onClick={zoomOut}>
+                                    <ZoomOut className="size-4" />
+                                </Button>
+                                <span className="text-sm w-16 text-center">
+                                    {Math.round(scale * 100)}%
+                                </span>
+                                <Button variant="outline" size="sm" onClick={zoomIn}>
+                                    <ZoomIn className="size-4" />
+                                </Button>
+                            </div>
                         </div>
 
-                        {/* Color Picker */}
-                        {!isEraserMode && (
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">Color:</span>
-                                <div className="flex gap-1">
-                                    {COLORS.map(color => (
-                                        <button
-                                            key={color.value}
-                                            className={`w-8 h-8 rounded-full border-2 transition-all ${
-                                                penColor === color.value
-                                                    ? 'border-orange-500 scale-110 shadow-lg'
-                                                    : 'border-gray-300 hover:scale-105'
-                                            }`}
-                                            style={{ backgroundColor: color.value }}
-                                            onClick={() => setPenColor(color.value)}
-                                            title={color.name}
+                        {/* PDF Display */}
+                        <div className="flex-1 overflow-auto bg-gray-100 p-4">
+                            <div className="flex justify-center items-start min-h-full">
+                                <div ref={containerRef} className="relative inline-block">
+                                    <Document
+                                        file={pdfUrl}
+                                        onLoadSuccess={onDocumentLoadSuccess}
+                                        loading={
+                                            <div className="flex items-center justify-center p-12">
+                                                <div className="text-center">
+                                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                                                    <p>Loading PDF...</p>
+                                                </div>
+                                            </div>
+                                        }
+                                        error={
+                                            <div className="flex items-center justify-center p-12">
+                                                <div className="text-center text-red-500">
+                                                    <p className="font-semibold mb-2">Failed to load PDF</p>
+                                                    <p className="text-sm">Please try again.</p>
+                                                </div>
+                                            </div>
+                                        }
+                                    >
+                                        <Page
+                                            pageNumber={currentPage}
+                                            scale={scale}
+                                            renderTextLayer={false}
+                                            renderAnnotationLayer={false}
+                                            onLoadSuccess={onPageLoadSuccess}
                                         />
-                                    ))}
+                                    </Document>
+
+                                    {/* Drawing Canvas */}
+                                    {isDrawingMode && pageWidth > 0 && pageHeight > 0 && (
+                                        <canvas
+                                            ref={canvasRef}
+                                            className={`absolute top-0 left-0 ${
+                                                isEraserMode ? 'cursor-cell' : 'cursor-crosshair'
+                                            }`}
+                                            style={{
+                                                width: `${pageWidth}px`,
+                                                height: `${pageHeight}px`,
+                                                touchAction: 'none',
+                                                backgroundColor: 'transparent',
+                                            }}
+                                            onMouseDown={startDrawing}
+                                            onMouseMove={draw}
+                                            onMouseUp={stopDrawing}
+                                            onMouseLeave={stopDrawing}
+                                        />
+                                    )}
                                 </div>
                             </div>
-                        )}
-
-                        {/* Size Slider */}
-                        <div className="flex items-center gap-3 min-w-[220px]">
-                            <span className="text-sm font-medium whitespace-nowrap">
-                                {isEraserMode ? 'Eraser' : 'Pen'} Size:
-                            </span>
-                            <Slider
-                                value={[penSize]}
-                                onValueChange={(value) => setPenSize(value[0])}
-                                min={0.5}
-                                max={10}
-                                step={0.5}
-                                className="flex-1"
-                            />
-                            <span className="text-sm w-12 text-center">{penSize.toFixed(1)}px</span>
                         </div>
-
-                        {/* Preview */}
-                        {!isEraserMode && (
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-500">Preview:</span>
-                                <div
-                                    className="rounded-full border border-gray-300"
-                                    style={{
-                                        width: `${Math.max(penSize * 3, 12)}px`,
-                                        height: `${Math.max(penSize * 3, 12)}px`,
-                                        backgroundColor: penColor
-                                    }}
-                                />
-                            </div>
-                        )}
                     </div>
-                )}
 
-                {/* PDF Viewer */}
-                <div className="flex-1 overflow-auto bg-gray-100 p-4">
-                    <div className="flex justify-center">
-                        <div ref={containerRef} className="relative inline-block">
-                            <Document
-                                file={pdfUrl}
-                                onLoadSuccess={onDocumentLoadSuccess}
-                                loading={
-                                    <div className="flex items-center justify-center p-12">
-                                        <div className="text-center">
-                                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                                            <p>Loading PDF...</p>
+                    {/* RIGHT SIDE - TOOLS PANEL (30% width) */}
+                    <div className="flex-[3] flex flex-col bg-white overflow-y-auto">
+                        <div className="p-6 space-y-6">
+                            {/* Title */}
+                            <div>
+                                <h3 className="text-lg font-semibold mb-2">Signature Tools</h3>
+                                <p className="text-sm text-muted-foreground">
+                                    {isDrawingMode
+                                        ? 'Draw your signature on the document'
+                                        : 'Start signing to add your signature'
+                                    }
+                                </p>
+                            </div>
+
+                            {/* Main Action */}
+                            <div className="space-y-3">
+                                {!isDrawingMode ? (
+                                    <Button
+                                        className="w-full bg-[#F97316] hover:bg-[#F97316]/90"
+                                        size="lg"
+                                        onClick={startSignatureMode}
+                                    >
+                                        <PenLine className="size-5 mr-2" />
+                                        Start Signing
+                                    </Button>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <Button
+                                            className="w-full bg-green-600 hover:bg-green-700"
+                                            size="lg"
+                                            onClick={confirmSignature}
+                                            disabled={allStrokes.length === 0 || isSigning}
+                                        >
+                                            <Check className="size-5 mr-2" />
+                                            {isSigning ? 'Signing...' : 'Confirm Signature'}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full"
+                                            onClick={() => {
+                                                setIsDrawingMode(false);
+                                                clearSignature();
+                                            }}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Drawing Tools - Only show when in drawing mode */}
+                            {isDrawingMode && (
+                                <>
+                                    <div className="border-t pt-6 space-y-6">
+                                        {/* Pen/Eraser Toggle */}
+                                        <div>
+                                            <label className="text-sm font-medium mb-3 block">Tool</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <Button
+                                                    variant={!isEraserMode ? 'default' : 'outline'}
+                                                    onClick={() => setIsEraserMode(false)}
+                                                    className={!isEraserMode ? 'bg-[#F97316] hover:bg-[#F97316]/90' : ''}
+                                                >
+                                                    <PenLine className="size-4 mr-2" />
+                                                    Pen
+                                                </Button>
+                                                <Button
+                                                    variant={isEraserMode ? 'default' : 'outline'}
+                                                    onClick={() => setIsEraserMode(true)}
+                                                >
+                                                    <Eraser className="size-4 mr-2" />
+                                                    Eraser
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        {/* Color Picker */}
+                                        {!isEraserMode && (
+                                            <div>
+                                                <label className="text-sm font-medium mb-3 block">Pen Color</label>
+                                                <div className="grid grid-cols-5 gap-2">
+                                                    {COLORS.map(color => (
+                                                        <button
+                                                            key={color.value}
+                                                            className={`aspect-square rounded-lg border-2 transition-all hover:scale-110 ${
+                                                                penColor === color.value
+                                                                    ? 'border-orange-500 scale-110 shadow-lg'
+                                                                    : 'border-gray-300'
+                                                            }`}
+                                                            style={{ backgroundColor: color.value }}
+                                                            onClick={() => setPenColor(color.value)}
+                                                            title={color.name}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Size Slider */}
+                                        <div>
+                                            <label className="text-sm font-medium mb-3 block">
+                                                {isEraserMode ? 'Eraser' : 'Pen'} Size: {penSize.toFixed(1)}px
+                                            </label>
+                                            <Slider
+                                                value={[penSize]}
+                                                onValueChange={(value) => setPenSize(value[0])}
+                                                min={0.5}
+                                                max={10}
+                                                step={0.5}
+                                                className="w-full"
+                                            />
+                                            {/* Preview */}
+                                            {!isEraserMode && (
+                                                <div className="flex items-center justify-center mt-4 p-4 bg-gray-50 rounded-lg">
+                                                    <div
+                                                        className="rounded-full"
+                                                        style={{
+                                                            width: `${Math.max(penSize * 4, 16)}px`,
+                                                            height: `${Math.max(penSize * 4, 16)}px`,
+                                                            backgroundColor: penColor
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Stroke count info */}
+                                        <div className="bg-blue-50 p-3 rounded-lg">
+                                            <div className="text-sm text-blue-800">
+                                                <strong>{allStrokes.length}</strong> stroke{allStrokes.length !== 1 ? 's' : ''} drawn
+                                            </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="space-y-2">
+                                            <Button
+                                                variant="outline"
+                                                className="w-full"
+                                                onClick={undoLastStroke}
+                                                disabled={allStrokes.length === 0}
+                                            >
+                                                ↶ Undo Last Stroke
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full"
+                                                onClick={clearSignature}
+                                                disabled={allStrokes.length === 0}
+                                            >
+                                                <Trash2 className="size-4 mr-2" />
+                                                Clear All
+                                            </Button>
                                         </div>
                                     </div>
-                                }
-                                error={
-                                    <div className="flex items-center justify-center p-12">
-                                        <div className="text-center text-red-500">
-                                            <p className="font-semibold mb-2">Failed to load PDF</p>
-                                            <p className="text-sm">Please try again.</p>
-                                        </div>
-                                    </div>
-                                }
-                            >
-                                <Page
-                                    pageNumber={currentPage}
-                                    scale={scale}
-                                    renderTextLayer={false}
-                                    renderAnnotationLayer={false}
-                                    onLoadSuccess={onPageLoadSuccess}
-                                />
-                            </Document>
 
-                            {/* Drawing Canvas */}
-                            {isDrawingMode && pageWidth > 0 && pageHeight > 0 && (
-                                <canvas
-                                    ref={canvasRef}
-                                    className={`absolute top-0 left-0 ${
-                                        isEraserMode ? 'cursor-cell' : 'cursor-crosshair'
-                                    }`}
-                                    style={{
-                                        width: `${pageWidth}px`,
-                                        height: `${pageHeight}px`,
-                                        touchAction: 'none',
-                                        // ✅ CRITICAL: transparent background so the PDF stays visible
-                                        backgroundColor: 'transparent',
-                                    }}
-                                    onMouseDown={startDrawing}
-                                    onMouseMove={draw}
-                                    onMouseUp={stopDrawing}
-                                    onMouseLeave={stopDrawing}
-                                />
+                                    {/* Tips */}
+                                    <div className="border-t pt-6">
+                                        <h4 className="text-sm font-medium mb-3">Tips</h4>
+                                        <ul className="text-sm text-muted-foreground space-y-2">
+                                            <li>• Draw smoothly for best results</li>
+                                            <li>• Use undo to fix mistakes</li>
+                                            <li>• Adjust pen size as needed</li>
+                                            <li>• Zoom in/out for precision</li>
+                                        </ul>
+                                    </div>
+                                </>
                             )}
                         </div>
                     </div>
                 </div>
-
-                {/* Help Text */}
-                {isDrawingMode && (
-                    <div className="p-3 bg-blue-50 border-t">
-                        <div className="flex items-center justify-center gap-6 text-sm text-blue-800">
-                            <span>💡 Draw your signature with smooth lines</span>
-                            <span>↶ Undo to remove last stroke</span>
-                            <span>🗑️ Clear to start over</span>
-                            <span>✅ Confirm when ready</span>
-                        </div>
-                    </div>
-                )}
             </Card>
         </div>
     );

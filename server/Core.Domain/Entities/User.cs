@@ -56,4 +56,6 @@ public partial class User
     public virtual ICollection<Threedscan> Threedscans { get; set; } = new List<Threedscan>();
 
     public virtual ICollection<Update> Updates { get; set; } = new List<Update>();
+
+    public virtual Usersetting? Usersetting { get; set; }
 }

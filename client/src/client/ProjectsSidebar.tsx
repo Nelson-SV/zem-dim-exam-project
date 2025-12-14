@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { Badge } from '../components/ui/badge';
 import { useAuth } from '../contexts/useAuth';
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function ProjectsSidebar({ projects, selectedProjectId, onSelectProject }: Props) {
+    const { t } = useTranslation();
     const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
     const { user } = useAuth();
 
@@ -48,8 +50,8 @@ export function ProjectsSidebar({ projects, selectedProjectId, onSelectProject }
     return (
         <div className="w-80 border-r bg-card">
             <div className="p-4 border-b">
-                <h3 className="font-semibold">Projects</h3>
-                <p className="text-sm text-muted-foreground">{projects.length} total</p>
+                <h3 className="font-semibold">{t('projectsSidebar.projects')}</h3>
+                <p className="text-sm text-muted-foreground">{projects.length} {t('projectsSidebar.total')}</p>
             </div>
 
             <div className="overflow-y-auto h-[calc(100vh-12rem)]">
@@ -105,7 +107,7 @@ export function ProjectsSidebar({ projects, selectedProjectId, onSelectProject }
                                     {project.progressPercentage !== undefined && (
                                         <div className="mt-2">
                                             <div className="flex justify-between text-xs mb-1">
-                                                <span className="text-muted-foreground">Progress</span>
+                                                <span className="text-muted-foreground">{t('projectsSidebar.progress')}</span>
                                                 <span className="font-medium">{project.progressPercentage}%</span>
                                             </div>
                                             <div className="h-1.5 bg-muted rounded-full overflow-hidden">

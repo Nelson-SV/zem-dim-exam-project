@@ -1,7 +1,8 @@
 import { Building, Users, CheckCircle2, Clock, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { enUS } from 'date-fns/locale';
+import { uk, enUS } from 'date-fns/locale';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
@@ -40,6 +41,7 @@ interface AdminDashboardProps {
 }
 
 export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
+  const { t, i18n } = useTranslation();
   const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [updates, setUpdates] = useState<UpdateDto[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
@@ -56,6 +58,7 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
   const [clientsCount, setClientsCount] = useState(0);
 
   const normalizeStatus = (status?: string | null) => status?.replace(/\s+/g, '').toLowerCase() ?? '';
+  const locale = i18n.language === 'uk' ? uk : enUS;
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -152,26 +155,26 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
-          title="Clients"
+          title={t('dashboard.clients')}
           value={loadingStats ? '...' : clientsCount.toString()}
           icon={<Users className="size-6 text-white" />}
           color="bg-[#F97316]"
         />
         <StatsCard
-          title="Total projects"
+          title={t('dashboard.totalProjects')}
           value={loadingStats ? '...' : totalProjects.toString()}
           icon={<Building className="size-6 text-white" />}
           color="bg-[#3B82F6]"
         />
         <StatsCard
-          title="Completed"
+          title={t('dashboard.completed')}
           value={loadingStats ? '...' : completedCount.toString()}
           icon={<CheckCircle2 className="size-6 text-white" />}
           color={`bg-[#10B981] ${statusFilter === 'completed' ? 'ring-2 ring-offset-2 ring-[#10B981]/60' : ''}`}
           onClick={() => setStatusFilter(prev => prev === 'completed' ? 'active' : 'completed')}
         />
         <StatsCard
-          title="In progress"
+          title={t('dashboard.inProgress')}
           value={loadingStats ? '...' : inProgressCount.toString()}
           icon={<Clock className="size-6 text-white" />}
           color={`bg-[#F59E0B] ${statusFilter === 'in-progress' ? 'ring-2 ring-offset-2 ring-[#F59E0B]/60' : ''}`}
@@ -185,7 +188,7 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
-              placeholder="Search projects..."
+              placeholder={t('dashboard.searchProjects')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
@@ -194,7 +197,7 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {loadingProjects && <p className="text-muted-foreground">Loading projects...</p>}
+          {loadingProjects && <p className="text-muted-foreground">{t('dashboard.loadingProjects')}</p>}
 
           {!loadingProjects && pagedProjects.map(project => (
             <Card key={project.id} className="overflow-hidden hover:shadow-lg transition-all flex flex-col h-full">
@@ -208,7 +211,7 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
                     />
                   ) : (
                     <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                      No image
+                      {t('dashboard.noImage')}
                     </div>
                   )}
                 </div>
@@ -227,15 +230,15 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
                 <div className="space-y-3 flex-1">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-muted-foreground">Progress</span>
+                      <span className="text-muted-foreground">{t('projects.progress')}</span>
                       <span>{project.progressPercentage ?? 0}%</span>
                     </div>
                     <Progress value={project.progressPercentage ?? 0} className="h-2" />
                   </div>
 
                   <div className="pt-3 border-t text-base leading-relaxed space-y-3 min-h-[108px]">
-                    <p className="text-muted-foreground line-clamp-2" title={project.notes ?? ''}>Current stage: <span className="text-foreground">{project.currentStageTitle ?? '-'}</span></p>
-                    <p className="text-muted-foreground">Client: <span className="text-foreground">{project.clientName}</span></p>
+                    <p className="text-muted-foreground line-clamp-2" title={project.notes ?? ''}>{t('dashboard.currentStage')}: <span className="text-foreground">{project.notes ?? '—'}</span></p>
+                    <p className="text-muted-foreground">{t('projects.client')}: <span className="text-foreground">{project.clientName}</span></p>
                   </div>
                 </div>
 
@@ -244,7 +247,7 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
                     onClick={() => onViewProject?.(project.id!)}
                     className="w-full bg-[#F97316] hover:bg-[#F97316]/90"
                   >
-                    View details
+                    {t('dashboard.viewDetails')}
                   </Button>
                 </div>
               </div>
@@ -252,7 +255,7 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
           ))}
 
           {!loadingProjects && pagedProjects.length === 0 && (
-            <p className="text-muted-foreground">No projects found.</p>
+            <p className="text-muted-foreground">{t('projects.noProjects')}</p>
           )}
         </div>
 
@@ -265,9 +268,9 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
 
       {/* Recent Activity */}
       <div>
-        <h2 className="mb-6">Latest updates</h2>
+        <h2 className="mb-6">{t('dashboard.latestUpdates')}</h2>
         <Card className="divide-y">
-          {loadingUpdates && <p className="p-4 text-muted-foreground">Loading updates...</p>}
+          {loadingUpdates && <p className="p-4 text-muted-foreground">{t('dashboard.loadingUpdates')}</p>}
           {!loadingUpdates && updates.map(update => {
             const type = update.updateType?.toLowerCase();
             const IconComponent = type?.includes('photo') ? Users : type?.includes('progress') ? CheckCircle2 : Clock;
@@ -280,18 +283,18 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
                   <h4>{update.title}</h4>
                   <p className="text-muted-foreground">{update.description}</p>
                   {update.projectTitle && (
-                    <p className="text-xs text-muted-foreground mt-1">Project: {update.projectTitle}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t('documents.project')}: {update.projectTitle}</p>
                   )}
                 </div>
                 <span className="text-muted-foreground whitespace-nowrap">
-                  {update.createdAt ? formatDistanceToNow(new Date(update.createdAt), { addSuffix: true, locale: enUS }) : '—'}
+                  {update.createdAt ? formatDistanceToNow(new Date(update.createdAt), { addSuffix: true, locale }) : '—'}
                 </span>
               </div>
             );
           })}
 
           {!loadingUpdates && updates.length === 0 && (
-            <p className="p-4 text-muted-foreground">No updates yet.</p>
+            <p className="p-4 text-muted-foreground">{t('dashboard.noUpdatesYet')}</p>
           )}
         </Card>
       </div>

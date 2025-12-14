@@ -48,6 +48,8 @@ public static class InfrastructurePostgresExtensions
         services.AddScoped<IUpdateRepository, UpdateRepository>();
         services.AddScoped<IDocumentRepository, DocumentRepository>();
         services.AddScoped<IDocumentSignatureRepository, DocumentSignatureRepository>();
+        services.AddScoped<ICompanyRepository, CompanyRepository>();
+        services.AddScoped<IUserSettingsRepository, UserSettingsRepository>();
 
         return services;
     }

@@ -55,7 +55,9 @@ public class DocumentsController : ControllerBase
     public async Task<ActionResult<DocumentDto>> Upload(
         [FromForm] IFormFile file,
         [FromForm] Guid projectId,
-        [FromForm] string title)
+        [FromForm] string title,
+        [FromForm] bool isVisibleToClient = false,
+        [FromForm] bool requiresSignature = false)
     {
         if (file == null || file.Length == 0)
             return BadRequest("File is required");
@@ -75,13 +77,51 @@ public class DocumentsController : ControllerBase
             file.ContentType,
             projectId,
             title,
+            userId,
+            isVisibleToClient,
+            requiresSignature);
+
+        return Ok(dto);
+    }
+
+    // -----------------------------------------------------------
+    // POST /api/documents/client-upload (Client uploads)
+    // -----------------------------------------------------------
+    [HttpPost("client-upload")]
+    [Authorize(Policy = AuthorizationRoles.User)] // ⬅️ User/Client only
+    [RequestSizeLimit(50 * 1024 * 1024)]
+    public async Task<ActionResult<DocumentDto>> ClientUpload(
+        [FromForm] IFormFile file,
+        [FromForm] Guid projectId,
+        [FromForm] string? title,
+        [FromForm] bool requiresSignature = false)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("File is required");
+
+        if (!file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            return BadRequest("Only PDF files allowed");
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(JwtRegisteredClaimNames.Sub);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized("Invalid or missing user id in token");
+
+        await using var stream = file.OpenReadStream();
+
+        var dto = await _documentsService.UploadDocumentForClientAsync(
+            stream,
+            file.FileName,
+            file.ContentType,
+            projectId,
+            title ?? file.FileName,
+            requiresSignature,
             userId);
 
         return Ok(dto);
     }
 
     [HttpPost("{documentId:guid}/sign")]
-    [Authorize(Policy = AuthorizationRoles.User)] // ⬅️ User only
+    [Authorize] // Both User and Admin can sign
     public async Task<ActionResult<SignedDocumentResponseDto>> SignDocument(
         Guid documentId,
         [FromBody] SignDocumentRequest request)
@@ -92,6 +132,10 @@ public class DocumentsController : ControllerBase
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(JwtRegisteredClaimNames.Sub);
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
             return Unauthorized("Invalid or missing user id in token");
+
+        var roleClaim = User.FindFirst(ClaimTypes.Role);
+        if (roleClaim == null)
+            return Unauthorized("Missing role in token");
 
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
 
@@ -106,6 +150,7 @@ public class DocumentsController : ControllerBase
                 request.PositionHeight,
                 request.PageNumber,
                 userId,
+                roleClaim.Value,
                 ip);
 
             var response = new SignedDocumentResponseDto

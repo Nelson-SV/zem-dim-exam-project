@@ -86,6 +86,22 @@ export class ApiClient {
         return this._projects;
     }
 
+    // Custom method to get projects for current user
+    async getMyProjects(): Promise<never[]> {
+        const client = this.createHttpClient();
+        const res = await client.fetch(`${this.baseUrl}/api/Projects/api/admin/projects/GetMyProjects`, {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Failed to get projects (${res.status}): ${text}`);
+        }
+
+        return await res.json();
+    }
+
     get messages() {
         if (!this._messages) {
             this._messages = new MessagesClient(this.baseUrl, this.createHttpClient());
@@ -241,13 +257,17 @@ export class ApiClient {
     async uploadProjectDocument(
         file: File,
         projectId: string,
-        title?: string
+        title?: string,
+        isVisibleToClient: boolean = false,
+        requiresSignature: boolean = false
     ): Promise<DocumentDto> {
         const endpoint = `${this.baseUrl}/api/documents`;
         const form = new FormData();
         form.append('file', file);
         form.append('projectId', projectId);
         form.append('title', title ?? file.name);
+        form.append('isVisibleToClient', isVisibleToClient.toString());
+        form.append('requiresSignature', requiresSignature.toString());
 
         const client = this.createHttpClient();
         const res = await client.fetch(endpoint, {
@@ -259,6 +279,34 @@ export class ApiClient {
         if (!res.ok) {
             const text = await res.text();
             throw new Error(`Document upload failed (${res.status}): ${text}`);
+        }
+
+        return await res.json() as DocumentDto;
+    }
+
+    async uploadClientDocument(
+        file: File,
+        projectId: string,
+        title?: string,
+        requiresSignature: boolean = false
+    ): Promise<DocumentDto> {
+        const endpoint = `${this.baseUrl}/api/documents/client-upload`;
+        const form = new FormData();
+        form.append('file', file);
+        form.append('projectId', projectId);
+        if (title) form.append('title', title);
+        form.append('requiresSignature', requiresSignature.toString());
+
+        const client = this.createHttpClient();
+        const res = await client.fetch(endpoint, {
+            method: 'POST',
+            body: form,
+            headers: { Accept: 'application/json' },
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Client document upload failed (${res.status}): ${text}`);
         }
 
         return await res.json() as DocumentDto;
