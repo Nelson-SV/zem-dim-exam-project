@@ -15,9 +15,11 @@ interface Props {
   projectId: string;
   milestones: { id: string; name: string }[];
   projectName: string;
+  projectStart?: string | null;
+  projectEnd?: string | null;
 }
 
-export function AdminPhotosView({ projectId, milestones, projectName }: Props) {
+export function AdminPhotosView({ projectId, milestones, projectName, projectStart, projectEnd }: Props) {
   const [photos, setPhotos] = useState<PhotoVm[]>([]);
   const [milestoneFilter, setMilestoneFilter] = useState<string>('all');
   const [page, setPage] = useState(1);
@@ -104,6 +106,7 @@ export function AdminPhotosView({ projectId, milestones, projectName }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-xl font-semibold">Photos</h3>
+          <p className="text-muted-foreground text-sm">{projectName}</p>
         </div>
         <div className="flex gap-3">
           <Select value={milestoneFilter} onValueChange={(v) => setMilestoneFilter(v)}>
@@ -173,6 +176,8 @@ export function AdminPhotosView({ projectId, milestones, projectName }: Props) {
         projectId={projectId}
         milestones={milestones}
         photo={selectedPhoto}
+        projectStart={projectStart}
+        projectEnd={projectEnd}
         onClose={() => { setModalOpen(false); resetSelection(); }}
         onSaved={handleSaved}
       />

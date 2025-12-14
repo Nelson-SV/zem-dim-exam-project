@@ -23,6 +23,8 @@ interface Props {
   mode: 'create' | 'edit';
   scan?: AdminThreeDScanDto | null;
   milestones: { id: string; name: string }[];
+  projectStart?: string | null;
+  projectEnd?: string | null;
   submitting: boolean;
   onClose: () => void;
   onSubmit: (values: AdminThreeDScanModalFormValues) => Promise<void>;
@@ -33,6 +35,8 @@ export function AdminThreeDScanModal({
   mode,
   scan,
   milestones,
+  projectStart,
+  projectEnd,
   submitting,
   onClose,
   onSubmit,
@@ -77,6 +81,8 @@ export function AdminThreeDScanModal({
     };
   }, [previewUrl]);
 
+  const toDate = (value?: string | null) => (value ? new Date(`${value}T00:00:00`) : null);
+
   const handleFileChange = (file?: File) => {
     setError(null);
     if (!file) {
@@ -105,6 +111,20 @@ export function AdminThreeDScanModal({
       setError(t('scanModal.fileRequired'));
       return;
     }
+
+    const projectStartDate = toDate(projectStart);
+    const projectEndDate = toDate(projectEnd);
+    const scannedAtDate = toDate(form.scannedAt);
+
+    if (scannedAtDate && projectStartDate && scannedAtDate < projectStartDate) {
+      setError('Scan date cannot be before the project start date.');
+      return;
+    }
+    if (scannedAtDate && projectEndDate && scannedAtDate > projectEndDate) {
+      setError('Scan date must be on or before the project end date.');
+      return;
+    }
+
     await onSubmit({
       roomName: form.roomName.trim(),
       milestoneId: form.milestoneId || undefined,
@@ -172,6 +192,8 @@ export function AdminThreeDScanModal({
                 <Input
                   type="date"
                   value={form.scannedAt ?? ''}
+                  min={projectStart || undefined}
+                  max={projectEnd || undefined}
                   onChange={(e) => setForm(prev => ({ ...prev, scannedAt: e.target.value || undefined }))}
                 />
               </div>
@@ -201,7 +223,7 @@ export function AdminThreeDScanModal({
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
 
-          <div className="rounded-xl border bg-muted/30 p-3">
+          <div className="rounded-xl p-3">
             {displayUrl ? (
               <RoomViewer
                 zoom={zoom}

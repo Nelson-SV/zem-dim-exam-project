@@ -29,6 +29,8 @@ type Props = {
   projectId: string;
   milestones: { id: string; name: string }[];
   photo: PhotoVm | null;
+  projectStart?: string | null;
+  projectEnd?: string | null;
   onClose: () => void;
   onSaved: () => void;
 };
@@ -47,7 +49,9 @@ const emptyForm: FormState = {
   file: null,
 };
 
-export function PhotoModal({ open, mode, projectId, milestones, photo, onClose, onSaved }: Props) {
+const toDate = (value?: string | null) => (value ? new Date(`${value}T00:00:00`) : null);
+
+export function PhotoModal({ open, mode, projectId, milestones, photo, projectStart, projectEnd, onClose, onSaved }: Props) {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
 
@@ -70,8 +74,18 @@ export function PhotoModal({ open, mode, projectId, milestones, photo, onClose, 
   const errors = useMemo(() => {
     const e: Record<string, string> = {};
     if (!isEdit && !form.file) e.file = "Image is required";
+    const projectStartDate = toDate(projectStart);
+    const projectEndDate = toDate(projectEnd);
+    const takenAtDate = toDate(form.takenAt);
+
+    if (takenAtDate && projectStartDate && takenAtDate < projectStartDate) {
+      e.takenAt = "Photo date cannot be before the project start date.";
+    }
+    if (takenAtDate && projectEndDate && takenAtDate > projectEndDate) {
+      e.takenAt = "Photo date must be on or before the project end date.";
+    }
     return e;
-  }, [form.file, isEdit]);
+  }, [form.file, form.takenAt, isEdit, projectEnd, projectStart]);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(prev => ({ ...prev, file: e.target.files?.[0] ?? null }));
@@ -79,7 +93,7 @@ export function PhotoModal({ open, mode, projectId, milestones, photo, onClose, 
 
   const handleSave = async () => {
     if (Object.keys(errors).length > 0) {
-      toast.error("Please select an image file");
+      toast.error(Object.values(errors)[0] ?? "Please fix the highlighted errors");
       return;
     }
     setSaving(true);
@@ -137,7 +151,14 @@ export function PhotoModal({ open, mode, projectId, milestones, photo, onClose, 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Taken at</Label>
-              <Input type="date" value={form.takenAt} onChange={(e) => setForm({ ...form, takenAt: e.target.value })} />
+              <Input
+                type="date"
+                value={form.takenAt}
+                min={projectStart || undefined}
+                max={projectEnd || undefined}
+                onChange={(e) => setForm({ ...form, takenAt: e.target.value })}
+              />
+              {errors.takenAt && <p className="text-destructive text-sm">{errors.takenAt}</p>}
             </div>
             <div className="space-y-2">
               <Label>Stage</Label>

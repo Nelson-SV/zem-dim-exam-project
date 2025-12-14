@@ -45,7 +45,7 @@ export function ClientDashboard() {
       setLoading(true);
       setError(null);
       try {
-        const res = await http.clientDashboard.getDashboard(undefined, UPDATES_LIMIT);
+        const res = await http.clientDashboard.getClientProjects(user?.id, undefined, UPDATES_LIMIT);
         setProjects(res.projects ?? []);
         setClientName(res.clientName ?? `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim());
         setSelectedProjectId(prev => prev ?? res.projects?.[0]?.id ?? null);
@@ -162,7 +162,10 @@ export function ClientDashboard() {
             <div>
               <h2 className="mb-2">{project.title}</h2>
               <p className="text-muted-foreground">
-                {[project.address, project.city, project.postalCode].filter(Boolean).join(', ')}
+                {project.address}, {project.postalCode} {project.city}
+              </p>
+              <p className="text-muted-foreground">
+                Notes: {project.notes}
               </p>
             </div>
             <div className="flex flex-wrap gap-3">

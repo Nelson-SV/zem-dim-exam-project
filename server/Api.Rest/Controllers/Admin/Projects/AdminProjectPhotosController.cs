@@ -16,11 +16,11 @@ namespace Api.Rest.Controllers.Admin.Projects;
 public class AdminProjectPhotosController(IPhotoService service, ILogger<AdminProjectPhotosController> logger) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<PaginationItemsResponse<PhotoDto>>> GetPhotos(Guid projectId, [FromQuery] Guid? milestoneId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    public async Task<ActionResult<PaginationItemsResponse<PhotoDto>>> GetPhotos(Guid projectId, [FromQuery] Guid? milestoneId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         try
         {
-            var result = await service.GetAsync(projectId, milestoneId, page, pageSize, ct);
+            var result = await service.GetAsync(projectId, milestoneId, page, pageSize);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -36,7 +36,7 @@ public class AdminProjectPhotosController(IPhotoService service, ILogger<AdminPr
 
     [HttpPost]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<PhotoDto>> UploadPhoto(Guid projectId, [FromForm] UploadPhotoForm form, CancellationToken ct = default)
+    public async Task<ActionResult<PhotoDto>> UploadPhoto(Guid projectId, [FromForm] UploadPhotoForm form)
     {
         if (form.File == null || form.File.Length == 0)
             return BadRequest("Photo file is required.");
@@ -59,8 +59,7 @@ public class AdminProjectPhotosController(IPhotoService service, ILogger<AdminPr
                 form.File.FileName,
                 form.File.ContentType,
                 form.File.Length,
-                userId,
-                ct);
+                userId);
 
             return CreatedAtAction(nameof(GetPhotos), new { projectId, page = 1, pageSize = 1 }, result);
         }
@@ -80,12 +79,12 @@ public class AdminProjectPhotosController(IPhotoService service, ILogger<AdminPr
     }
 
     [HttpPut("{photoId:guid}")]
-    public async Task<ActionResult<PhotoDto>> UpdatePhoto(Guid projectId, Guid photoId, [FromBody] UpdatePhotoDto dto, CancellationToken ct = default)
+    public async Task<ActionResult<PhotoDto>> UpdatePhoto(Guid projectId, Guid photoId, [FromBody] UpdatePhotoDto dto)
     {
         try
         {
             var userId = GetUserId();
-            var result = await service.UpdateAsync(projectId, photoId, dto, userId, ct);
+            var result = await service.UpdateAsync(projectId, photoId, dto, userId);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -104,12 +103,12 @@ public class AdminProjectPhotosController(IPhotoService service, ILogger<AdminPr
     }
 
     [HttpDelete("{photoId:guid}")]
-    public async Task<ActionResult> DeletePhoto(Guid projectId, Guid photoId, CancellationToken ct = default)
+    public async Task<ActionResult> DeletePhoto(Guid projectId, Guid photoId)
     {
         try
         {
             var userId = GetUserId();
-            await service.DeleteAsync(projectId, photoId, userId, ct);
+            await service.DeleteAsync(projectId, photoId, userId);
             return Ok(new { message = "Photo deleted", photoId });
         }
         catch (KeyNotFoundException ex)

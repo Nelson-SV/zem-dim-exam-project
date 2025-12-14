@@ -14,11 +14,11 @@ namespace Api.Rest.Controllers.Admin.Projects;
 public class AdminProjectMilestonesController(IMilestoneService service, ILogger<AdminProjectMilestonesController> logger) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<PaginationItemsResponse<MilestoneDto>>> GetStages(Guid projectId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    public async Task<ActionResult<PaginationItemsResponse<MilestoneDto>>> GetStages(Guid projectId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         try
         {
-            var result = await service.GetByProjectAsync(projectId, page, pageSize, ct);
+            var result = await service.GetByProjectAsync(projectId, page, pageSize);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -33,14 +33,14 @@ public class AdminProjectMilestonesController(IMilestoneService service, ILogger
     }
 
     [HttpPost]
-    public async Task<ActionResult<MilestoneDto>> CreateStage(Guid projectId, [FromBody] CreateMilestoneDto dto, CancellationToken ct = default)
+    public async Task<ActionResult<MilestoneDto>> CreateStage(Guid projectId, [FromBody] CreateMilestoneDto dto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         try
         {
             var userId = GetUserId();
-            var result = await service.CreateAsync(projectId, dto, userId, ct);
+            var result = await service.CreateAsync(projectId, dto, userId);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -55,14 +55,14 @@ public class AdminProjectMilestonesController(IMilestoneService service, ILogger
     }
 
     [HttpPut("{stageId:guid}")]
-    public async Task<ActionResult<MilestoneDto>> UpdateStage(Guid projectId, Guid stageId, [FromBody] UpdateMilestoneDto dto, CancellationToken ct = default)
+    public async Task<ActionResult<MilestoneDto>> UpdateStage(Guid projectId, Guid stageId, [FromBody] UpdateMilestoneDto dto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         try
         {
             var userId = GetUserId();
-            var result = await service.UpdateAsync(projectId, stageId, dto, userId, ct);
+            var result = await service.UpdateAsync(projectId, stageId, dto, userId);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -81,12 +81,12 @@ public class AdminProjectMilestonesController(IMilestoneService service, ILogger
     }
 
     [HttpPatch("{stageId:guid}")]
-    public async Task<ActionResult<MilestoneDto>> PatchStage(Guid projectId, Guid stageId, [FromBody] PatchMilestoneDto dto, CancellationToken ct = default)
+    public async Task<ActionResult<MilestoneDto>> PatchStage(Guid projectId, Guid stageId, [FromBody] PatchMilestoneDto dto)
     {
         try
         {
             var userId = GetUserId();
-            var result = await service.PatchAsync(projectId, stageId, dto, userId, ct);
+            var result = await service.PatchAsync(projectId, stageId, dto, userId);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -105,12 +105,12 @@ public class AdminProjectMilestonesController(IMilestoneService service, ILogger
     }
 
     [HttpDelete("{stageId:guid}")]
-    public async Task<ActionResult> DeleteStage(Guid projectId, Guid stageId, CancellationToken ct = default)
+    public async Task<ActionResult> DeleteStage(Guid projectId, Guid stageId)
     {
         try
         {
             var userId = GetUserId();
-            await service.DeleteAsync(projectId, stageId, userId, ct);
+            await service.DeleteAsync(projectId, stageId, userId);
             return Ok(new { message = "Stage deleted", stageId });
         }
         catch (KeyNotFoundException ex)

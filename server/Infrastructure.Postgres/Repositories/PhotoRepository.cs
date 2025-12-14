@@ -7,65 +7,65 @@ namespace Infrastructure.Postgres.Repositories;
 
 public class PhotoRepository(AppDbContext ctx) : IPhotoRepository
 {
-    public Task<bool> ProjectExistsAsync(Guid projectId, CancellationToken ct = default) =>
-        ctx.Projects.AnyAsync(p => p.Id == projectId && !p.Isdeleted, ct);
+    public Task<bool> ProjectExistsAsync(Guid projectId) =>
+        ctx.Projects.AnyAsync(p => p.Id == projectId && !p.Isdeleted);
 
-    public Task<bool> MilestoneBelongsToProjectAsync(Guid milestoneId, Guid projectId, CancellationToken ct = default) =>
-        ctx.Milestones.AnyAsync(m => m.Id == milestoneId && m.Projectid == projectId, ct);
+    public Task<bool> MilestoneBelongsToProjectAsync(Guid milestoneId, Guid projectId) =>
+        ctx.Milestones.AnyAsync(m => m.Id == milestoneId && m.Projectid == projectId);
 
-    public async Task<(IReadOnlyCollection<Photo> Items, int Total)> GetAsync(Guid projectId, Guid? milestoneId, int page, int pageSize, CancellationToken ct = default)
+    public async Task<(IReadOnlyCollection<Photo> Items, int Total)> GetAsync(Guid projectId, Guid? milestoneId, int page, int pageSize)
     {
         var query = ctx.Photos
             .Include(p => p.Milestone)
             .Include(p => p.Project)
             .Include(p => p.Uploadedby)
-            .Where(p => p.Projectid == projectId && (p.Isdeleted == false || p.Isdeleted == null));
+            .Where(p => p.Projectid == projectId && (p.Isdeleted == false));
 
         if (milestoneId.HasValue)
             query = query.Where(p => p.Milestoneid == milestoneId.Value);
 
-        var total = await query.CountAsync(ct);
+        var total = await query.CountAsync();
         var items = await query
             .OrderByDescending(p => p.Createdat)
             .ThenByDescending(p => p.Takenat)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync(ct);
+            .ToListAsync();
 
         return (items, total);
     }
 
-    public Task<Photo?> GetByIdAsync(Guid photoId, CancellationToken ct = default) =>
+    public Task<Photo?> GetByIdAsync(Guid photoId) =>
         ctx.Photos
            .Include(p => p.Milestone)
            .Include(p => p.Project)
            .Include(p => p.Uploadedby)
-           .FirstOrDefaultAsync(p => p.Id == photoId, ct);
+           .FirstOrDefaultAsync(p => p.Id == photoId);
 
-    public async Task<Photo> InsertAsync(Photo photo, CancellationToken ct = default)
+    public async Task<Photo> InsertAsync(Photo photo)
     {
         ctx.Photos.Add(photo);
-        await ctx.SaveChangesAsync(ct);
+        await ctx.SaveChangesAsync();
         return photo;
     }
 
-    public async Task<Photo> UpdateAsync(Photo photo, CancellationToken ct = default)
+    public async Task<Photo> UpdateAsync(Photo photo)
     {
         ctx.Photos.Update(photo);
-        await ctx.SaveChangesAsync(ct);
-        await ctx.Entry(photo).Reference(p => p.Milestone).LoadAsync(ct);
-        await ctx.Entry(photo).Reference(p => p.Project).LoadAsync(ct);
-        await ctx.Entry(photo).Reference(p => p.Uploadedby).LoadAsync(ct);
+        await ctx.SaveChangesAsync();
+        await ctx.Entry(photo).Reference(p => p.Milestone).LoadAsync();
+        await ctx.Entry(photo).Reference(p => p.Project).LoadAsync();
+        await ctx.Entry(photo).Reference(p => p.Uploadedby).LoadAsync();
         return photo;
     }
 
-    public async Task SoftDeleteAsync(Guid photoId, CancellationToken ct = default)
+    public async Task SoftDeleteAsync(Guid photoId)
     {
-        var entity = await ctx.Photos.FindAsync(new object[] { photoId }, ct)
+        var entity = await ctx.Photos.FindAsync(new object[] { photoId })
                      ?? throw new KeyNotFoundException("Photo not found");
 
         entity.Isdeleted = true;
         ctx.Photos.Update(entity);
-        await ctx.SaveChangesAsync(ct);
+        await ctx.SaveChangesAsync();
     }
 }

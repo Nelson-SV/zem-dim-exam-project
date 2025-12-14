@@ -10,6 +10,5 @@ public interface IUpdateService
         int pageSize,
         Guid? projectId,
         string? updateType,
-        string? search,
-        CancellationToken ct = default);
+        string? search);
 }

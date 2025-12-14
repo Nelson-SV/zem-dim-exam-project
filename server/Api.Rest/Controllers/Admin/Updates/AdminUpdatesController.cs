@@ -19,12 +19,11 @@ public class AdminUpdatesController(IUpdateService service, ILogger<AdminUpdates
         [FromQuery] int pageSize = 20,
         [FromQuery] Guid? projectId = null,
         [FromQuery] string? updateType = null,
-        [FromQuery] string? search = null,
-        CancellationToken ct = default)
+        [FromQuery] string? search = null)
     {
         try
         {
-            var result = await service.GetUpdatesAsync(page, pageSize, projectId, updateType, search, ct);
+            var result = await service.GetUpdatesAsync(page, pageSize, projectId, updateType, search);
             return Ok(result);
         }
         catch (Exception ex)

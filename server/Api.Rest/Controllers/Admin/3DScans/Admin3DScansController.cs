@@ -30,8 +30,7 @@ public class Admin3DScansController(IAdmin3DScanService service) : ControllerBas
     [Route(Upload3dFile)]
     public async Task<ActionResult<AdminThreeDScanDto>> Upload3DScan(
         [FromForm] UploadThreeDScanForm form,
-        [FromServices] IValidator<UploadThreeDScanRequestDto> validator,
-        CancellationToken ct)
+        [FromServices] IValidator<UploadThreeDScanRequestDto> validator)
     {
         //TODO: Should move this validation to service
         
@@ -40,7 +39,7 @@ public class Admin3DScansController(IAdmin3DScanService service) : ControllerBas
         if (!AllowedContentTypes.Contains(form.File.ContentType))
             return BadRequest("Only binary glTF (.glb) files are allowed.");
 
-        var validation = await validator.ValidateAsync(form.ToDto(), ct);
+        var validation = await validator.ValidateAsync(form.ToDto());
         if (!validation.IsValid) return BadRequest(validation.Errors.Select(e => e.ErrorMessage));
         
         var adminId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
@@ -52,7 +51,7 @@ public class Admin3DScansController(IAdmin3DScanService service) : ControllerBas
         
         Console.WriteLine($"Form MilestoneId = {form.MilestoneId}");
 
-        var result = await service.UploadAsync(command, adminId, ct);
+        var result = await service.UploadAsync(command, adminId);
         return CreatedAtAction(nameof(Get3DScanById), new { scanId = result.Id }, result);
     }
 
@@ -60,27 +59,27 @@ public class Admin3DScansController(IAdmin3DScanService service) : ControllerBas
     [Authorize(Policy = AuthorizationRoles.Admin)]
     [Route(Get3DScans)]
     public async Task<ActionResult<PaginationItemsResponse<AdminThreeDScanDto>>> Get3DScan(Guid? projectId,
-        Guid? milestoneId, int page = 1, int pageSize = 20, CancellationToken ct = default)
+        Guid? milestoneId, int page = 1, int pageSize = 20)
     {
-        return Ok(await service.GetAsync(projectId, milestoneId, page, pageSize, ct));
+        return Ok(await service.GetAsync(projectId, milestoneId, page, pageSize));
     }
 
     [HttpGet]
     [Authorize(Policy = AuthorizationRoles.Admin)]
     [Route(GetProject3DScanById)]
-    public async Task<ActionResult<AdminThreeDScanDto>> Get3DScanById(Guid scanId, CancellationToken ct)
+    public async Task<ActionResult<AdminThreeDScanDto>> Get3DScanById(Guid scanId)
     {
-        return await service.GetByIdAsync(scanId, ct) is { } dto ? Ok(dto) : NotFound();
+        return await service.GetByIdAsync(scanId) is { } dto ? Ok(dto) : NotFound();
     }
     
     [HttpDelete]
     [Authorize(Policy = AuthorizationRoles.Admin)]
     [Route(DeleteProject3DScan)]
-    public async Task<ActionResult<DeleteResponseDto>> Delete3DScan(Guid scanId, CancellationToken ct)
+    public async Task<ActionResult<DeleteResponseDto>> Delete3DScan(Guid scanId)
     {
         var adminId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
         
-        await service.DeleteAsync(scanId, adminId, ct);
+        await service.DeleteAsync(scanId, adminId);
         return Ok(DeleteResponseDto.FromObjects(true, SuccessMessages.GetMessage(SuccessCode.ThreeDScanDeletedSuccess)));
     }
     
@@ -89,15 +88,14 @@ public class Admin3DScansController(IAdmin3DScanService service) : ControllerBas
     [Route(UpdateProject3DScan)]
     public async Task<ActionResult<AdminThreeDScanDto>> Update3DScan(
         Guid scanId,
-        [FromBody] UpdateThreeDScanRequestDto dto,
-        CancellationToken ct)
+        [FromBody] UpdateThreeDScanRequestDto dto)
     {
         if (scanId == Guid.Empty)
             return BadRequest("Scan id is required.");
         
         var adminId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
 
-        var result = await service.UpdateAsync(scanId, dto, adminId, ct);
+        var result = await service.UpdateAsync(scanId, dto, adminId);
         return Ok(result);
     }
 

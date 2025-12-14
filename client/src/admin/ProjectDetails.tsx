@@ -28,12 +28,18 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
   const [milestones, setMilestones] = useState<MilestoneViewModel[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const toDateString = (value?: string | Date | null) => {
+    if (!value) return null;
+    const d = typeof value === 'string' ? new Date(value) : value;
+    return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+  };
+
   useEffect(() => {
     const fetchProject = async () => {
       setLoading(true);
       try {
         const data = await http.projects.getProject(projectId);
-        setProject(data as ProjectDto);
+        setProject(data);
       } catch (err: any) {
         toast.error(err?.message ?? t('projectDetails.failedToLoad'));
       } finally {
@@ -60,6 +66,9 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
     const today = new Date();
     return Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   }, [project]);
+
+  const projectStartDate = toDateString(project?.startDate ?? null);
+  const projectEndDate = toDateString(project?.actualEndDate ?? project?.plannedEndDate ?? null);
 
   if (loading) {
     return <Card className="p-6">{t('projectDetails.loading')}</Card>;
@@ -165,7 +174,12 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
         </TabsList>
 
         <TabsContent value="stages">
-          <AdminStagesView projectId={projectId} onMilestonesChanged={setMilestones} />
+          <AdminStagesView
+            projectId={projectId}
+            projectStart={projectStartDate}
+            projectEnd={projectEndDate}
+            onMilestonesChanged={setMilestones}
+          />
         </TabsContent>
 
         <TabsContent value="photos">
@@ -173,6 +187,8 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
             projectId={projectId}
             milestones={milestones.map(m => ({ id: m.id, name: m.title }))}
             projectName={project.title!}
+            projectStart={projectStartDate}
+            projectEnd={projectEndDate}
           />
         </TabsContent>
 
@@ -181,6 +197,8 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
             projectId={projectId}
             projectName={project.title!}
             milestones={milestones.map(m => ({ id: m.id, name: m.title }))}
+            projectStart={projectStartDate}
+            projectEnd={projectEndDate}
           />
         </TabsContent>
 

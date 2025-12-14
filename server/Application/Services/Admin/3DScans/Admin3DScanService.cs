@@ -12,11 +12,11 @@ namespace Application.Services.Admin._3DScans;
 
 public class Admin3DScanService(IStorageService _storage, IDbUnitOfWork _unitOfWork, IAdmin3DScanRepository _repository, ILogger<Admin3DScanService> _logger) : IAdmin3DScanService
 {
-    public async Task<AdminThreeDScanDto> UploadAsync(UploadThreeDScanRequestDto.UploadThreeDScanCommand command, Guid uploadedBy, CancellationToken ct)
+    public async Task<AdminThreeDScanDto> UploadAsync(UploadThreeDScanRequestDto.UploadThreeDScanCommand command, Guid uploadedBy)
     {
-        await EnsureProjectAsync(command.Request.ProjectId, ct);
+        await EnsureProjectAsync(command.Request.ProjectId);
         if (command.Request.MilestoneId.HasValue)
-            await EnsureMilestoneAsync(command.Request.MilestoneId.Value, command.Request.ProjectId, ct);
+            await EnsureMilestoneAsync(command.Request.MilestoneId.Value, command.Request.ProjectId);
 
         await _unitOfWork.BeginAsync();
         var fileUrl = string.Empty;
@@ -26,8 +26,7 @@ public class Admin3DScanService(IStorageService _storage, IDbUnitOfWork _unitOfW
                 command.File.Content,
                 command.File.FileName,
                 command.Request.ProjectId,
-                command.Request.MilestoneId,
-                ct);
+                command.Request.MilestoneId);
 
             var entity = new Threedscan
             {
@@ -35,8 +34,9 @@ public class Admin3DScanService(IStorageService _storage, IDbUnitOfWork _unitOfW
                 Projectid = command.Request.ProjectId,
                 Milestoneid = command.Request.MilestoneId,
                 Roomname = command.Request.RoomName.Trim(),
-                Filename = command.File.FileName,
+                Filename = Path.GetFileNameWithoutExtension(command.File.FileName),
                 Fileurl = fileUrl,
+                Filetype = Path.GetExtension(command.File.FileName),
                 Roomarea = command.Request.RoomArea,
                 Scannedat = command.Request.ScannedAt ?? DateTime.UtcNow,
                 Uploadedbyid = uploadedBy,
@@ -44,7 +44,7 @@ public class Admin3DScanService(IStorageService _storage, IDbUnitOfWork _unitOfW
                 Createdat = DateTime.UtcNow
             };
 
-            var saved = await _repository.InsertAsync(entity, ct);
+            var saved = await _repository.InsertAsync(entity);
             await _unitOfWork.CommitAsync();
             return AdminThreeDScanDto.FromEntity(saved);
         }
@@ -52,7 +52,7 @@ public class Admin3DScanService(IStorageService _storage, IDbUnitOfWork _unitOfW
         {
             await _unitOfWork.RollbackAsync();
             if (!string.IsNullOrEmpty(fileUrl))
-                await _storage.DeleteFileAsync(fileUrl, ct);
+                await _storage.DeleteFileAsync(fileUrl);
             _logger.LogError(ex, "Failed to upload 3D scan for project {ProjectId}", command.Request.ProjectId);
             throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.ThreeDScanUploadFailed), ex);
         }
@@ -62,10 +62,9 @@ public class Admin3DScanService(IStorageService _storage, IDbUnitOfWork _unitOfW
         Guid? projectId,
         Guid? milestoneId,
         int page,
-        int pageSize,
-        CancellationToken ct)
+        int pageSize)
     {
-        var (entities, total) = await _repository.GetAsync(projectId, milestoneId, page, pageSize, ct);
+        var (entities, total) = await _repository.GetAsync(projectId, milestoneId, page, pageSize);
         var dtos = entities.Select(AdminThreeDScanDto.FromEntity).ToList();
 
         return new PaginationItemsResponse<AdminThreeDScanDto>
@@ -77,33 +76,33 @@ public class Admin3DScanService(IStorageService _storage, IDbUnitOfWork _unitOfW
         };
     }
 
-    public async Task<AdminThreeDScanDto?> GetByIdAsync(Guid scanId, CancellationToken ct)
+    public async Task<AdminThreeDScanDto?> GetByIdAsync(Guid scanId)
     {
-        var entity = await _repository.GetByIdAsync(scanId, ct);
+        var entity = await _repository.GetByIdAsync(scanId);
         return entity is null ? null : AdminThreeDScanDto.FromEntity(entity);
     }
 
-    private async Task EnsureProjectAsync(Guid projectId, CancellationToken ct)
+    private async Task EnsureProjectAsync(Guid projectId)
     {
-        if (!await _repository.ProjectExistsAsync(projectId, ct))
+        if (!await _repository.ProjectExistsAsync(projectId))
             throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.ProjectNotFound));
     }
 
-    private async Task EnsureMilestoneAsync(Guid milestoneId, Guid projectId, CancellationToken ct)
+    private async Task EnsureMilestoneAsync(Guid milestoneId, Guid projectId)
     {
-        if (!await _repository.MilestoneBelongsToProjectAsync(milestoneId, projectId, ct))
+        if (!await _repository.MilestoneBelongsToProjectAsync(milestoneId, projectId))
             throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.MilestoneDoesNotBelongToProject));
     }
 
 
-    public async Task DeleteAsync(Guid scanId, Guid performedBy, CancellationToken ct)
+    public async Task DeleteAsync(Guid scanId, Guid performedBy)
     {
-        var scan = await _repository.GetByIdAsync(scanId, ct) ?? throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.ThreeDScanNotFound));
+        var scan = await _repository.GetByIdAsync(scanId) ?? throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.ThreeDScanNotFound));
         await _unitOfWork.BeginAsync();
         try
         {
-            await _repository.DeleteAsync(scanId, ct);
-            await _storage.DeleteFileAsync(scan.Fileurl, ct);
+            await _repository.DeleteAsync(scanId);
+            await _storage.DeleteFileAsync(scan.Fileurl);
             await _unitOfWork.CommitAsync();
         }
         catch (Exception ex)
@@ -114,16 +113,16 @@ public class Admin3DScanService(IStorageService _storage, IDbUnitOfWork _unitOfW
         }
     }
 
-    public async Task<AdminThreeDScanDto> UpdateAsync(Guid scanId, UpdateThreeDScanRequestDto dto, Guid performedBy, CancellationToken ct)
+    public async Task<AdminThreeDScanDto> UpdateAsync(Guid scanId, UpdateThreeDScanRequestDto dto, Guid performedBy)
     {
         await _unitOfWork.BeginAsync();
         try
         {
-            var scan = await _repository.GetByIdAsync(scanId, ct)
+            var scan = await _repository.GetByIdAsync(scanId)
                        ?? throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.ThreeDScanNotFound));
 
             if (dto.MilestoneId.HasValue)
-                await EnsureMilestoneAsync(dto.MilestoneId.Value, scan.Projectid, ct);
+                await EnsureMilestoneAsync(dto.MilestoneId.Value, scan.Projectid);
 
             if (!string.IsNullOrWhiteSpace(dto.RoomName))
                 scan.Roomname = dto.RoomName.Trim();
@@ -133,7 +132,7 @@ public class Admin3DScanService(IStorageService _storage, IDbUnitOfWork _unitOfW
             scan.Scannedat = dto.ScannedAt ?? scan.Scannedat;
             scan.Notes = dto.Notes ?? scan.Notes;
 
-            var updated = await _repository.UpdateAsync(scan, ct);
+            var updated = await _repository.UpdateAsync(scan);
             await _unitOfWork.CommitAsync();
 
             _logger.LogInformation("3D scan {ScanId} updated by {UserId}", scanId, performedBy);

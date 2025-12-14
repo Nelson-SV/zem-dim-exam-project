@@ -195,7 +195,7 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
             />
           </div>
         </div>
-
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {loadingProjects && <p className="text-muted-foreground">{t('dashboard.loadingProjects')}</p>}
 
@@ -204,8 +204,8 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
               <div className="relative px-3 pt-3 pb-0">
                 <div className="w-full h-56 bg-white rounded-md overflow-hidden flex items-center justify-center">
                   {project.thumbnailUrl ? (
-                    <img
-                      src={project.thumbnailUrl}
+                    <img 
+                      src={project.thumbnailUrl} 
                       alt={project.title}
                       className="max-h-full max-w-full object-contain"
                     />
@@ -243,7 +243,7 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
                 </div>
 
                 <div className="pt-2 mt-auto">
-                  <Button
+                  <Button 
                     onClick={() => onViewProject?.(project.id!)}
                     className="w-full bg-[#F97316] hover:bg-[#F97316]/90"
                   >

@@ -16,11 +16,11 @@ namespace Api.Rest.Controllers.Admin.Projects;
 public class AdminProjectDocumentsController(IDocumentService service, ILogger<AdminProjectDocumentsController> logger) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<PaginationItemsResponse<DocumentDto>>> GetDocuments(Guid projectId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    public async Task<ActionResult<PaginationItemsResponse<DocumentDto>>> GetDocuments(Guid projectId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         try
         {
-            var result = await service.GetAsync(projectId, page, pageSize, ct);
+            var result = await service.GetAsync(projectId, page, pageSize);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -36,7 +36,7 @@ public class AdminProjectDocumentsController(IDocumentService service, ILogger<A
 
     [HttpPost]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<DocumentDto>> UploadDocument(Guid projectId, [FromForm] UploadDocumentForm form, CancellationToken ct = default)
+    public async Task<ActionResult<DocumentDto>> UploadDocument(Guid projectId, [FromForm] UploadDocumentForm form)
     {
         if (form.File == null || form.File.Length == 0)
             return BadRequest("Document file is required.");
@@ -52,7 +52,7 @@ public class AdminProjectDocumentsController(IDocumentService service, ILogger<A
                 IsVisibleToClient = form.IsVisibleToClient
             };
 
-            var result = await service.CreateAsync(projectId, dto, stream, form.File.FileName, form.File.ContentType, form.File.Length, userId, ct);
+            var result = await service.CreateAsync(projectId, dto, stream, form.File.FileName, form.File.ContentType, form.File.Length, userId);
             return CreatedAtAction(nameof(GetDocuments), new { projectId, page = 1, pageSize = 1 }, result);
         }
         catch (KeyNotFoundException ex)
@@ -71,12 +71,12 @@ public class AdminProjectDocumentsController(IDocumentService service, ILogger<A
     }
 
     [HttpPut("{documentId:guid}")]
-    public async Task<ActionResult<DocumentDto>> UpdateDocument(Guid projectId, Guid documentId, [FromBody] UpdateDocumentDto dto, CancellationToken ct = default)
+    public async Task<ActionResult<DocumentDto>> UpdateDocument(Guid projectId, Guid documentId, [FromBody] UpdateDocumentDto dto)
     {
         try
         {
             var userId = GetUserId();
-            var result = await service.UpdateAsync(projectId, documentId, dto, userId, ct);
+            var result = await service.UpdateAsync(projectId, documentId, dto, userId);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)
@@ -95,12 +95,12 @@ public class AdminProjectDocumentsController(IDocumentService service, ILogger<A
     }
 
     [HttpDelete("{documentId:guid}")]
-    public async Task<ActionResult> DeleteDocument(Guid projectId, Guid documentId, CancellationToken ct = default)
+    public async Task<ActionResult> DeleteDocument(Guid projectId, Guid documentId)
     {
         try
         {
             var userId = GetUserId();
-            await service.DeleteAsync(projectId, documentId, userId, ct);
+            await service.DeleteAsync(projectId, documentId, userId);
             return Ok(new { message = "Document deleted", documentId });
         }
         catch (KeyNotFoundException ex)

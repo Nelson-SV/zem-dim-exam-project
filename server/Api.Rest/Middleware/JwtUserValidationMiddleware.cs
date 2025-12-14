@@ -22,7 +22,7 @@ public class JwtUserValidationMiddleware
             var userId = Guid.Parse(userIdClaim.Value);
             var user = await userManagementRepository.GetByIdAsync(userId);
 
-            if (user is null || user.Isactive != true)
+            if (user is null || user.Isactive != true || user.Isdeleted == true)
             {
                 logger.LogWarning("User inactive or does not exist: {UserId}", userId);
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;

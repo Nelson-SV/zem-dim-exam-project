@@ -17,7 +17,7 @@ public class User3DScansController(IUser3DScanService service, ILogger<User3DSca
     [HttpGet]
     [Authorize(Policy = AuthorizationRoles.User)]
     [Route(GetScansRoute)]
-    public async Task<ActionResult<List<User3DScanDto>>> GetClientScans([FromQuery] Guid clientId)
+    public async Task<ActionResult<List<User3DScanProjectDto>>> GetClientScans([FromQuery] Guid clientId)
     {
         if (clientId == Guid.Empty)
             return BadRequest("Client ID is required.");

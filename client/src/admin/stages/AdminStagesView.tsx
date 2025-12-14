@@ -15,10 +15,12 @@ export type { MilestoneViewModel } from './StageModal';
 
 interface Props {
   projectId: string;
+  projectStart?: string | null;
+  projectEnd?: string | null;
   onMilestonesChanged?: (milestones: MilestoneViewModel[]) => void;
 }
 
-export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
+export function AdminStagesView({ projectId, onMilestonesChanged, projectStart, projectEnd }: Props) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'uk' ? uk : enUS;
   const [stages, setStages] = useState<MilestoneViewModel[]>([]);
@@ -174,6 +176,8 @@ export function AdminStagesView({ projectId, onMilestonesChanged }: Props) {
         open={modalOpen}
         mode={modalMode}
         projectId={projectId}
+        projectStart={projectStart}
+        projectEnd={projectEnd}
         stage={selectedStage}
         onClose={() => { setModalOpen(false); setSelectedStage(null); }}
         onSaved={() => fetchStages()}

@@ -12,6 +12,7 @@ using Application.Services.ClientDashboardService;
 using Application.Services.Documents;
 using Application.Services.Email;
 using Application.Services.MessageService;
+using Application.Services.PhotosGallery;
 using Application.Services.ProjectService;
 using Application.Services.Security;
 using Application.Services.UpdateService;
@@ -24,6 +25,7 @@ using Application.Validators.Admin.UserManagement;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Resend;
 
 namespace Application;
 
@@ -40,7 +42,6 @@ public static class ServicesExtensions
             services.Configure<AppOptions>(options =>
             {
                 options.SendGridApiKey = sendGridApiKey; // Set the API key from environment variables
-                options.SendGridApiKey = sendGridApiKey; // Set the API key from environment variables
             });
         }
         else
@@ -53,7 +54,7 @@ public static class ServicesExtensions
         services.AddValidatorsFromAssemblyContaining<UpdateUserValidator>();
         services.AddValidatorsFromAssemblyContaining<UploadThreeDScanValidator>();
         
-        services.AddHttpClient();
+        // Dont need this here??? services.AddHttpClient();
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IMessageService, MessageService>();
@@ -70,6 +71,15 @@ public static class ServicesExtensions
         services.AddScoped<IDocumentsService, DocumentsService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<ISettingsService, SettingsService>();
+        services.AddScoped<IClientGalleryService, ClientGalleryService>();
+
+        
+        services.AddHttpClient<ResendClient>();
+        services.Configure<ResendClientOptions>( o =>
+        {
+            o.ApiToken = configuration["AppOptions:EmailKey"]!;
+        } );
+        services.AddTransient<IResend, ResendClient>();
 
         return services;
     }

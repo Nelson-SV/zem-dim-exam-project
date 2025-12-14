@@ -6,6 +6,7 @@ import {
     User3DScansClient,
     Admin3DScansClient,
     ClientDashboardClient,
+    ClientProjectPhotosClient,
     type UploadThreeDScanForm,
     type AdminThreeDScanDto,
     AdminProjectDocumentsClient,
@@ -35,6 +36,7 @@ export class ApiClient {
     private _adminProjectPhotos: AdminProjectPhotosClient | null = null;
     private _adminUpdates: AdminUpdatesClient | null = null;
     private _clientDashboard: ClientDashboardClient | null = null;
+    private _clientProjectPhotos: ClientProjectPhotosClient | null = null;
     private _documents: DocumentsClient | null = null;
 
 
@@ -169,6 +171,13 @@ export class ApiClient {
         return this._clientDashboard;
     }
 
+    get clientProjectPhotos() {
+        if (!this._clientProjectPhotos) {
+            this._clientProjectPhotos = new ClientProjectPhotosClient(this.baseUrl, this.createHttpClient());
+        }
+        return this._clientProjectPhotos;
+    }
+
     // Reset clients when authentication changes
     resetClients() {
         this._userManagement = null;
@@ -182,8 +191,10 @@ export class ApiClient {
         this._adminProjectPhotos = null;
         this._adminUpdates = null;
         this._clientDashboard = null;
+        this._clientProjectPhotos = null;
         this._documents = null;
     }
+    
     async uploadProjectImage(file: File, projectId?: string): Promise<{ url: string; fileName?: string; contentType?: string; size?: number }> {
         const endpoint = `${this.baseUrl}/api/FileUpload/project-thumbnail`;
         const form = new FormData();
@@ -242,6 +253,7 @@ export class ApiClient {
         if (!res.ok) throw new Error(await res.text());
         return res.json();
     }
+
     async uploadProjectDocument(
         file: File,
         projectId: string,

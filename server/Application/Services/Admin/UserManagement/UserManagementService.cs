@@ -55,18 +55,23 @@ public class UserManagementService(
                 Isactive = true,
                 Profileimageurl = dto.ProfileImageUrl ?? "https://example.com/default-avatar.png",
                 Language = dto.Language ?? "ENG",
-                Createdat = DateTime.Now,
+                Createdat = DateTime.UtcNow,
                 Salt = salt,
                 Passwordhash = hash,
                 Mustchangepassword = true,
             });
-
-            var template = templateReader.LoadTemplate("TemporaryPasswordEmail.html");
-            var body = template.Replace("{{CustomerName}}", dto.FirstName)
-                .Replace("{{Password}}", password)
-                .Replace("{{Email}}", dto.Email);
             
-            await emailService.SendEmailAsync(dto.Email, "Your account has been created", body);
+            //to test, use "delivered@resend.dev" (in "to:" field)
+            await emailService.SendEmailViaResendAsync(
+                dto.Email, 
+                "Your account has been created", 
+                "TemporaryPasswordEmail.html", 
+                tokens: new Dictionary<string, string>
+                {
+                    ["CustomerName"] = dto.FirstName + " "  + dto.LastName,
+                    ["Email"] = dto.Email,
+                    ["Password"] = password
+                });
             await unitOfWork.CommitAsync();
             
             return UsersDetailsDto.FromEntity(insertedUser);
@@ -114,7 +119,7 @@ public class UserManagementService(
             existingUser.Language = dto.Language ?? existingUser.Language;
             existingUser.Isactive = dto.IsActive ?? existingUser.Isactive;
             existingUser.Isdeleted = dto.IsDeleted ??  existingUser.Isdeleted;
-            existingUser.Updatedat = DateTime.Now; 
+            existingUser.Updatedat = DateTime.UtcNow; 
             
             var updatedUser = await managementRepository.UpdateUser(existingUser);
 
