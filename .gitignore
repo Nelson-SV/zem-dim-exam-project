@@ -1,5 +1,7 @@
 notes.txt
 
+appsettings.Development.json
+
 # Logs
 logs
 *.log

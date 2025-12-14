@@ -1,91 +1,55 @@
 using System.Net;
 using System.Net.Mail;
 using Common.Email.Configurations;
+using Common.Email.TemplateReader;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Resend;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using EmailAddress = SendGrid.Helpers.Mail.EmailAddress;
 
 namespace Application.Services.Email;
 
 public class EmailService
 {
     private readonly EmailSettings _emailSettings;
-    private readonly string _sendGridApiKey;
-    //private readonly bool _isProduction;
-    private readonly IHostEnvironment _env;
+    private readonly IResend _resend;
+    private readonly TemplateReader _templateReader;
 
-    public EmailService(IOptions<EmailSettings> emailSettings, IOptions<AppOptions> appOptions, IHostEnvironment env)
+    public EmailService(
+        IOptions<EmailSettings> emailSettings,
+        IResend resend,
+        TemplateReader templateReader)
     {
         _emailSettings = emailSettings.Value;
-        _sendGridApiKey = appOptions.Value.SendGridApiKey;
-        _env = env;
-        //_isProduction = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production";
+        _resend = resend;
+        _templateReader = templateReader;
     }
-
-    // Send email asynchronously either via SMTP (MailCatcher) or SendGrid (Production)
-    public async Task SendEmailAsync(string to, string subject, string body, bool isHtml = true)
+    
+    //Send email via Resend
+    public async Task SendEmailViaResendAsync(
+        string to,
+        string subject,
+        string templateFileName,
+        IDictionary<string, string> tokens)
     {
-        if (_env.IsProduction() && !string.IsNullOrEmpty(_sendGridApiKey))
-        {
-            await SendEmailUsingSendGrid(to, subject, body, isHtml);
-        }
-        else
-        {
-            await SendEmailUsingSmtpClient(to, subject, body, isHtml);
-        }
-    }
+        var template = _templateReader.LoadTemplate(templateFileName);
+        var html = _templateReader.RenderValues(template, tokens);
 
-    // Method to send email via SendGrid
-    private async Task SendEmailUsingSendGrid(string to, string subject, string body, bool isHtml)
-    {
-        var client = new SendGridClient(_sendGridApiKey);
-        var from = new EmailAddress(_emailSettings.SmtpSenderEmail, _emailSettings.SmtpSenderName);
-        var toEmail = new EmailAddress(to);
-        var msg = isHtml
-            ? MailHelper.CreateSingleEmail(from, toEmail, subject, null, body)
-            : MailHelper.CreateSingleEmail(from, toEmail, subject, body, null);
-        
-        try
+        var message = new EmailMessage
         {
-            var response = await client.SendEmailAsync(msg);
-        }
-        catch (Exception ex)
-        {
-            throw new ApplicationException($"Failed to send email to {to}", ex);
-        }
-        
-        // You can log or handle the response here if needed
-        // response ?? Are we going to use an online service?
-    }
-
-    // Method to send email via MailCatcher (SMTP)
-    private async Task SendEmailUsingSmtpClient(string to, string subject, string body, bool isHtml)
-    {
-        using var smtpClient = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.SmtpPort)
-        {
-            Credentials = new NetworkCredential(_emailSettings.SmtpSenderEmail, ""),
-            EnableSsl = _emailSettings.SmtpEnableSsl
-        };
-
-        var mailMessage = new MailMessage
-        {
-            From = new MailAddress(_emailSettings.SmtpSenderEmail, _emailSettings.SmtpSenderName),
+            //From = $"{_emailSettings.SmtpSenderName} <{_emailSettings.SmtpSenderEmail}>",
             Subject = subject,
-            Body = body,
-            IsBodyHtml = isHtml
+            HtmlBody = html
         };
+        
+        message.From = "Acme <onboarding@resend.dev>";
 
-        mailMessage.To.Add(to);
-        
-        try
-        {
-            await smtpClient.SendMailAsync(mailMessage);
-        }
-        catch (Exception ex)
-        {
-            throw new ApplicationException($"Failed to send email to {to}", ex);
-        }
-        
+        message.To.Add(to);
+
+        var result = await _resend.EmailSendAsync(message);
+
+        // Optional: check result / log (depends on the Resend SDK response type)
     }
 }

@@ -4,5 +4,5 @@ namespace Application.Interfaces.Infrastructure.Postgres.Users._3DScans;
 
 public interface IUser3DScanRepository
 {
-    Task<List<Threedscan>> GetScansByClientIdAsync(Guid clientId);
+    Task<List<Project>> GetScansByClientIdAsync(Guid clientId);
 }

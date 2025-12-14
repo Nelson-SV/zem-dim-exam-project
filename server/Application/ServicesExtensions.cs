@@ -23,6 +23,7 @@ using Application.Validators.Admin.UserManagement;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Resend;
 
 namespace Application;
 
@@ -51,7 +52,7 @@ public static class ServicesExtensions
         services.AddValidatorsFromAssemblyContaining<UpdateUserValidator>();
         services.AddValidatorsFromAssemblyContaining<UploadThreeDScanValidator>();
         
-        services.AddHttpClient();
+        // Dont need this here??? services.AddHttpClient();
         services.AddScoped<ISecurityService, SecurityService>();
         services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IMessageService, MessageService>();
@@ -68,6 +69,13 @@ public static class ServicesExtensions
         services.AddScoped<IDocumentsService, DocumentsService>();
         services.AddScoped<IClientGalleryService, ClientGalleryService>();
 
+        
+        services.AddHttpClient<ResendClient>();
+        services.Configure<ResendClientOptions>( o =>
+        {
+            o.ApiToken = configuration["AppOptions:EmailKey"]!;
+        } );
+        services.AddTransient<IResend, ResendClient>();
 
         return services;
     }

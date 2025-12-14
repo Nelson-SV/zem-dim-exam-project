@@ -4,5 +4,5 @@ namespace Application.Interfaces.Users._3DScans;
 
 public interface IUser3DScanService
 {
-    Task<List<User3DScanDto>> GetScansByClientIdAsync(Guid clientId);
+    Task<List<User3DScanProjectDto>> GetScansByClientIdAsync(Guid clientId);
 }

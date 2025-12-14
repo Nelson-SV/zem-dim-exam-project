@@ -9,9 +9,6 @@ public class User3DScanDto
     public decimal? RoomArea { get; set; }
     public DateTime? ScannedAt { get; set; }
     public string FileUrl { get; set; } = string.Empty;
-    public string FileFormat { get; set; } = string.Empty;
-    public Guid ProjectId { get; set; }
-    public string ProjectTitle { get; set; } = string.Empty;
     public string? Notes { get; set; }
 
     public static User3DScanDto FromEntity(Threedscan scan)
@@ -23,9 +20,6 @@ public class User3DScanDto
             RoomArea = scan.Roomarea,
             ScannedAt = scan.Scannedat,
             FileUrl = scan.Fileurl,
-            FileFormat = scan.Filetype,
-            ProjectId = scan.Projectid,
-            ProjectTitle = scan.Project?.Title ?? "",
             Notes = scan.Notes
         };
     }
