@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Core.Domain.Entities;
+using Application.Helpers;
 
 namespace Application.Models.Dtos.Project;
 
@@ -16,6 +16,7 @@ public class ProjectDto
     public string? City { get; set; }
     public string? PostalCode { get; set; }
     public string Status { get; set; } = null!;
+    public string? CurrentStageTitle { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly PlannedEndDate { get; set; }
     public DateOnly? ActualEndDate { get; set; }
@@ -33,9 +34,7 @@ public class ProjectDto
         {
             Id = project.Id,
             ClientId = project.Clientid,
-            ClientName = project.Client != null 
-                ? $"{project.Client.Firstname} {project.Client.Lastname}" 
-                : "Unknown Client",
+            ClientName = $"{project.Client.Firstname} {project.Client.Lastname}" ,
             Title = project.Title,
             Notes = project.Notes,
             Address = project.Address,
@@ -51,7 +50,8 @@ public class ProjectDto
             ThumbnailUrl = project.Thumbnailurl,
             CreatedAt = project.Createdat,
             UpdatedAt = project.Updatedat,
-            IsDeleted = project.Isdeleted
+            IsDeleted = project.Isdeleted,
+            CurrentStageTitle = MilestonesHelper.GetCurrentStageTitleFromEntities(project.Milestones)
         };
     }
 
@@ -209,26 +209,6 @@ public class PatchProjectDto
 
     [MaxLength(500, ErrorMessage = "Thumbnail URL cannot exceed 500 characters")]
     public string? ThumbnailUrl { get; set; }
-}
-
-/// <summary>
-/// DTO for updating only project status
-/// </summary>
-public class UpdateProjectStatusDto
-{
-    [Required(ErrorMessage = "Status is required")]
-    [MaxLength(50, ErrorMessage = "Status cannot exceed 50 characters")]
-    public string Status { get; set; } = null!;
-}
-
-/// <summary>
-/// DTO for updating only project progress
-/// </summary>
-public class UpdateProjectProgressDto
-{
-    [Required(ErrorMessage = "Progress percentage is required")]
-    [Range(0, 100, ErrorMessage = "Progress percentage must be between 0 and 100")]
-    public int ProgressPercentage { get; set; }
 }
 
 #endregion

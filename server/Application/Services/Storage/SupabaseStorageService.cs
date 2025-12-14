@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Application.Interfaces.Services;
 using Common.Constants; // The IStorageService interface now lives here
 using Application.Interfaces.Services;
+using Microsoft.Extensions.Logging;
 using Supabase;
 
 namespace Application.Services.Storage;
@@ -11,6 +12,7 @@ public class SupabaseStorageService : IStorageService
 {
     // Explicitly specify the type to avoid conflicts with Supabase.Storage.Client
     private readonly Supabase.Client _supabaseClient;
+    private readonly ILogger<SupabaseStorageService> _logger;
 
     private const string PROJECTS_BUCKET = "Projects";   // thumbnails
     private const string DOCUMENTS_BUCKET = "Documents"; // pdf/doc, signed pdfs
@@ -18,12 +20,13 @@ public class SupabaseStorageService : IStorageService
     private static readonly Regex PublicUrlRegex = new("/storage/v1/object/public/(?<bucket>[^/]+)/(?<path>.+)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 
-    public SupabaseStorageService(Supabase.Client supabaseClient)
+    public SupabaseStorageService(Supabase.Client supabaseClient, ILogger<SupabaseStorageService> logger)
     {
         _supabaseClient = supabaseClient;
+        _logger = logger;
     }
 
-    public async Task<string> UploadProjectThumbnailAsync(Stream fileStream, string fileName, string contentType, Guid? projectId = null, CancellationToken ct = default)
+    public async Task<string> UploadProjectThumbnailAsync(Stream fileStream, string fileName, string contentType, Guid? projectId = null)
     {
         try
         {
@@ -34,7 +37,7 @@ public class SupabaseStorageService : IStorageService
 
             // Read the incoming stream into bytes
             using var ms = new MemoryStream();
-            await fileStream.CopyToAsync(ms, ct);
+            await fileStream.CopyToAsync(ms);
             var bytes = ms.ToArray();
 
             // IMPORTANT: the signature is Upload(path, bytes, options)
@@ -57,48 +60,6 @@ public class SupabaseStorageService : IStorageService
             throw new ApplicationException($"Failed to upload file: {ex.Message}", ex);
         }
     }
-
-    /*
-    public async Task<bool> DeleteFileAsync(string fileUrl)
-    {
-        try
-        {
-            // Extract the object path within the bucket from the public URL
-            var uri = new Uri(fileUrl);
-            var prefix = $"/storage/v1/object/public/{BUCKET_NAME}/";
-            var fullPath = Uri.UnescapeDataString(uri.AbsolutePath);
-
-            if (!fullPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                return false;
-
-            var filePath = fullPath.Substring(prefix.Length); // e.g. "thumbnails/xxx.webp"
-
-            // IMPORTANT: Remove expects IEnumerable<string>
-            await _supabaseClient
-                .Storage
-                .From(BUCKET_NAME)
-                .Remove(new List<string> { filePath });
-
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-    */
-    
-    public async Task<bool> DeleteFileAsync(string fileUrl, CancellationToken ct = default)
-    {
-        if (!TryParsePublicUrl(fileUrl, out var bucket, out var path))
-            return false;
-
-        await _supabaseClient.Storage
-            .From(bucket)
-            .Remove(new List<string> { path });
-
-        return true;
-    }
     
     public string GetPublicUrl(string filePath, string? bucketOverride = null)
     {
@@ -111,7 +72,7 @@ public class SupabaseStorageService : IStorageService
         => _supabaseClient.Storage.From(BUCKET_NAME).GetPublicUrl(filePath);
         */
 
-    public async Task<string> UploadThreeDScanAsync(Stream fileStream, string fileName, Guid projectId, Guid? milestoneId, CancellationToken ct = default)
+    public async Task<string> UploadThreeDScanAsync(Stream fileStream, string fileName, Guid projectId, Guid? milestoneId)
     {
         //_logger.LogInformation("Uploading .glb {FileName} for project {ProjectId}", fileName, projectId);
 
@@ -122,7 +83,7 @@ public class SupabaseStorageService : IStorageService
 
         var objectPath = Build3DScanPath(projectId, milestoneId, normalizedExtension);
         await using var buffer = new MemoryStream();
-        await fileStream.CopyToAsync(buffer, ct);
+        await fileStream.CopyToAsync(buffer);
 
         await _supabaseClient.Storage
             .From(StorageBuckets.ThreeDScans)
@@ -136,14 +97,14 @@ public class SupabaseStorageService : IStorageService
         return GetPublicUrl(objectPath, StorageBuckets.ThreeDScans);
     }
 
-    public async Task<string> UploadPhotoAsync(Stream fileStream, string fileName, string contentType, Guid projectId, Guid? milestoneId, CancellationToken ct = default)
+    public async Task<string> UploadPhotoAsync(Stream fileStream, string fileName, string contentType, Guid projectId, Guid? milestoneId)
     {
         var extension = Path.GetExtension(fileName);
         var normalizedExtension = string.IsNullOrWhiteSpace(extension) ? ".jpg" : extension.ToLowerInvariant();
         var path = BuildPhotoPath(projectId, milestoneId, normalizedExtension);
 
         await using var buffer = new MemoryStream();
-        await fileStream.CopyToAsync(buffer, ct);
+        await fileStream.CopyToAsync(buffer);
 
         await _supabaseClient.Storage
             .From(StorageBuckets.Photos)
@@ -156,14 +117,14 @@ public class SupabaseStorageService : IStorageService
         return GetPublicUrl(path, StorageBuckets.Photos);
     }
 
-    public async Task<string> UploadDocumentAsync(Stream fileStream, string fileName, string contentType, Guid projectId, CancellationToken ct = default)
+    public async Task<string> UploadDocumentAsync(Stream fileStream, string fileName, string contentType, Guid projectId)
     {
         var extension = Path.GetExtension(fileName);
         var normalizedExtension = string.IsNullOrWhiteSpace(extension) ? ".dat" : extension.ToLowerInvariant();
         var path = $"documents/projects/{projectId}/{Guid.NewGuid()}{normalizedExtension}";
 
         await using var buffer = new MemoryStream();
-        await fileStream.CopyToAsync(buffer, ct);
+        await fileStream.CopyToAsync(buffer);
 
         await _supabaseClient.Storage
             .From(StorageBuckets.Documents)
@@ -278,48 +239,23 @@ public class SupabaseStorageService : IStorageService
             throw new ApplicationException($"Failed to download file: {ex.Message}", ex);
         }
     }
-
-    // ---------- Delete (both buckets) ----------
-
+    
     public async Task<bool> DeleteFileAsync(string fileUrl)
     {
         try
         {
-            var uri = new Uri(fileUrl);
-            var fullPath = Uri.UnescapeDataString(uri.AbsolutePath);
-
-            string bucketName;
-            string prefix;
-
-            if (fullPath.Contains($"/storage/v1/object/public/{PROJECTS_BUCKET}/"))
-            {
-                bucketName = PROJECTS_BUCKET;
-                prefix = $"/storage/v1/object/public/{PROJECTS_BUCKET}/";
-            }
-            else if (fullPath.Contains($"/storage/v1/object/public/{DOCUMENTS_BUCKET}/"))
-            {
-                bucketName = DOCUMENTS_BUCKET;
-                prefix = $"/storage/v1/object/public/{DOCUMENTS_BUCKET}/";
-            }
-            else
-            {
-                return false;
-            }
-
-            if (!fullPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            if (!TryParsePublicUrl(fileUrl, out var bucket, out var path))
                 return false;
 
-            var filePath = fullPath.Substring(prefix.Length);
-
-            await _supabaseClient
-                .Storage
-                .From(bucketName)
-                .Remove(new List<string> { filePath });
+            await _supabaseClient.Storage
+                .From(bucket)
+                .Remove(new List<string> { path });
 
             return true;
         }
-        catch
+        catch(Exception ex)
         {
+            _logger.LogError(ex, "Error deleting file from bucket");
             return false;
         }
     }

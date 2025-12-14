@@ -5,8 +5,17 @@ namespace Application.Interfaces.Services;
 
 public interface IPhotoService
 {
-    Task<PaginationItemsResponse<PhotoDto>> GetAsync(Guid projectId, Guid? milestoneId, int page, int pageSize, CancellationToken ct = default);
-    Task<PhotoDto> CreateAsync(Guid projectId, CreatePhotoDto dto, Stream fileStream, string fileName, string contentType, long fileSize, Guid uploadedBy, CancellationToken ct = default);
-    Task<PhotoDto> UpdateAsync(Guid projectId, Guid photoId, UpdatePhotoDto dto, Guid performedBy, CancellationToken ct = default);
-    Task DeleteAsync(Guid projectId, Guid photoId, Guid performedBy, CancellationToken ct = default);
+    /// <summary>
+    /// Admin-only fetch (existing behaviour) – no ownership checks.
+    /// </summary>
+    Task<PaginationItemsResponse<PhotoDto>> GetAsync(Guid projectId, Guid? milestoneId, int page, int pageSize);
+
+    /// <summary>
+    /// Client-facing fetch with access validation against the requesting user and optional role-based admin bypass.
+    /// </summary>
+    Task<PaginationItemsResponse<PhotoDto>> GetForClientAsync(Guid projectId, Guid? milestoneId, int page, int pageSize);
+
+    Task<PhotoDto> CreateAsync(Guid projectId, CreatePhotoDto dto, Stream fileStream, string fileName, string contentType, long fileSize, Guid uploadedBy);
+    Task<PhotoDto> UpdateAsync(Guid projectId, Guid photoId, UpdatePhotoDto dto, Guid performedBy);
+    Task DeleteAsync(Guid projectId, Guid photoId, Guid performedBy);
 }

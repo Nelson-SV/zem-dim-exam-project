@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Api.Rest.AuthExtensions;
 using Application.Interfaces.Services;
 using Application.Models.Dtos.Common;
 using Application.Models.Dtos.Project;
@@ -19,17 +20,12 @@ public class ProjectsController : ControllerBase
     public const string GetAllProjectsList = ControllerRoute + nameof(GetAllProjects);
     public const string Search = ControllerRoute + nameof(SearchProjects);
     public const string Create = ControllerRoute + nameof(CreateProject);
-    public const string GetMy = ControllerRoute + nameof(GetMyProjects);
     public const string GetUser = ControllerRoute + nameof(GetUserProjects);
     public const string GetOnlyProject = ControllerRoute + nameof(GetProject);
     public const string ProjectParticipants = ControllerRoute + nameof(GetProjectParticipants);
     public const string Update = ControllerRoute + nameof(UpdateProject);
     public const string Patch = ControllerRoute + nameof(PatchProject);
-    public const string UpdateStatus = ControllerRoute + nameof(UpdateProjectStatus);
-    public const string UpdateProgress = ControllerRoute + nameof(UpdateProjectProgress);
     public const string SoftDelete = ControllerRoute + nameof(DeleteProject);
-    public const string Restore = ControllerRoute + nameof(RestoreProject);
-    public const string PermanentDelete = ControllerRoute + nameof(PermanentDeleteProject);
 
     public ProjectsController(IProjectService projectService, ILogger<ProjectsController> logger)
     {
@@ -69,51 +65,16 @@ public class ProjectsController : ControllerBase
         [FromQuery(Name = "q")] string? search,
         [FromQuery] string? status,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken ct = default)
+        [FromQuery] int pageSize = 20)
     {
         try
         {
-            var result = await _projectService.GetPagedAsync(search, status, page, pageSize, ct);
+            var result = await _projectService.GetPagedAsync(search, status, page, pageSize);
             return Ok(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error searching projects");
-            return StatusCode(500, new { error = $"Internal server error: {ex.Message}" });
-        }
-    }
-
-    /// <summary>
-    /// Get my projects (uses JWT token to determine user)
-    /// Admin → all projects
-    /// Client → only their projects
-    /// </summary>
-    [HttpGet]
-    [Route(GetMy)]
-    public async Task<ActionResult<List<ProjectDto>>> GetMyProjects()
-    {
-        try
-        {
-            var userId = GetUserIdFromToken();
-            var userRole = GetUserRoleFromToken();
-
-            List<ProjectDto> projects;
-
-            if (userRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-            {
-                projects = await _projectService.GetAllProjectsAsync();
-            }
-            else
-            {
-                projects = await _projectService.GetUserProjectsAsync(userId);
-            }
-
-            return Ok(projects);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting my projects");
             return StatusCode(500, new { error = $"Internal server error: {ex.Message}" });
         }
     }
@@ -127,8 +88,8 @@ public class ProjectsController : ControllerBase
     {
         try
         {
-            var currentUserId = GetUserIdFromToken();
-            var currentUserRole = GetUserRoleFromToken();
+            var currentUserId = User.GetUserId();
+            var currentUserRole = User.GetUserRole();
 
             // Admin can view any user's projects
             // Client can only view their own projects
@@ -163,8 +124,8 @@ public class ProjectsController : ControllerBase
     {
         try
         {
-            var userId = GetUserIdFromToken();
-            var userRole = GetUserRoleFromToken();
+            var userId = User.GetUserId();
+            var userRole = User.GetUserRole();
 
             var project = await _projectService.GetProjectByIdAsync(projectId);
             if (project == null)
@@ -303,64 +264,6 @@ public class ProjectsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Update only project status (Admin only)
-    /// </summary>
-    [HttpPatch]
-    [Authorize(Policy = "AdminOnly")]
-    [Route(UpdateStatus)]
-    public async Task<ActionResult<ProjectDto>> UpdateProjectStatus(Guid projectId, [FromBody] UpdateProjectStatusDto dto)
-    {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var updatedProject = await _projectService.UpdateProjectStatusAsync(projectId, dto.Status);
-            return Ok(updatedProject);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating status for project {ProjectId}", projectId);
-            return StatusCode(500, new { error = $"Internal server error: {ex.Message}" });
-        }
-    }
-
-    /// <summary>
-    /// Update only project progress (Admin only)
-    /// </summary>
-    [HttpPatch]
-    [Authorize(Policy = "AdminOnly")]
-    [Route(UpdateProgress)]
-    public async Task<ActionResult<ProjectDto>> UpdateProjectProgress(Guid projectId, [FromBody] UpdateProjectProgressDto dto)
-    {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var updatedProject = await _projectService.UpdateProjectProgressAsync(projectId, dto.ProgressPercentage);
-            return Ok(updatedProject);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating progress for project {ProjectId}", projectId);
-            return StatusCode(500, new { error = $"Internal server error: {ex.Message}" });
-        }
-    }
-
     #endregion
 
     #region DELETE Operations
@@ -390,85 +293,6 @@ public class ProjectsController : ControllerBase
             _logger.LogError(ex, "Error deleting project {ProjectId}", projectId);
             return StatusCode(500, new { error = $"Internal server error: {ex.Message}" });
         }
-    }
-
-    /// <summary>
-    /// Restore soft-deleted project (Admin only)
-    /// </summary>
-    [HttpPost]
-    [Authorize(Policy = "AdminOnly")]
-    [Route(Restore)]
-    public async Task<ActionResult<object>> RestoreProject(Guid projectId)
-    {
-        try
-        {
-            var result = await _projectService.RestoreProjectAsync(projectId);
-            if (!result)
-                return NotFound(new { error = "Project not found" });
-
-            return Ok(new { message = "Project restored successfully", projectId });
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error restoring project {ProjectId}", projectId);
-            return StatusCode(500, new { error = $"Internal server error: {ex.Message}" });
-        }
-    }
-
-    /// <summary>
-    /// Permanent delete project (Admin only)
-    /// </summary>
-    [HttpDelete]
-    [Authorize(Policy = "AdminOnly")]
-    [Route(PermanentDelete)]
-    public async Task<ActionResult<object>> PermanentDeleteProject(Guid projectId)
-    {
-        try
-        {
-            var result = await _projectService.PermanentDeleteProjectAsync(projectId);
-            if (!result)
-                return NotFound(new { error = "Project not found" });
-
-            return Ok(new { message = "Project permanently deleted", projectId });
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error permanently deleting project {ProjectId}", projectId);
-            return StatusCode(500, new { error = $"Internal server error: {ex.Message}" });
-        }
-    }
-
-    #endregion
-
-    #region Helper Methods
-
-    private Guid GetUserIdFromToken()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                          ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-
-        if (string.IsNullOrEmpty(userIdClaim))
-            throw new UnauthorizedAccessException("User ID not found in token");
-
-        return Guid.Parse(userIdClaim);
-    }
-
-    private string GetUserRoleFromToken()
-    {
-        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
-
-        if (string.IsNullOrEmpty(roleClaim))
-            throw new UnauthorizedAccessException("User role not found in token");
-
-        return roleClaim;
     }
 
     #endregion

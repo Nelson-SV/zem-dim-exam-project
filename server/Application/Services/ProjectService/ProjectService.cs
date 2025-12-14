@@ -33,12 +33,12 @@ public class ProjectService : IProjectService
         return ProjectDto.FromEntityToList(projects);
     }
 
-    public async Task<PaginationItemsResponse<ProjectDto>> GetPagedAsync(string? search, string? status, int page, int pageSize, CancellationToken ct = default)
+    public async Task<PaginationItemsResponse<ProjectDto>> GetPagedAsync(string? search, string? status, int page, int pageSize)
     {
         if (page < 1) page = 1;
         if (pageSize <= 0 || pageSize > 100) pageSize = 20;
 
-        var (items, total) = await _projectRepository.GetPagedAsync(search, status, page, pageSize, ct);
+        var (items, total) = await _projectRepository.GetPagedAsync(search, status, page, pageSize);
         return new PaginationItemsResponse<ProjectDto>
         {
             Items = ProjectDto.FromEntityToList(items.ToList()),

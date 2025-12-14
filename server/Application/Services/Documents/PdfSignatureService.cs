@@ -22,8 +22,7 @@ public class PdfSignatureService : IPdfSignatureService
         double positionY,
         double width,
         double height,
-        int pageNumber,
-        CancellationToken cancellationToken = default)
+        int pageNumber = default)
     {
         if (string.IsNullOrWhiteSpace(document.Fileurl))
             throw new InvalidOperationException("Document does not have a file URL.");
