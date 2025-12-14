@@ -127,7 +127,7 @@ export function AdminProjectsList({ onViewProject }: AdminProjectsListProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder={t('projects.searchProjects')}
+            placeholder={t('Search by project or client...')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"

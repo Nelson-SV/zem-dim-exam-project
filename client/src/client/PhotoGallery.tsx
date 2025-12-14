@@ -236,7 +236,7 @@ export function PhotoGallery() {
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h2 className="mb-1">{t('photoGallery.title')}</h2>
-          <p className="text-muted-foreground">t('photoGallery.photosCount', { photos.length })</p>
+          <p className="text-muted-foreground">{t('photoGallery.photosCount', {count: photos.length} )}</p>
         </div>
         
         <Select value={selectedStage} onValueChange={setSelectedStage}>
