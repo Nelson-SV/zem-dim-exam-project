@@ -12,7 +12,6 @@ import {useTranslation} from 'react-i18next';
 import {Admin3DScansView} from './3d-scans/Admin3DScansView';
 import {AdminStagesView, type MilestoneViewModel} from './stages/AdminStagesView';
 import {AdminPhotosView} from './photos/AdminPhotosView';
-import {AdminDocumentsView} from './documents/AdminDocumentsView';
 import {http} from '../lib/api';
 import type { ProjectDto } from '../generated-client';
 
@@ -154,7 +153,7 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
       </Card>
 
       <Tabs defaultValue="stages" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="stages">
             <TrendingUp className="size-4 mr-2" />
             {t('projectDetails.stages')}
@@ -166,10 +165,6 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
           <TabsTrigger value="3d">
             <Box className="size-4 mr-2" />
             {t('projectDetails.scans3D')}
-          </TabsTrigger>
-          <TabsTrigger value="documents">
-            <FileText className="size-4 mr-2" />
-            {t('nav.documents')}
           </TabsTrigger>
         </TabsList>
 
@@ -200,10 +195,6 @@ export function ProjectDetails({ projectId, onBack }: ProjectDetailsProps) {
             projectStart={projectStartDate}
             projectEnd={projectEndDate}
           />
-        </TabsContent>
-
-        <TabsContent value="documents">
-          <AdminDocumentsView projectId={projectId} />
         </TabsContent>
       </Tabs>
 
