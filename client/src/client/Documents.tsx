@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { http } from '../lib/api';
 import type { DocumentDto, ProjectDto } from '../generated-client';
 import { PdfSignatureEditor } from '../components/PdfSignatureEditor';
+import { useAuth } from '../contexts/useAuth';
 
 interface SignaturePosition {
     x: number;
@@ -28,6 +29,7 @@ interface SignaturePosition {
 export function Documents() {
     const { t, i18n } = useTranslation();
     const locale = i18n.language === 'uk' ? uk : enUS;
+    const { user } = useAuth();
     const [documents, setDocuments] = useState<DocumentDto[]>([]);
     const [projects, setProjects] = useState<ProjectDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -62,8 +64,8 @@ export function Documents() {
 
     const fetchProjects = async () => {
         try {
-            const data = await http.getMyProjects();
-            setProjects(data ?? []);
+            const data = await http.clientDashboard.getClientProjects(user?.id, undefined, 5);
+            setProjects(data.projects ?? []);
         } catch (err: any) {
             console.error(err);
             toast.error(t('clientDocuments.failedToLoadProjects'), {
