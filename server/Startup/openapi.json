@@ -756,29 +756,6 @@
         }
       }
     },
-    "/api/Projects/api/admin/projects/GetMyProjects": {
-      "get": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_GetMyProjects",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ProjectDto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Projects/api/admin/projects/GetUserProjects": {
       "get": {
         "tags": [
@@ -993,162 +970,12 @@
         }
       }
     },
-    "/api/Projects/api/admin/projects/UpdateProjectStatus": {
-      "patch": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_UpdateProjectStatus",
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "dto",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProjectStatusDto"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProjectDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Projects/api/admin/projects/UpdateProjectProgress": {
-      "patch": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_UpdateProjectProgress",
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "x-name": "dto",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateProjectProgressDto"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 2
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProjectDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Projects/api/admin/projects/DeleteProject": {
       "delete": {
         "tags": [
           "Projects"
         ],
         "operationId": "Projects_DeleteProject",
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Projects/api/admin/projects/RestoreProject": {
-      "post": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_RestoreProject",
-        "parameters": [
-          {
-            "name": "projectId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/Projects/api/admin/projects/PermanentDeleteProject": {
-      "delete": {
-        "tags": [
-          "Projects"
-        ],
-        "operationId": "Projects_PermanentDeleteProject",
         "parameters": [
           {
             "name": "projectId",
@@ -1300,7 +1127,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/User3DScanDto"
+                    "$ref": "#/components/schemas/User3DScanProjectDto"
                   }
                 }
               }
@@ -1309,13 +1136,21 @@
         }
       }
     },
-    "/api/client/dashboard": {
+    "/api/client/dashboard/GetClientProjects": {
       "get": {
         "tags": [
           "ClientDashboard"
         ],
-        "operationId": "ClientDashboard_GetDashboard",
+        "operationId": "ClientDashboard_GetClientProjects",
         "parameters": [
+          {
+            "name": "userIdFromClient",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          },
           {
             "name": "projectId",
             "in": "query",
@@ -1324,7 +1159,7 @@
               "format": "guid",
               "nullable": true
             },
-            "x-position": 1
+            "x-position": 2
           },
           {
             "name": "updatesLimit",
@@ -1334,7 +1169,7 @@
               "format": "int32",
               "default": 5
             },
-            "x-position": 2
+            "x-position": 3
           }
         ],
         "responses": {
@@ -1344,6 +1179,108 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ClientDashboardResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/client/gallery/GetProjects": {
+      "get": {
+        "tags": [
+          "ClientProjectPhotos"
+        ],
+        "operationId": "ClientProjectPhotos_GetProjects",
+        "parameters": [
+          {
+            "name": "userIdFromClient",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClientGalleryProjectDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/client/gallery/GetProjectPhotos": {
+      "get": {
+        "tags": [
+          "ClientProjectPhotos"
+        ],
+        "operationId": "ClientProjectPhotos_GetProjectPhotos",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "userIdFromClient",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "milestoneId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            },
+            "x-position": 4
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "x-position": 5
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationItemsResponseOfPhotoDto"
                 }
               }
             }
@@ -2908,6 +2845,10 @@
           "status": {
             "type": "string"
           },
+          "currentStageTitle": {
+            "type": "string",
+            "nullable": true
+          },
           "startDate": {
             "type": "string",
             "format": "date"
@@ -3223,35 +3164,6 @@
           }
         }
       },
-      "UpdateProjectStatusDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "status"
-        ],
-        "properties": {
-          "status": {
-            "type": "string",
-            "maxLength": 50,
-            "minLength": 1
-          }
-        }
-      },
-      "UpdateProjectProgressDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "progressPercentage"
-        ],
-        "properties": {
-          "progressPercentage": {
-            "type": "integer",
-            "format": "int32",
-            "maximum": 100.0,
-            "minimum": 0.0
-          }
-        }
-      },
       "CompanyDto": {
         "type": "object",
         "additionalProperties": false,
@@ -3364,6 +3276,29 @@
           }
         }
       },
+      "User3DScanProjectDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectTitle": {
+            "type": "string"
+          },
+          "scanCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "scans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User3DScanDto"
+            }
+          }
+        }
+      },
       "User3DScanDto": {
         "type": "object",
         "additionalProperties": false,
@@ -3386,16 +3321,6 @@
             "nullable": true
           },
           "fileUrl": {
-            "type": "string"
-          },
-          "fileFormat": {
-            "type": "string"
-          },
-          "projectId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "projectTitle": {
             "type": "string"
           },
           "notes": {
@@ -3432,6 +3357,9 @@
             "format": "guid"
           },
           "title": {
+            "type": "string"
+          },
+          "notes": {
             "type": "string"
           },
           "address": {
@@ -3580,6 +3508,121 @@
             "format": "guid"
           },
           "createdByName": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "ClientGalleryProjectDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClientGalleryStageDto"
+            }
+          }
+        }
+      },
+      "ClientGalleryStageDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "orderIndex": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PaginationItemsResponseOfPhotoDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PhotoDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PhotoDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "milestoneId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "milestoneTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "fileUrl": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string",
+            "nullable": true
+          },
+          "caption": {
+            "type": "string",
+            "nullable": true
+          },
+          "takenAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "uploadedBy": {
+            "type": "string",
+            "format": "guid"
+          },
+          "uploadedByName": {
             "type": "string",
             "nullable": true
           },
@@ -4174,85 +4217,6 @@
           "orderIndex": {
             "type": "integer",
             "format": "int32",
-            "nullable": true
-          }
-        }
-      },
-      "PaginationItemsResponseOfPhotoDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PhotoDto"
-            }
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalItems": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "PhotoDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "projectId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "milestoneId": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
-          },
-          "milestoneTitle": {
-            "type": "string",
-            "nullable": true
-          },
-          "fileName": {
-            "type": "string"
-          },
-          "fileUrl": {
-            "type": "string"
-          },
-          "mimeType": {
-            "type": "string",
-            "nullable": true
-          },
-          "caption": {
-            "type": "string",
-            "nullable": true
-          },
-          "takenAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "uploadedBy": {
-            "type": "string",
-            "format": "guid"
-          },
-          "uploadedByName": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
             "nullable": true
           }
         }

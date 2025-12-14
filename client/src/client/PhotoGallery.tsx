@@ -34,7 +34,7 @@ export function PhotoGallery() {
   const [selectedStage, setSelectedStage] = useState<string>('all');
   const [photos, setPhotos] = useState<PhotoDto[]>([]);
     const { t, i18n } = useTranslation();
-    const locale = i18n.language === 'uk' ? uk : enUS;
+   // const locale = i18n.language === 'uk' ? uk : enUS;
   const [loadingPhotos, setLoadingPhotos] = useState<boolean>(false);
   const [loadingProjects, setLoadingProjects] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -236,7 +236,7 @@ export function PhotoGallery() {
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
           <h2 className="mb-1">{t('photoGallery.title')}</h2>
-          <p className="text-muted-foreground">{t('photoGallery.photosCount', { photos.length })}</p>
+          <p className="text-muted-foreground">t('photoGallery.photosCount', { photos.length })</p>
         </div>
         
         <Select value={selectedStage} onValueChange={setSelectedStage}>
@@ -400,7 +400,7 @@ export function PhotoGallery() {
           />
 
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full">
-              {t('photoGallery.photosCounter', { current: currentPhotoIndex + 1, total: filteredPhotos.length })}
+              {t('photoGallery.photosCounter', { current: currentPhotoIndex + 1, total: photos.length })}
           </div>
         </div>
       )}

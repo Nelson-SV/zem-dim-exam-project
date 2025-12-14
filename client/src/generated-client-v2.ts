@@ -2858,13 +2858,6 @@ export interface PatchProjectDto {
     thumbnailUrl?: string | undefined;
 }
 
-export interface User3DScanProjectDto {
-    projectId?: string;
-    projectTitle?: string;
-    scanCount?: number;
-    scans?: User3DScanDto[];
-}
-
 export interface CompanyDto {
     id?: string;
     name?: string;
@@ -2896,6 +2889,13 @@ export interface UpdateUserSettingsDto {
     emailAlerts?: boolean;
     reportFrequency: string;
     clientUpdates?: boolean;
+}
+
+export interface User3DScanProjectDto {
+    projectId?: string;
+    projectTitle?: string;
+    scanCount?: number;
+    scans?: User3DScanDto[];
 }
 
 export interface User3DScanDto {
