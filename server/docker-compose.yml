@@ -17,7 +17,6 @@ services:
     ports:
       - "1025:1025"   # SMTP server
       - "1080:1080"   # Web UI
-    # no environment variables needed
     
 volumes:
   postgres_data:

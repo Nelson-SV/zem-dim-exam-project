@@ -10,6 +10,7 @@ using Infrastructure.Postgres.Seeder;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using NSwag.Generation;
 using Serilog;
@@ -109,11 +110,18 @@ public class Program
         
         app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
 
-        var document = await app.Services.GetRequiredService<IOpenApiDocumentGenerator>().GenerateAsync("v1");
-        var json = document.ToJson();
-        await File.WriteAllTextAsync("openapi.json", json);
+        if (app.Environment.IsDevelopment())
+        {
+            var document = await app.Services
+                .GetRequiredService<IOpenApiDocumentGenerator>()
+                .GenerateAsync("v1");
 
-        app.GenerateTypeScriptClient("/../../client/src/generated-client-v2.ts").GetAwaiter().GetResult();
-        
+            await File.WriteAllTextAsync("openapi.json", document.ToJson());
+
+            // NOTE: remove the leading "/" so it’s not treated as an absolute path
+            app.GenerateTypeScriptClient("../../client/src/generated-client-v2.ts")
+                .GetAwaiter()
+                .GetResult();
+        }
     }
 }
