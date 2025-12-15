@@ -20,7 +20,7 @@ export interface ProjectStage {
   progress: number;
   startDate: string;
   endDate: string;
-  status: 'completed' | 'in-progress' | 'pending';
+  status: 'completed' | 'in-progress';
 }
 
 export interface Project {
@@ -76,4 +76,30 @@ export interface Activity {
   description: string;
   timestamp: string;
   icon: string;
+}
+export interface ProjectDto {
+  id: string;
+  clientId: string;
+  clientName: string;
+  title: string;
+  description?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  status: string;
+  startDate: string;
+  plannedEndDate?: string;
+  actualEndDate?: string;
+  totalArea?: number;
+  budget?: number;
+  progressPercentage: number;
+  thumbnailUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ProjectParticipantsDto {
+  projectId: string;
+  clientId: string;
+  adminId: string;
 }

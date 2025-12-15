@@ -12,7 +12,7 @@ public class JwtUserValidationMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext context, ILogger<JwtUserValidationMiddleware> logger, IAdminUserManagementRepository adminUserManagementRepository)
+    public async Task InvokeAsync(HttpContext context, ILogger<JwtUserValidationMiddleware> logger, IUserManagementRepository userManagementRepository)
     {
         var userIdClaim = context.User?.FindFirst(ClaimTypes.NameIdentifier) 
                           ?? context.User?.FindFirst("id"); 
@@ -20,9 +20,9 @@ public class JwtUserValidationMiddleware
         if (userIdClaim is not null)
         {
             var userId = Guid.Parse(userIdClaim.Value);
-            var user = adminUserManagementRepository.GetUserByIdOrNull(userId);
+            var user = await userManagementRepository.GetByIdAsync(userId);
 
-            if (user is null || user.Isactive != true)
+            if (user is null || user.Isactive != true || user.Isdeleted == true)
             {
                 logger.LogWarning("User inactive or does not exist: {UserId}", userId);
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;

@@ -1,12 +1,31 @@
+using Application.Interfaces.Admin._3DScans;
+using Application.Interfaces.Admin.UserManagement;
+using Application.Interfaces.Documents;
+using Application.Interfaces.Infrastructure.Postgres.Users._3DScans;
 using Application.Interfaces.Security;
-using Application.Interfaces.UserService;
+using Application.Interfaces.Services;
+using Application.Interfaces.Users._3DScans;
+using Application.Services.Admin._3DScans;
+using Application.Services;
+using Application.Services.Admin.UserManagement;
+using Application.Services.ClientDashboardService;
+using Application.Services.Documents;
 using Application.Services.Email;
+using Application.Services.MessageService;
+using Application.Services.PhotosGallery;
+using Application.Services.ProjectService;
 using Application.Services.Security;
-using Application.Services.UserService;
+using Application.Services.UpdateService;
+using Application.Services.Storage;
+using Application.Services.Users._3DScans;
+using Application.Services.Profile;
+using Application.Services.Settings;
+using Application.Validators.Admin._3DScans;
 using Application.Validators.Admin.UserManagement;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Resend;
 
 namespace Application;
 
@@ -14,6 +33,7 @@ public static class ServicesExtensions
 {
     public static IServiceCollection RegisterApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
+        
         // Fetch SendGrid API Key from Environment Variables
         var sendGridApiKey = Environment.GetEnvironmentVariable("sendgrid");
 
@@ -21,7 +41,6 @@ public static class ServicesExtensions
         {
             services.Configure<AppOptions>(options =>
             {
-                options.SendGridApiKey = sendGridApiKey; // Set the API key from environment variables
                 options.SendGridApiKey = sendGridApiKey; // Set the API key from environment variables
             });
         }
@@ -32,9 +51,36 @@ public static class ServicesExtensions
         }
         
         services.AddValidatorsFromAssemblyContaining<RegisterUserValidator>();
+        services.AddValidatorsFromAssemblyContaining<UpdateUserValidator>();
+        services.AddValidatorsFromAssemblyContaining<UploadThreeDScanValidator>();
+        
+        // Dont need this here??? services.AddHttpClient();
         services.AddScoped<ISecurityService, SecurityService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUserManagementService, UserManagementService>();
+        services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IClientDashboardService, ClientDashboardService>();
+        services.AddScoped<IProjectService, ProjectService>();
+        services.AddScoped<IMilestoneService, MilestoneService>();
+        services.AddScoped<IPhotoService, PhotoService>();
+        services.AddScoped<IUser3DScanService, User3DScanService>();
+        services.AddScoped<IAdmin3DScanService, Admin3DScanService>();
+        services.AddScoped<IUpdateService, UpdateService>();
         services.AddTransient<EmailService>();
+        services.AddScoped<IPdfSignatureService, PdfSignatureService>();
+        services.AddScoped<IStorageService, SupabaseStorageService>();
+        services.AddScoped<IDocumentsService, DocumentsService>();
+        services.AddScoped<IProfileService, ProfileService>();
+        services.AddScoped<ISettingsService, SettingsService>();
+        services.AddScoped<IClientGalleryService, ClientGalleryService>();
+
+        
+        services.AddHttpClient<ResendClient>();
+        services.Configure<ResendClientOptions>( o =>
+        {
+            o.ApiToken = configuration["AppOptions:EmailKey"]!;
+        } );
+        services.AddTransient<IResend, ResendClient>();
+
         return services;
     }
 }

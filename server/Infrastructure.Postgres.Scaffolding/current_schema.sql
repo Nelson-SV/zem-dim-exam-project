@@ -106,7 +106,7 @@ BEGIN
 END $EF$;
 
 
-CREATE TYPE storage.buckettype AS ENUM ('STANDARD', 'ANALYTICS');
+CREATE TYPE storage.buckettype AS ENUM ('STANDARD', 'ANALYTICS', 'VECTOR');
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname = 'extensions') THEN
@@ -154,6 +154,21 @@ END $EF$;
 CREATE EXTENSION IF NOT EXISTS supabase_vault SCHEMA vault;
 
 
+CREATE TABLE company (
+    id uuid NOT NULL DEFAULT (gen_random_uuid()),
+    name character varying(255) NOT NULL,
+    email character varying(255) NOT NULL,
+    phone character varying(50),
+    website character varying(255),
+    address text,
+    currency character varying(3) DEFAULT ('UAH'::character varying),
+    createdat timestamp with time zone DEFAULT (now()),
+    updatedat timestamp with time zone DEFAULT (now()),
+    CONSTRAINT company_pkey PRIMARY KEY (id)
+);
+COMMENT ON TABLE company IS 'Global company information and settings';
+
+
 CREATE TABLE users (
     id uuid NOT NULL DEFAULT (gen_random_uuid()),
     email character varying(255) NOT NULL,
@@ -166,10 +181,11 @@ CREATE TABLE users (
     isactive boolean DEFAULT TRUE,
     profileimageurl character varying(500),
     language character varying(5) DEFAULT ('ua'::character varying),
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
-    updatedat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
-    lastloginat timestamp without time zone,
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    updatedat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    lastloginat timestamp with time zone,
     mustchangepassword boolean DEFAULT FALSE,
+    isdeleted boolean DEFAULT FALSE,
     CONSTRAINT users_pkey PRIMARY KEY (id)
 );
 
@@ -178,22 +194,21 @@ CREATE TABLE projects (
     id uuid NOT NULL DEFAULT (gen_random_uuid()),
     clientid uuid NOT NULL,
     title character varying(200) NOT NULL,
-    description text,
-    address character varying(300),
-    city character varying(100),
-    postalcode character varying(20),
-    latitude numeric(10,8),
-    longitude numeric(11,8),
-    status character varying(50) NOT NULL DEFAULT ('InProgress'::character varying),
+    notes text,
+    address character varying(300) NOT NULL,
+    city character varying(100) NOT NULL,
+    postalcode character varying(20) NOT NULL,
+    status character varying(50) NOT NULL DEFAULT ('''''''In Progress''''::character varying''::character varying'::character varying),
     startdate date NOT NULL,
-    plannedenddate date,
+    plannedenddate date NOT NULL,
     actualenddate date,
-    totalarea numeric(10,2),
-    budget numeric(15,2),
-    progresspercentage integer DEFAULT 0,
+    totalarea numeric(10,2) NOT NULL,
+    budget numeric(15,2) NOT NULL,
+    progresspercentage integer NOT NULL DEFAULT 0,
     thumbnailurl character varying(500),
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
-    updatedat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updatedat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    isdeleted boolean NOT NULL DEFAULT FALSE,
     CONSTRAINT projects_pkey PRIMARY KEY (id),
     CONSTRAINT projects_clientid_fkey FOREIGN KEY (clientid) REFERENCES users (id) ON DELETE CASCADE
 );
@@ -203,13 +218,27 @@ CREATE TABLE refreshtokens (
     id uuid NOT NULL DEFAULT (gen_random_uuid()),
     userid uuid NOT NULL,
     token character varying(500) NOT NULL,
-    expiresat timestamp without time zone NOT NULL,
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
-    revokedat timestamp without time zone,
+    expiresat timestamp with time zone NOT NULL,
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
+    revokedat timestamp with time zone,
     isrevoked boolean DEFAULT FALSE,
     CONSTRAINT refreshtokens_pkey PRIMARY KEY (id),
     CONSTRAINT refreshtokens_userid_fkey FOREIGN KEY (userid) REFERENCES users (id) ON DELETE CASCADE
 );
+
+
+CREATE TABLE usersettings (
+    id uuid NOT NULL DEFAULT (gen_random_uuid()),
+    userid uuid NOT NULL,
+    emailalerts boolean DEFAULT TRUE,
+    reportfrequency character varying(20) DEFAULT ('Weekly'::character varying),
+    clientupdates boolean DEFAULT TRUE,
+    createdat timestamp with time zone DEFAULT (now()),
+    updatedat timestamp with time zone DEFAULT (now()),
+    CONSTRAINT usersettings_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_usersettings_user FOREIGN KEY (userid) REFERENCES users (id) ON DELETE CASCADE
+);
+COMMENT ON TABLE usersettings IS 'Per-user notification settings';
 
 
 CREATE TABLE documents (
@@ -224,6 +253,14 @@ CREATE TABLE documents (
     uploadedbyid uuid NOT NULL,
     isvisibletoclient boolean DEFAULT TRUE,
     createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    isdeleted boolean NOT NULL DEFAULT FALSE,
+    docusealsubmissionid character varying(255),
+    requiressignature boolean DEFAULT FALSE,
+    issigned boolean DEFAULT FALSE,
+    signedbyuserid uuid,
+    signedat timestamp without time zone,
+    signedfileurl character varying(500),
+    docusealoriginalurl text,
     CONSTRAINT documents_pkey PRIMARY KEY (id),
     CONSTRAINT documents_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
     CONSTRAINT documents_uploadedbyid_fkey FOREIGN KEY (uploadedbyid) REFERENCES users (id)
@@ -237,10 +274,10 @@ CREATE TABLE messages (
     receiverid uuid NOT NULL,
     content text NOT NULL,
     isread boolean DEFAULT FALSE,
-    readat timestamp without time zone,
+    readat timestamp with time zone,
     attachmenturl character varying(500),
     attachmenttype character varying(50),
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT messages_pkey PRIMARY KEY (id),
     CONSTRAINT messages_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
     CONSTRAINT messages_receiverid_fkey FOREIGN KEY (receiverid) REFERENCES users (id),
@@ -252,17 +289,17 @@ CREATE TABLE milestones (
     id uuid NOT NULL DEFAULT (gen_random_uuid()),
     projectid uuid NOT NULL,
     title character varying(200) NOT NULL,
-    description text,
+    notes text,
     orderindex integer NOT NULL,
-    status character varying(50) NOT NULL DEFAULT ('Pending'::character varying),
-    progresspercentage integer DEFAULT 0,
-    plannedstartdate date,
-    plannedenddate date,
+    status character varying(50) NOT NULL DEFAULT ('''In Progress''::character varying'::character varying),
+    progresspercentage integer NOT NULL DEFAULT 0,
+    plannedstartdate date NOT NULL,
+    plannedenddate date NOT NULL,
     actualstartdate date,
     actualenddate date,
-    notes text,
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
-    updatedat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updatedat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    isdeleted boolean NOT NULL DEFAULT FALSE,
     CONSTRAINT milestones_pkey PRIMARY KEY (id),
     CONSTRAINT milestones_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE
 );
@@ -276,12 +313,26 @@ CREATE TABLE notifications (
     message text NOT NULL,
     type character varying(50) NOT NULL,
     isread boolean DEFAULT FALSE,
-    readat timestamp without time zone,
+    readat timestamp with time zone,
     actionurl character varying(500),
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT notifications_pkey PRIMARY KEY (id),
     CONSTRAINT notifications_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
     CONSTRAINT notifications_userid_fkey FOREIGN KEY (userid) REFERENCES users (id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE document_signatures (
+    id uuid NOT NULL DEFAULT (gen_random_uuid()),
+    document_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    signature_base64 text NOT NULL,
+    signed_at timestamp without time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    ip_address character varying(45),
+    created_at timestamp without time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    CONSTRAINT document_signatures_pkey PRIMARY KEY (id),
+    CONSTRAINT document_signatures_document_id_fkey FOREIGN KEY (document_id) REFERENCES documents (id) ON DELETE CASCADE,
+    CONSTRAINT document_signatures_user_id_fkey FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 
@@ -291,15 +342,12 @@ CREATE TABLE photos (
     milestoneid uuid,
     filename character varying(255) NOT NULL,
     fileurl character varying(500) NOT NULL,
-    thumbnailurl character varying(500),
-    filesize bigint,
-    mimetype character varying(100),
-    width integer,
-    height integer,
-    caption text,
-    takenat timestamp without time zone,
+    filetype character varying(100) NOT NULL,
+    caption text NOT NULL,
+    takenat timestamp with time zone NOT NULL,
     uploadedbyid uuid NOT NULL,
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    isdeleted boolean NOT NULL DEFAULT FALSE,
     CONSTRAINT photos_pkey PRIMARY KEY (id),
     CONSTRAINT photos_milestoneid_fkey FOREIGN KEY (milestoneid) REFERENCES milestones (id) ON DELETE SET NULL,
     CONSTRAINT photos_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
@@ -314,13 +362,12 @@ CREATE TABLE threedscans (
     roomname character varying(100) NOT NULL,
     filename character varying(255) NOT NULL,
     fileurl character varying(500) NOT NULL,
-    filesize bigint,
-    fileformat character varying(50),
-    roomarea numeric(10,2),
-    scannedat timestamp without time zone,
+    filetype character varying(50) NOT NULL,
+    roomarea numeric(10,2) NOT NULL,
+    scannedat timestamp with time zone NOT NULL,
     uploadedbyid uuid NOT NULL,
     notes text,
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT threedscans_pkey PRIMARY KEY (id),
     CONSTRAINT threedscans_milestoneid_fkey FOREIGN KEY (milestoneid) REFERENCES milestones (id) ON DELETE SET NULL,
     CONSTRAINT threedscans_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE,
@@ -336,12 +383,30 @@ CREATE TABLE updates (
     title character varying(200) NOT NULL,
     description text,
     createdbyid uuid NOT NULL,
-    createdat timestamp without time zone DEFAULT (CURRENT_TIMESTAMP),
+    createdat timestamp with time zone DEFAULT (CURRENT_TIMESTAMP),
     CONSTRAINT updates_pkey PRIMARY KEY (id),
     CONSTRAINT updates_createdbyid_fkey FOREIGN KEY (createdbyid) REFERENCES users (id),
     CONSTRAINT updates_milestoneid_fkey FOREIGN KEY (milestoneid) REFERENCES milestones (id) ON DELETE SET NULL,
     CONSTRAINT updates_projectid_fkey FOREIGN KEY (projectid) REFERENCES projects (id) ON DELETE CASCADE
 );
+
+
+CREATE INDEX "IX_document_signatures_document_id" ON document_signatures (document_id);
+
+
+CREATE INDEX "IX_document_signatures_user_id" ON document_signatures (user_id);
+
+
+CREATE INDEX idx_documents_docuseal_submission ON documents (docusealsubmissionid);
+
+
+CREATE INDEX idx_documents_docusealsubmissionid ON documents (docusealsubmissionid);
+
+
+CREATE INDEX idx_documents_isdeleted ON documents (isdeleted);
+
+
+CREATE INDEX idx_documents_issigned ON documents (issigned);
 
 
 CREATE INDEX idx_documents_project ON documents (projectid);
@@ -371,6 +436,9 @@ CREATE INDEX idx_messages_sender ON messages (senderid);
 CREATE INDEX idx_messages_unread ON messages (receiverid, isread) WHERE (isread = false);
 
 
+CREATE INDEX idx_milestones_isdeleted ON milestones (isdeleted);
+
+
 CREATE INDEX idx_milestones_order ON milestones (projectid, orderindex);
 
 
@@ -398,6 +466,9 @@ CREATE INDEX "IX_notifications_projectid" ON notifications (projectid);
 CREATE INDEX idx_photos_date ON photos (takenat DESC);
 
 
+CREATE INDEX idx_photos_isdeleted ON photos (isdeleted);
+
+
 CREATE INDEX idx_photos_milestone ON photos (milestoneid);
 
 
@@ -411,6 +482,9 @@ CREATE INDEX idx_projects_client ON projects (clientid);
 
 
 CREATE INDEX idx_projects_dates ON projects (startdate, plannedenddate);
+
+
+CREATE INDEX idx_projects_isdeleted ON projects (isdeleted) WHERE (isdeleted = false);
 
 
 CREATE INDEX idx_projects_status ON projects (status);
@@ -459,5 +533,11 @@ CREATE INDEX idx_users_role ON users (role);
 
 
 CREATE UNIQUE INDEX users_email_key ON users (email);
+
+
+CREATE INDEX idx_usersettings_userid ON usersettings (userid);
+
+
+CREATE UNIQUE INDEX unique_user_settings ON usersettings (userid);
 
 

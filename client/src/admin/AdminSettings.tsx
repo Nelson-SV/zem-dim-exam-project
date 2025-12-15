@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Save, Bell, Mail, Shield, Users, Building, Palette } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Save, Bell, Building, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Card } from '../components/ui/card';
 import { Label } from '../components/ui/label';
@@ -10,102 +11,256 @@ import { Button } from '../components/ui/button';
 import { Switch } from '../components/ui/switch';
 import { Separator } from '../components/ui/separator';
 
+interface CompanyData {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  currency?: string;
+}
+
+interface UserSettingsData {
+  id: string;
+  userId: string;
+  emailAlerts: boolean;
+  reportFrequency: string;
+  clientUpdates: boolean;
+}
+
+const API_URL = 'http://localhost:5001';
+
 export function AdminSettings() {
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [weeklyReports, setWeeklyReports] = useState(true);
+  const { t } = useTranslation();
+
+  // Loading states
+  const [loading, setLoading] = useState(true);
+  const [savingCompany, setSavingCompany] = useState(false);
+  const [savingNotifications, setSavingNotifications] = useState(false);
+
+  // Company state
+  const [companyName, setCompanyName] = useState('');
+  const [companyEmail, setCompanyEmail] = useState('');
+  const [companyPhone, setCompanyPhone] = useState('');
+  const [companyWebsite, setCompanyWebsite] = useState('');
+  const [companyAddress, setCompanyAddress] = useState('');
+  const [currency, setCurrency] = useState('UAH');
+
+  // Notification settings state
+  const [emailAlerts, setEmailAlerts] = useState(true);
+  const [reportFrequency, setReportFrequency] = useState('Weekly');
   const [clientUpdates, setClientUpdates] = useState(true);
 
-  const handleSaveSettings = () => {
-    toast.success('Settings saved');
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const getAuthHeaders = () => {
+    const jwt = localStorage.getItem('auth_jwt');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': jwt ? `Bearer ${jwt}` : '',
+    };
   };
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch company info and user settings in parallel
+      const [companyResponse, settingsResponse] = await Promise.all([
+        fetch(`${API_URL}/api/settings/company`, {
+          method: 'GET',
+          headers: getAuthHeaders(),
+        }),
+        fetch(`${API_URL}/api/settings/notifications`, {
+          method: 'GET',
+          headers: getAuthHeaders(),
+        }),
+      ]);
+
+      if (companyResponse.ok) {
+        const companyData: CompanyData = await companyResponse.json();
+        setCompanyName(companyData.name);
+        setCompanyEmail(companyData.email);
+        setCompanyPhone(companyData.phone || '');
+        setCompanyWebsite(companyData.website || '');
+        setCompanyAddress(companyData.address || '');
+        setCurrency(companyData.currency || 'UAH');
+      }
+
+      if (settingsResponse.ok) {
+        const settingsData: UserSettingsData = await settingsResponse.json();
+        setEmailAlerts(settingsData.emailAlerts);
+        setReportFrequency(settingsData.reportFrequency);
+        setClientUpdates(settingsData.clientUpdates);
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      toast.error(t('errors.failedToLoadSettings'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveCompany = async () => {
+    try {
+      setSavingCompany(true);
+
+      const companyDto = {
+        name: companyName,
+        email: companyEmail,
+        phone: companyPhone || undefined,
+        website: companyWebsite || undefined,
+        address: companyAddress || undefined,
+        currency: currency,
+      };
+
+      const response = await fetch(`${API_URL}/api/settings/company`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(companyDto),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || t('errors.failedToUpdate'));
+      }
+
+      toast.success(t('success.companyUpdated'));
+    } catch (error) {
+      console.error('Error updating company:', error);
+      toast.error(error instanceof Error ? error.message : t('errors.failedToUpdate'));
+    } finally {
+      setSavingCompany(false);
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    try {
+      setSavingNotifications(true);
+
+      const settingsDto = {
+        emailAlerts,
+        reportFrequency,
+        clientUpdates,
+      };
+
+      const response = await fetch(`${API_URL}/api/settings/notifications`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(settingsDto),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || t('errors.failedToUpdate'));
+      }
+
+      toast.success(t('success.notificationsUpdated'));
+    } catch (error) {
+      console.error('Error updating notifications:', error);
+      toast.error(error instanceof Error ? error.message : t('errors.failedToUpdate'));
+    } finally {
+      setSavingNotifications(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-3 text-muted-foreground">
+        <Loader2 className="size-5 animate-spin" />
+        <span>{t('settings.loadingSettings')}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="mb-2">Settings</h2>
-        <p className="text-muted-foreground">Manage system settings and preferences</p>
+        <h2 className="mb-2">{t('settings.title')}</h2>
+        <p className="text-muted-foreground">{t('settings.subtitle')}</p>
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
         <TabsList>
           <TabsTrigger value="general">
             <Building className="size-4 mr-2" />
-            General
+            {t('settings.general')}
           </TabsTrigger>
           <TabsTrigger value="notifications">
             <Bell className="size-4 mr-2" />
-            Notifications
-          </TabsTrigger>
-          <TabsTrigger value="team">
-            <Users className="size-4 mr-2" />
-            Team
-          </TabsTrigger>
-          <TabsTrigger value="security">
-            <Shield className="size-4 mr-2" />
-            Security
+            {t('settings.notifications')}
           </TabsTrigger>
         </TabsList>
 
         {/* General Settings */}
         <TabsContent value="general" className="space-y-6">
           <Card className="p-6">
-            <h3 className="mb-6">Company information</h3>
+            <h3 className="mb-6">{t('settings.companyInfo')}</h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="company-name">Company name</Label>
-                  <Input id="company-name" defaultValue="ZEM-DIM" />
+                  <Label htmlFor="company-name">{t('settings.companyName')}</Label>
+                  <Input
+                    id="company-name"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder={t('settings.placeholders.companyName')}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="company-email">Company email</Label>
-                  <Input id="company-email" type="email" defaultValue="info@zem-dim.com" />
+                  <Label htmlFor="company-email">{t('settings.companyEmail')}</Label>
+                  <Input
+                    id="company-email"
+                    type="email"
+                    value={companyEmail}
+                    onChange={(e) => setCompanyEmail(e.target.value)}
+                    placeholder={t('settings.placeholders.companyEmail')}
+                  />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="company-phone">Phone</Label>
-                  <Input id="company-phone" defaultValue="+380 44 123 4567" />
+                  <Label htmlFor="company-phone">{t('common.phone')}</Label>
+                  <Input
+                    id="company-phone"
+                    value={companyPhone}
+                    onChange={(e) => setCompanyPhone(e.target.value)}
+                    placeholder={t('settings.placeholders.phone')}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="company-website">Website</Label>
-                  <Input id="company-website" defaultValue="www.zem-dim.com" />
+                  <Label htmlFor="company-website">{t('settings.website')}</Label>
+                  <Input
+                    id="company-website"
+                    value={companyWebsite}
+                    onChange={(e) => setCompanyWebsite(e.target.value)}
+                    placeholder={t('settings.placeholders.website')}
+                  />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="company-address">Office address</Label>
-                <Input id="company-address" defaultValue="1 Khreshchatyk St, Kyiv, Ukraine" />
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="mb-6">Regional settings</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="timezone">Time zone</Label>
-                <Select defaultValue="kyiv">
-                  <SelectTrigger id="timezone">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="kyiv">Europe/Kyiv (GMT+2)</SelectItem>
-                    <SelectItem value="london">Europe/London (GMT+0)</SelectItem>
-                    <SelectItem value="new-york">America/New_York (GMT-5)</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="company-address">{t('settings.officeAddress')}</Label>
+                <Input
+                  id="company-address"
+                  value={companyAddress}
+                  onChange={(e) => setCompanyAddress(e.target.value)}
+                  placeholder={t('settings.placeholders.address')}
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="currency">Currency</Label>
-                <Select defaultValue="uah">
+                <Label htmlFor="currency">{t('settings.currency')}</Label>
+                <Select value={currency} onValueChange={setCurrency}>
                   <SelectTrigger id="currency">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="uah">UAH (₴)</SelectItem>
-                    <SelectItem value="usd">USD ($)</SelectItem>
-                    <SelectItem value="eur">EUR (€)</SelectItem>
+                    <SelectItem value="UAH">UAH (₴)</SelectItem>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -113,9 +268,22 @@ export function AdminSettings() {
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={handleSaveSettings} className="bg-[#F97316] hover:bg-[#F97316]/90">
-              <Save className="size-4 mr-2" />
-              Save changes
+            <Button
+              onClick={handleSaveCompany}
+              disabled={savingCompany}
+              className="bg-[#F97316] hover:bg-[#F97316]/90"
+            >
+              {savingCompany ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  {t('common.saving')}
+                </>
+              ) : (
+                <>
+                  <Save className="size-4 mr-2" />
+                  {t('common.save')} {t('common.changes')}
+                </>
+              )}
             </Button>
           </div>
         </TabsContent>
@@ -123,151 +291,58 @@ export function AdminSettings() {
         {/* Notification Settings */}
         <TabsContent value="notifications" className="space-y-6">
           <Card className="p-6">
-            <h3 className="mb-6">Email notifications</h3>
+            <h3 className="mb-6">{t('settings.notificationPreferences')}</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Email alerts</Label>
-                  <p className="text-muted-foreground">Receive notifications by email</p>
+                  <Label>{t('settings.emailAlerts')}</Label>
+                  <p className="text-muted-foreground">{t('settings.emailAlertsDesc')}</p>
                 </div>
-                <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
+                <Switch checked={emailAlerts} onCheckedChange={setEmailAlerts} />
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <Label htmlFor="report-frequency">{t('settings.reportFrequency')}</Label>
+                <Select value={reportFrequency} onValueChange={setReportFrequency}>
+                  <SelectTrigger id="report-frequency">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Daily">{t('settings.frequencies.Daily')}</SelectItem>
+                    <SelectItem value="Weekly">{t('settings.frequencies.Weekly')}</SelectItem>
+                    <SelectItem value="Monthly">{t('settings.frequencies.Monthly')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-muted-foreground text-sm">{t('settings.reportFrequencyDesc')}</p>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label>Weekly reports</Label>
-                  <p className="text-muted-foreground">Receive reports every Monday</p>
-                </div>
-                <Switch checked={weeklyReports} onCheckedChange={setWeeklyReports} />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Client updates</Label>
-                  <p className="text-muted-foreground">Alerts about new messages</p>
+                  <Label>{t('settings.clientUpdates')}</Label>
+                  <p className="text-muted-foreground">{t('settings.clientUpdatesDesc')}</p>
                 </div>
                 <Switch checked={clientUpdates} onCheckedChange={setClientUpdates} />
               </div>
             </div>
           </Card>
 
-          <Card className="p-6">
-            <h3 className="mb-6">Push notifications</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Browser notifications</Label>
-                  <p className="text-muted-foreground">Receive push notifications in the browser</p>
-                </div>
-                <Switch checked={pushNotifications} onCheckedChange={setPushNotifications} />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Message sounds</Label>
-                  <p className="text-muted-foreground">Play a sound for new messages</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-            </div>
-          </Card>
-
           <div className="flex justify-end">
-            <Button onClick={handleSaveSettings} className="bg-[#F97316] hover:bg-[#F97316]/90">
-              <Save className="size-4 mr-2" />
-              Save notification settings
-            </Button>
-          </div>
-        </TabsContent>
-
-        {/* Team Settings */}
-        <TabsContent value="team" className="space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3>Team members</h3>
-              <Button className="bg-[#F97316] hover:bg-[#F97316]/90">
-                Invite user
-              </Button>
-            </div>
-            <div className="space-y-4">
-              {[
-                { name: 'Oleksandr Ivanov', role: 'Head manager', email: 'o.ivanov@zem-dim.com' },
-                { name: 'Maria Koval', role: 'Project manager', email: 'm.koval@zem-dim.com' },
-                { name: 'Petro Sydorenko', role: 'Architect', email: 'p.sydorenko@zem-dim.com' },
-              ].map((member, index) => (
-                <div key={index} className="flex items-center justify-between p-4 rounded-lg border">
-                  <div>
-                    <h4>{member.name}</h4>
-                    <p className="text-muted-foreground">{member.role}</p>
-                    <p className="text-muted-foreground">{member.email}</p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Edit
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </TabsContent>
-
-        {/* Security Settings */}
-        <TabsContent value="security" className="space-y-6">
-          <Card className="p-6">
-            <h3 className="mb-6">Account security</h3>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="current-password">Current password</Label>
-                <Input id="current-password" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New password</Label>
-                <Input id="new-password" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm new password</Label>
-                <Input id="confirm-password" type="password" />
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="mb-6">Two-factor authentication</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Enable 2FA</Label>
-                  <p className="text-muted-foreground">Additional protection for your account</p>
-                </div>
-                <Switch />
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="mb-6">Active sessions</h3>
-            <div className="space-y-4">
-              {[
-                { device: 'Chrome on Windows', location: 'Kyiv, Ukraine', time: '2 minutes ago' },
-                { device: 'Safari on iPhone', location: 'Kyiv, Ukraine', time: '2 hours ago' },
-              ].map((session, index) => (
-                <div key={index} className="flex items-center justify-between p-4 rounded-lg border">
-                  <div>
-                    <h4>{session.device}</h4>
-                    <p className="text-muted-foreground">{session.location}</p>
-                    <p className="text-muted-foreground">{session.time}</p>
-                  </div>
-                  <Button variant="outline" size="sm" className="text-destructive">
-                    End session
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <div className="flex justify-end">
-            <Button onClick={handleSaveSettings} className="bg-[#F97316] hover:bg-[#F97316]/90">
-              <Save className="size-4 mr-2" />
-              Update security
+            <Button
+              onClick={handleSaveNotifications}
+              disabled={savingNotifications}
+              className="bg-[#F97316] hover:bg-[#F97316]/90"
+            >
+              {savingNotifications ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  {t('common.saving')}
+                </>
+              ) : (
+                <>
+                  <Save className="size-4 mr-2" />
+                  {t('settings.saveNotifications')}
+                </>
+              )}
             </Button>
           </div>
         </TabsContent>

@@ -4,42 +4,36 @@ using System.Security.Authentication;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Application.Interfaces.Auth;
 using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
-using Application.Interfaces.Infrastructure.Postgres.DatabaseTransactions;
 using Application.Interfaces.Security;
 using Application.Models;
 using Application.Models.Dtos.Auth;
-using Application.Models.Enums;
 using Application.Models.Security;
-using Application.Services.Email;
-using Common.Email.TemplateReader;
-using Core.Domain.Entities;
 using JWT;
 using JWT.Algorithms;
 using JWT.Builder;
 using JWT.Serializers;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Application.Services.Security;
 
 public class SecurityService(
-    IOptionsMonitor<AppOptions> optionsMonitor, 
-    IAdminUserManagementRepository managementRepository, 
-    EmailService emailService, 
-    TemplateReader templateReader,
-    IDbUnitOfWork unitOfWork,
-    ILogger<SecurityService> logger) : ISecurityService
+    IOptionsMonitor<AppOptions> optionsMonitor,
+    IUserManagementRepository managementRepository,
+    IAuthRepository authRepository) : ISecurityService
 {
     public AuthResponseDto Login(AuthRequestDto dto)
     {
-        var user = managementRepository.GetUserByEmailOrNull(dto.Email) ?? throw new ValidationException("User email not found");
-        
+        var user = managementRepository.GetUserByEmailOrNull(dto.Email) 
+                   ?? throw new ValidationException("User email not found");
+
         if (user.Isactive != true)
             throw new ValidationException("User is inactive");
-            
+
         VerifyPasswordOrThrow(dto.Password + user.Salt, user.Passwordhash);
+        
         return new AuthResponseDto
         {
             Jwt = GenerateJwt(new JwtClaims
@@ -49,58 +43,33 @@ public class SecurityService(
                 Exp = DateTimeOffset.UtcNow.AddHours(1000)
                     .ToUnixTimeSeconds()
                     .ToString(),
-                Email = dto.Email
-            })
+                Email = dto.Email,
+                FirstName = user.Firstname,
+                LastName = user.Lastname,
+            }),
+            MustChangePassword = user.Mustchangepassword ?? false
         };
     }
-
-    public async Task<RegisterResponseDto> RegisterUser(RegisterRequestDto dto)
+    
+    public async Task<ResetPasswordResponseDto> ResetPasswordAsync(Guid userId, string newPassword)
     {
-        var existing = managementRepository.GetUserByEmailOrNull(dto.Email);
-        if (existing is not null) throw new ValidationException(ErrorMessages.GetMessage(ErrorCode.UserAlreadyExists));
+        var user = await managementRepository.GetByIdAsync(userId)
+                   ?? throw new ValidationException("User not found");
 
-        var password = GenerateRandomPassword();
         var salt = GenerateSalt();
-        var hash = HashPassword(password + salt);
+        var hash = HashPassword(newPassword + salt);
 
-        await unitOfWork.BeginAsync();
-        try
-        {
-            var insertedUser = managementRepository.AddUser(new User
-            {
-                Id = Guid.NewGuid(),
-                Email = dto.Email,
-                Firstname = dto.FirstName,
-                Lastname = dto.LastName,
-                Phonenumber = dto.PhoneNumber,
-                Role = Roles.UserRole,
-                Isactive = true,
-                Profileimageurl = dto.ProfileImageUrl ?? "https://example.com/default-avatar.png",
-                Language = dto.Language ?? "en",
-                Salt = salt,
-                Passwordhash = hash,
-                Mustchangepassword = true,
-            });
+        user.Salt = salt;
+        user.Passwordhash = hash;
+        user.Mustchangepassword = false; 
 
-            var template = templateReader.LoadTemplate("TemporaryPasswordEmail.html");
-            var body = template.Replace("{{CustomerName}}", dto.FirstName)
-                .Replace("{{Password}}", password)
-                .Replace("{{Email}}", dto.Email);
-            
-            await emailService.SendEmailAsync(dto.Email, "Your account has been created", body);
-            await unitOfWork.CommitAsync();
-            
-            return RegisterResponseDto.FromEntity(insertedUser);
-        }
-        catch (Exception ex)
-        {
-            //managementRepository.DeleteUser(insertedUser.Id);
-            logger.LogError(ex, "Failed to register user {Email}: {Error}", dto.Email, ex.Message);
-            await unitOfWork.RollbackAsync();
-            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.RegistrationEmailFailed), ex);
-        }
+        var success = await authRepository.SavePasswordFromResetAsync(user);
+        if (!success)
+            throw new ApplicationException(ErrorMessages.GetMessage(ErrorCode.UserNotFound));
+
+        return ResetPasswordResponseDto.FromObjects(success, SuccessMessages.GetMessage(SuccessCode.UserResetPasswordSuccess));
     }
-
+    
     /// <summary>
     ///     Gives hex representation of SHA512 hash
     /// </summary>
@@ -125,41 +94,32 @@ public class SecurityService(
         return Guid.NewGuid().ToString();
     }
 
-    /*
+    /// <summary>
+    ///     Generates a valid JWT token compatible with JwtBearer and SignalR authentication
+    /// </summary>
     public string GenerateJwt(JwtClaims claims)
     {
-        var tokenBuilder = new JwtBuilder()
-            .WithAlgorithm(new HMACSHA512Algorithm())
-            .WithSecret(optionsMonitor.CurrentValue.JwtSecret)
-            .WithUrlEncoder(new JwtBase64UrlEncoder())
-            .WithJsonSerializer(new JsonNetSerializer());
-
-        foreach (var claim in claims.GetType().GetProperties())
-            tokenBuilder.AddClaim(claim.Name, claim.GetValue(claims)!.ToString());
-        return tokenBuilder.Encode();
-    }
-    */
-    
-    public string GenerateJwt(JwtClaims claims)
-    {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(optionsMonitor.CurrentValue.JwtSecret));
+        var secret = (optionsMonitor.CurrentValue.JwtSecret ?? string.Empty).Trim();
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
         var token = new JwtSecurityToken(
-            claims: new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier, claims.Id),
-                new Claim(ClaimTypes.Role, claims.Role),
-                new Claim(ClaimTypes.Email, claims.Email)
-            },
-            expires: DateTimeOffset.FromUnixTimeSeconds(long.Parse(claims.Exp)).UtcDateTime,
-            signingCredentials: creds
-        );
-        
+               claims: new[]
+               {
+                    new Claim(JwtRegisteredClaimNames.Sub, claims.Id),
+                    new Claim(JwtRegisteredClaimNames.Email, claims.Email),
+                    new Claim(ClaimTypes.Role, claims.Role),
+                    new Claim(JwtRegisteredClaimNames.GivenName, claims.FirstName),
+                    new Claim(JwtRegisteredClaimNames.FamilyName, claims.LastName),
+                    new Claim(ClaimTypes.Name, $"{claims.FirstName} {claims.LastName!}".Trim()),
+                },
+                notBefore: DateTime.UtcNow,
+                expires: DateTime.UtcNow.AddHours(24),
+                signingCredentials: creds);
+
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
     
-
     public JwtClaims VerifyJwtOrThrow(string jwt)
     {
         var token = new JwtBuilder()
@@ -205,4 +165,3 @@ public class SecurityService(
         return new string(password.ToString().OrderBy(_ => RandomNumberGenerator.GetInt32(100)).ToArray());
     }
 }
-

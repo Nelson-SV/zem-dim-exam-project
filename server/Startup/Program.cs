@@ -1,4 +1,7 @@
-﻿using Api.Rest;
+﻿using System.IdentityModel.Tokens.Jwt;
+using Api.Rest;
+using Api.Websocket;
+using Api.Websocket.Hubs;
 using Application;
 using Common.Email.Configurations;
 using Common.Email.TemplateReader;
@@ -21,29 +24,28 @@ public class Program
     {
         // --- Configure Serilog before building the app ---
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug() // or Information if you want less detail
+            .MinimumLevel.Debug() // or Information if for less detail
             .WriteTo.Console()
             .WriteTo.File(
                 path: "logs/log-.txt",
                 rollingInterval: RollingInterval.Day, // new file per day
-                retainedFileCountLimit: 7, // keep only last 7 days (optional)
+                retainedFileCountLimit: 7, // keep only last 7 days 
                 restrictedToMinimumLevel: LogEventLevel.Information)
             .CreateLogger();
         try
         {
             Log.Information("Starting up...");
-            
             var builder = WebApplication.CreateBuilder();
             builder.Host.UseSerilog(); //Integrate Serilog with ASP.NET logging
-            
+
+
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
+
+
             ConfigureServices(builder.Services, builder.Configuration);
             var app = builder.Build();
             await ConfigureMiddleware(app);
-            
-            //var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-            //var url = $"http://0.0.0.0:{port}";
-            //await app.RunAsync(url);
-            
             await app.RunAsync();
         }
         catch (Exception ex)
@@ -54,7 +56,6 @@ public class Program
         {
             Log.CloseAndFlush();
         }
-        
     }
 
     public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
@@ -62,18 +63,15 @@ public class Program
         var appOptions = services.AddAppOptions(configuration);
 
         services.RegisterApplicationServices(configuration);
-
         services.AddDataSourceAndRepositories();
-        //services.AddWebsocketInfrastructure();
-
-        //services.RegisterWebsocketApiServices();
+        services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices(configuration);
+        services.RegisterStorageServices(); 
         services.AddOpenApiDocument(conf =>
         {
             conf.DocumentProcessors.Add(new AddAllDerivedTypesProcessor());
             conf.DocumentProcessors.Add(new AddStringConstantsProcessor());
         });
-        //services.AddSingleton<IProxyConfig, ProxyConfig>();
         
         /* Bind EmailSettings*/
         services.Configure<EmailSettings>(configuration.GetSection("AppOptions"));
@@ -90,16 +88,23 @@ public class Program
                 await scope.ServiceProvider.GetRequiredService<Seeder>().Seed();
         }
 
-
         app.Urls.Clear();
         app.Urls.Add($"http://0.0.0.0:{appOptions.REST_PORT}");
-        //app.Services.GetRequiredService<IProxyConfig>()
-            //.StartProxyServer(appOptions.PORT, appOptions.REST_PORT, appOptions.WS_PORT);
 
+            app.UseRouting();
+
+            app.UseCors(policy => policy
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .SetIsOriginAllowed(_ => true)
+                .AllowCredentials());
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+            
         app.ConfigureRestApi();
-        //await app.ConfigureWebsocketApi(appOptions.WS_PORT);
-
-
+        app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization();
+        
         app.MapGet("Acceptance", () => "Accepted");
         
         app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
@@ -108,7 +113,7 @@ public class Program
         var json = document.ToJson();
         await File.WriteAllTextAsync("openapi.json", json);
 
-        app.GenerateTypeScriptClient("/../../client/src/generated-client.ts").GetAwaiter().GetResult();
+        app.GenerateTypeScriptClient("/../../client/src/generated-client-v2.ts").GetAwaiter().GetResult();
         
     }
 }

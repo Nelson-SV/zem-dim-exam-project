@@ -8,15 +8,16 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-      <OutputType>library</OutputType>
+    <OutputType>library</OutputType>
   </PropertyGroup>
 
-    <ItemGroup>
-        <None Remove="Properties\launchSettings.json" />
-    </ItemGroup>
+  <ItemGroup>
+    <None Remove="Properties\launchSettings.json" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="uldahlalex.websocket.boilerplate" Version="2.3.4" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
+    <PackageReference Include="uldahlalex.websocket.boilerplate" Version="2.3.4" />
+  </ItemGroup>
 
 </Project>

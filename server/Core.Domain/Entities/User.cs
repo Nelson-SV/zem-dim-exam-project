@@ -1,4 +1,6 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+
 namespace Core.Domain.Entities;
 
 public partial class User
@@ -33,6 +35,10 @@ public partial class User
 
     public bool? Mustchangepassword { get; set; }
 
+    public bool? Isdeleted { get; set; }
+
+    public virtual ICollection<DocumentSignature> DocumentSignatures { get; set; } = new List<DocumentSignature>();
+
     public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
 
     public virtual ICollection<Message> MessageReceivers { get; set; } = new List<Message>();
@@ -50,4 +56,6 @@ public partial class User
     public virtual ICollection<Threedscan> Threedscans { get; set; } = new List<Threedscan>();
 
     public virtual ICollection<Update> Updates { get; set; } = new List<Update>();
+
+    public virtual Usersetting? Usersetting { get; set; }
 }
