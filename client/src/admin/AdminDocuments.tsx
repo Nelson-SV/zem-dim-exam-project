@@ -144,12 +144,19 @@ export function AdminDocuments() {
             setRequiresSignature(false);
 
             await loadData();
-        } catch (error: never) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(t('adminDocuments.uploadError'), { description: error.message ?? t('errors.somethingWentWrong') });
+
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : t('errors.somethingWentWrong');
+
+            toast.error(t('adminDocuments.uploadError'), { description: message });
         } finally {
             setIsUploading(false);
         }
+
     };
 
     const markRequiresSignature = async (doc: DocumentDto) => {
@@ -550,8 +557,8 @@ export function AdminDocuments() {
                             {!isVisibleToClient
                                 ? t('adminDocuments.documentInternal')
                                 : requiresSignature
-                                ? t('adminDocuments.clientWillSignDocument')
-                                : t('adminDocuments.clientWillViewDocument')}
+                                    ? t('adminDocuments.clientWillSignDocument')
+                                    : t('adminDocuments.clientWillViewDocument')}
                         </div>
                     </div>
 

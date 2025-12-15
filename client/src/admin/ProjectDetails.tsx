@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState} from 'react';
-import {ArrowLeft, Calendar, MapPin, User, CheckCircle2, Clock, TrendingUp, Camera, Box, FileText} from 'lucide-react';
+import {ArrowLeft, Calendar, MapPin, User, CheckCircle2, Clock, TrendingUp, Camera, Box} from 'lucide-react';
 import {Card} from '../components/ui/card';
 import {Button} from '../components/ui/button';
 import {Badge} from '../components/ui/badge';

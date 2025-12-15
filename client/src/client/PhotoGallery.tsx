@@ -5,7 +5,7 @@ import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { format } from 'date-fns';
-import { uk, enUS } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import {
   Select,
   SelectContent,
@@ -33,7 +33,7 @@ export function PhotoGallery() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedStage, setSelectedStage] = useState<string>('all');
   const [photos, setPhotos] = useState<PhotoDto[]>([]);
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
    // const locale = i18n.language === 'uk' ? uk : enUS;
   const [loadingPhotos, setLoadingPhotos] = useState<boolean>(false);
   const [loadingProjects, setLoadingProjects] = useState<boolean>(true);

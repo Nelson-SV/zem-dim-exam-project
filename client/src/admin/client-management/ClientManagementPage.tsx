@@ -35,7 +35,7 @@ export function ClientManagementPage() {
   const [openConfirmDeleteModal, setOpenConfirmDeleteModal] = useState(false);
   const [reloadFlag, setReloadFlag] = useState(0);
 
-  const { totalPages, totalItems } = useInitializeUsersDetails({
+  const { totalPages } = useInitializeUsersDetails({
     page: currentPage,
     pageSize: 9,
     search: debouncedSearch,
@@ -44,7 +44,7 @@ export function ClientManagementPage() {
   });
 
   useEffect(() => {
-    setCurrentPage(1); //reset to first page when starting a new search
+    setCurrentPage(1); 
   }, [debouncedSearch, isActiveFilter]);
 
   const handleAddUser = async (userData: RegisterRequestDto) => {

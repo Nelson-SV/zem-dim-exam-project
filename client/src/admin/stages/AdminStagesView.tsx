@@ -35,7 +35,7 @@ export function AdminStagesView({ projectId, onMilestonesChanged, projectStart, 
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedStage, setSelectedStage] = useState<MilestoneViewModel | null>(null);
   const [pendingDelete, setPendingDelete] = useState<MilestoneViewModel | null>(null);
-  const [deleting, setDeleting] = useState(false);
+  const [_, setDeleting] = useState(false);
 
   const fetchStages = useCallback(async () => {
     if (!projectId) return;

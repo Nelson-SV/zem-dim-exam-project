@@ -294,12 +294,6 @@ export function Documents() {
         return documents.filter(doc => doc.projectId === selectedFilterProjectId);
     };
 
-    // Get project name by ID
-    const getProjectName = (projectId?: string) => {
-        if (!projectId) return 'Unknown Project';
-        return projects.find(p => p.id === projectId)?.title || 'Unknown Project';
-    };
-
     const filteredDocuments = getFilteredDocuments();
     const clientDocs = filteredDocuments.filter((d) => d.uploadedBy === 'client');
     const companyDocs = filteredDocuments.filter((d) => d.uploadedBy !== 'client');

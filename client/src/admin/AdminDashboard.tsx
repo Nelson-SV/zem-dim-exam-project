@@ -171,14 +171,14 @@ export function AdminDashboard({ onViewProject }: AdminDashboardProps) {
           value={loadingStats ? '...' : completedCount.toString()}
           icon={<CheckCircle2 className="size-6 text-white" />}
           color={`bg-[#10B981] ${statusFilter === 'completed' ? 'ring-2 ring-offset-2 ring-[#10B981]/60' : ''}`}
-          onClick={() => setStatusFilter(prev => prev === 'completed' ? 'active' : 'completed')}
+          onClick={() => setStatusFilter(prev => prev === 'completed' ? 'all' : 'completed')}
         />
         <StatsCard
           title={t('dashboard.inProgress')}
           value={loadingStats ? '...' : inProgressCount.toString()}
           icon={<Clock className="size-6 text-white" />}
           color={`bg-[#F59E0B] ${statusFilter === 'in-progress' ? 'ring-2 ring-offset-2 ring-[#F59E0B]/60' : ''}`}
-          onClick={() => setStatusFilter(prev => prev === 'in-progress' ? 'active' : 'in-progress')}
+          onClick={() => setStatusFilter(prev => prev === 'in-progress' ? 'all' : 'in-progress')}
         />
       </div>
 
