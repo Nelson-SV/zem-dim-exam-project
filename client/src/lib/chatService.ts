@@ -16,7 +16,7 @@ export class ChatService {
         if (this.connection) await this.disconnect();
 
         this.connection = new signalR.HubConnectionBuilder()
-            .withUrl(`http://localhost:5001/hubs/chat?access_token=${jwt}`)
+            .withUrl(`https://server-damp-smoke-7275.fly.dev/hubs/chat?access_token=${jwt}`)
             .withAutomaticReconnect()
             .configureLogging(signalR.LogLevel.Information)
             .build();

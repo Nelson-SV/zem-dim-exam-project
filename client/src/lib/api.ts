@@ -20,7 +20,7 @@ import {
 // const httpSchema= import.meta.env.VITE_API_HTTP_SCHEMA;
 // const domain=import.meta.env.VITE_API_BASE_URL;
 
-const url = 'http://localhost:5001';
+const url = 'https://server-damp-smoke-7275.fly.dev';
 export class ApiClient {
     private baseUrl: string;
 
@@ -226,7 +226,7 @@ export class ApiClient {
         fd.append("File", form.file!); 
 
         const client = this.createHttpClient();
-        const res = await client.fetch(`${url}/api/admin/3d-scans/Upload3DScan`, {
+        const res = await client.fetch(`${this.baseUrl}/api/admin/3d-scans/Upload3DScan`, {
             method: "POST",
             body: fd,
             headers: {

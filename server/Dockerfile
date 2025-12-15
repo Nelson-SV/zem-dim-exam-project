@@ -17,6 +17,7 @@ COPY --from=build /app .
 
 # Fly commonly routes HTTP to internal_port (we’ll set 8080)
 # ENV ASPNETCORE_URLS=http://+:8080
+RUN mkdir -p /app/logs && chown -R $APP_UID:$APP_UID /app
 
 USER $APP_UID
 EXPOSE 8080
