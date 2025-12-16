@@ -110,6 +110,7 @@ public class Program
         
         app.UseOpenApi(conf => { conf.Path = "openapi/v1.json"; });
 
+        // the client files are only generated if the app is running in local environment
         if (app.Environment.IsDevelopment())
         {
             var document = await app.Services
