@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Button } from '../components/ui/button';
 import { Switch } from '../components/ui/switch';
 import { Separator } from '../components/ui/separator';
+import { Environment } from '@react-three/drei';
 
 interface CompanyData {
   id: string;
@@ -29,7 +30,7 @@ interface UserSettingsData {
   clientUpdates: boolean;
 }
 
-const API_URL = 'http://localhost:5001';
+const API_URL = import.meta.env.VITE_API_BASE_URL;
 
 export function AdminSettings() {
   const { t } = useTranslation();
