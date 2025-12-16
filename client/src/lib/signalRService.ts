@@ -25,9 +25,12 @@ export interface UserTypingDto {
     isTyping: boolean;
 }
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 class SignalRService {
     private connection: signalR.HubConnection | null = null;
     private token: string | null = null;
+    
 
     /**
      * Initialize SignalR connection with JWT token
@@ -36,7 +39,7 @@ class SignalRService {
         this.token = jwtToken;
 
         this.connection = new signalR.HubConnectionBuilder()
-            .withUrl('http://localhost:5001/hubs/chat', {
+            .withUrl(API_URL + '/hubs/chat', {
                 accessTokenFactory: () => this.token || '',
 
             })
