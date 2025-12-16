@@ -11,10 +11,8 @@ public class TemplateReader
     {
         // The root of app 
         var root = env.ContentRootPath;
-        var serverRoot = Path.GetFullPath(Path.Combine(root, ".."));
-
         // Resolve path relative to your Common/Email/Templates directory
-        _templatesDirectory = Path.Combine(serverRoot, "Common", "Email", "Templates");
+        _templatesDirectory = Path.Combine(root, "Common", "Email", "Templates");
 
         if (!Directory.Exists(_templatesDirectory))
         {
