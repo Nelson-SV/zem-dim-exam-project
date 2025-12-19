@@ -102,7 +102,7 @@ export default function Navigation({ role, links }: NavigationProps) {
                 onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
                 isMobileMenuOpen={isMobileMenuOpen}
             >
-                {updatedLinks.map((link) => (
+                {isDesktop && updatedLinks.map((link) => (
                     <NavLink
                         key={link.to}
                         to={`/${role}/${link.to}`}
@@ -119,16 +119,18 @@ export default function Navigation({ role, links }: NavigationProps) {
                 ))}
             </NavigationBar>
 
-            <MobileSidebar
-                isOpen={isMobileMenuOpen}
-                onClose={() => setIsMobileMenuOpen(false)}
-                links={updatedLinks}
-                role={role}
-                darkMode={darkMode}
-                onToggleDarkMode={() => setDarkMode(!darkMode)}
-                currentLanguage={i18n.language}
-                onChangeLanguage={changeLanguage}
-            />
+            {!isDesktop && (
+                <MobileSidebar
+                    isOpen={isMobileMenuOpen}
+                    onClose={() => setIsMobileMenuOpen(false)}
+                    links={updatedLinks}
+                    role={role}
+                    darkMode={darkMode}
+                    onToggleDarkMode={() => setDarkMode(!darkMode)}
+                    currentLanguage={i18n.language}
+                    onChangeLanguage={changeLanguage}
+                />
+            )}
         </>
     );
 }
