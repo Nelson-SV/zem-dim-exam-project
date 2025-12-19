@@ -2,9 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Application.Models.Dtos.Auth;
 
-public class AuthResponseDto
+public class RefreshRequestDto
 {
-    [Required] public string Jwt { get; set; } = null!;
     [Required] public string RefreshToken { get; set; } = null!;
-    [Required] public bool MustChangePassword { get; set; }
 }

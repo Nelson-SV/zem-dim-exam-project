@@ -11,8 +11,10 @@ public interface ISecurityService
     public string GenerateSalt();
     public string GenerateJwt(JwtClaims claims);
     public AuthResponseDto Login(AuthRequestDto dto);
+    Task<AuthResponseDto> RefreshAsync(RefreshRequestDto dto);
     public JwtClaims VerifyJwtOrThrow(string jwt);
     public string GenerateRandomPassword(int length);
     Task<ResetPasswordResponseDto> ResetPasswordAsync(Guid userId, string newPassword);
+    Task LogoutAllAsync(Guid userId);
 
 }
