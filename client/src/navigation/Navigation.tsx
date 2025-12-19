@@ -17,10 +17,11 @@ interface NavLinkItem {
 interface NavigationProps {
     role: "admin" | "client";
     links: NavLinkItem[];
+    mobileLinks?: NavLinkItem[];
 }
 
 
-export default function Navigation({ role, links }: NavigationProps) {
+export default function Navigation({ role, links, mobileLinks }: NavigationProps) {
 
     const [unreadCount, setUnreadCount] = useState(0);
     const { user, token } = useAuth();
@@ -70,9 +71,12 @@ export default function Navigation({ role, links }: NavigationProps) {
         if (activeTab === 'messages') loadUnreadCount();
     }, [activeTab, user?.id]);
 
-    const updatedLinks = links.map((link) =>
+    const applyUnreadBadge = (navLinks: NavLinkItem[]) => navLinks.map((link) =>
         link.to === "messages" ? { ...link, badge: unreadCount } : link
     );
+
+    const updatedLinks = applyUnreadBadge(links);
+    const updatedMobileLinks = applyUnreadBadge(mobileLinks ?? links);
 
     useEffect(() => {
         document.documentElement.classList.toggle("dark", darkMode);
@@ -123,7 +127,7 @@ export default function Navigation({ role, links }: NavigationProps) {
                 <MobileSidebar
                     isOpen={isMobileMenuOpen}
                     onClose={() => setIsMobileMenuOpen(false)}
-                    links={updatedLinks}
+                    links={updatedMobileLinks}
                     role={role}
                     darkMode={darkMode}
                     onToggleDarkMode={() => setDarkMode(!darkMode)}
