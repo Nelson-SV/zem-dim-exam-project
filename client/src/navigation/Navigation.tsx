@@ -4,6 +4,9 @@ import { Badge } from "../components/ui/badge";
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/useAuth";
 import { http } from "../lib/api";
+import { useTranslation } from "react-i18next";
+import MobileSidebar from "./MobileSidebar";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 
 interface NavLinkItem {
     to: string;
@@ -22,6 +25,10 @@ export default function Navigation({ role, links }: NavigationProps) {
     const [unreadCount, setUnreadCount] = useState(0);
     const { user, token } = useAuth();
     const location = useLocation();
+    const { i18n } = useTranslation();
+    const isDesktop = useMediaQuery("(min-width: 768px)");
+    const [darkMode, setDarkMode] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const activeTab = location.pathname.split("/").pop() || "";
 
@@ -67,11 +74,34 @@ export default function Navigation({ role, links }: NavigationProps) {
         link.to === "messages" ? { ...link, badge: unreadCount } : link
     );
 
+    useEffect(() => {
+        document.documentElement.classList.toggle("dark", darkMode);
+    }, [darkMode]);
+
+    const changeLanguage = (lng: string) => {
+        i18n.changeLanguage(lng);
+        localStorage.setItem('language', lng);
+    };
+
+    useEffect(() => {
+        if (isDesktop) {
+            setIsMobileMenuOpen(false);
+        }
+    }, [isDesktop]);
+
 
     return (
         <>
             {/* Desktop links */}
-            <NavigationBar role={role}>
+            <NavigationBar
+                role={role}
+                darkMode={darkMode}
+                onToggleDarkMode={() => setDarkMode(!darkMode)}
+                currentLanguage={i18n.language}
+                onChangeLanguage={changeLanguage}
+                onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+                isMobileMenuOpen={isMobileMenuOpen}
+            >
                 {updatedLinks.map((link) => (
                     <NavLink
                         key={link.to}
@@ -89,26 +119,16 @@ export default function Navigation({ role, links }: NavigationProps) {
                 ))}
             </NavigationBar>
 
-            {/* Mobile links */}
-            <div className="md:hidden flex gap-2 overflow-x-auto px-4 py-2 border-t bg-background sticky top-16 z-40">
-                {updatedLinks.map((link) => (
-                    <NavLink
-                        key={link.to}
-                        to={`/${role}/${link.to}`}
-                        className={({ isActive }) =>
-                            `px-3 py-1 rounded-full text-sm ${isActive
-                                ? "bg-[#F97316] text-white"
-                                : "bg-muted text-foreground"
-                            }`
-                        }
-                    >
-                        {link.label}
-                        {link.badge && link.badge > 0 ? (
-                            <Badge className="ml-2 bg-red-600">{link.badge}</Badge>
-                        ) : null}
-                    </NavLink>
-                ))}
-            </div>
+            <MobileSidebar
+                isOpen={isMobileMenuOpen}
+                onClose={() => setIsMobileMenuOpen(false)}
+                links={updatedLinks}
+                role={role}
+                darkMode={darkMode}
+                onToggleDarkMode={() => setDarkMode(!darkMode)}
+                currentLanguage={i18n.language}
+                onChangeLanguage={changeLanguage}
+            />
         </>
     );
 }
