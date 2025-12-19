@@ -1,3 +1,7 @@
+## Notes
+- for testing, use the email "testuser.nelito123@proton.me" when creating client
+
+
 ## 👨‍💼 ADMIN FEATURES
 
 ### 1️⃣ User / Client Management
