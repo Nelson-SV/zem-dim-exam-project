@@ -37,6 +37,8 @@ export default function MobileSidebar({
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const hasProfileLink = links.some((link) => link.to === "profile");
+  const hasSettingsLink = links.some((link) => link.to === "settings");
 
   return (
     <DialogPrimitive.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -107,17 +109,19 @@ export default function MobileSidebar({
             </div>
 
             <div className="border-t pt-4 space-y-2">
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={() => {
-                  navigate(`/${role}/profile`);
-                  onClose();
-                }}
-              >
-                {t('nav.profile')}
-              </Button>
-              {role === "admin" && (
+              {!hasProfileLink && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    navigate(`/${role}/profile`);
+                    onClose();
+                  }}
+                >
+                  {t('nav.profile')}
+                </Button>
+              )}
+              {role === "admin" && !hasSettingsLink && (
                 <Button
                   variant="ghost"
                   className="w-full justify-start"
