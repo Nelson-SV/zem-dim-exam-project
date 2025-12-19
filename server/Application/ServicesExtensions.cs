@@ -65,7 +65,6 @@ public static class ServicesExtensions
         services.AddScoped<IUser3DScanService, User3DScanService>();
         services.AddScoped<IAdmin3DScanService, Admin3DScanService>();
         services.AddScoped<IUpdateService, UpdateService>();
-        services.AddTransient<EmailService>();
         services.AddScoped<IPdfSignatureService, PdfSignatureService>();
         services.AddScoped<IStorageService, SupabaseStorageService>();
         services.AddScoped<IDocumentsService, DocumentsService>();
@@ -73,7 +72,10 @@ public static class ServicesExtensions
         services.AddScoped<ISettingsService, SettingsService>();
         services.AddScoped<IClientGalleryService, ClientGalleryService>();
 
-        
+        services.AddTransient<EmailService>();
+        services.AddHttpClient<MailgunEmailService>();
+        services.AddTransient<IEmailSender, EmailSender>();
+
         services.AddHttpClient<ResendClient>();
         services.Configure<ResendClientOptions>( o =>
         {

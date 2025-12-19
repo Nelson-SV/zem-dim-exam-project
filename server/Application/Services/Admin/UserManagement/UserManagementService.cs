@@ -6,8 +6,7 @@ using Application.Interfaces.Security;
 using Application.Models;
 using Application.Models.Dtos.UserManagement;
 using Application.Models.Enums;
-using Application.Services.Email;
-using Common.Email.TemplateReader;
+using Application.Interfaces.Services;
 using Core.Domain.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -16,8 +15,7 @@ namespace Application.Services.Admin.UserManagement;
 public class UserManagementService(
     ISecurityService securityService, 
     IUserManagementRepository managementRepository, 
-    EmailService emailService, 
-    TemplateReader templateReader,
+    IEmailSender emailSender,
     IDbUnitOfWork unitOfWork,
     ILogger<UserManagementService> logger) : IUserManagementService
 {
@@ -61,8 +59,8 @@ public class UserManagementService(
                 Mustchangepassword = true,
             });
             
-            //to test, use "delivered@resend.dev" (in "to:" field)
-            await emailService.SendEmailViaResendAsync(
+            //for testing, use the email "testuser.nelito123@proton.me" when creating client
+            await emailSender.SendTemplateEmailAsync(
                 dto.Email, 
                 "Your account has been created", 
                 "TemporaryPasswordEmail.html", 
@@ -89,7 +87,7 @@ public class UserManagementService(
         var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
         var firstName = dto.FirstName.Trim();
         var lastName = dto.LastName.Trim();
-        var phone = dto.PhoneNumber.Trim();
+        var phone = dto.PhoneNumber!.Trim();
         
         if (string.IsNullOrWhiteSpace(normalizedEmail) || string.IsNullOrWhiteSpace(firstName) ||
             string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(phone))
