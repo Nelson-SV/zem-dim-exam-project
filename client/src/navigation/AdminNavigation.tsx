@@ -38,19 +38,21 @@ export function AdminNavigation() {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-background">
       <Navigation role="admin" links={adminLinks} />
-      <Routes>
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<AdminDashboard onViewProject={handleViewProject} />} />
-        <Route path="projects" element={<AdminProjectsList onViewProject={handleViewProject} />} />
-        <Route path="projects/:id" element={<ProjectDetailsWrapper />} />
-        <Route path="clients" element={<ClientManagementPage />} />
-        <Route path="messages" element={<MessagesPage />} />
-        <Route path="documents" element={<AdminDocuments />} />
-        <Route path="settings" element={<AdminSettings />} />
-        <Route path="profile" element={<Profile />} />
-      </Routes>
-    </>
+      <main className="container mx-auto px-4 pb-10 md:px-6">
+        <Routes>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<AdminDashboard onViewProject={handleViewProject} />} />
+          <Route path="projects" element={<AdminProjectsList onViewProject={handleViewProject} />} />
+          <Route path="projects/:id" element={<ProjectDetailsWrapper />} />
+          <Route path="clients" element={<ClientManagementPage />} />
+          <Route path="messages" element={<MessagesPage />} />
+          <Route path="documents" element={<AdminDocuments />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="profile" element={<Profile />} />
+        </Routes>
+      </main>
+    </div>
   );
 }
