@@ -1,28 +1,21 @@
-using System.Net;
-using System.Net.Mail;
-using Common.Email.Configurations;
+using Application.Interfaces.Services;
 using Common.Email.TemplateReader;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Resend;
-using SendGrid;
-using SendGrid.Helpers.Mail;
-using EmailAddress = SendGrid.Helpers.Mail.EmailAddress;
 
 namespace Application.Services.Email;
 
-public class EmailService
+/// <summary>
+/// Resend-backed email sender.
+/// </summary>
+public class EmailService : IEmailSender
 {
-    private readonly EmailSettings _emailSettings;
     private readonly IResend _resend;
     private readonly TemplateReader _templateReader;
 
     public EmailService(
-        IOptions<EmailSettings> emailSettings,
         IResend resend,
         TemplateReader templateReader)
     {
-        _emailSettings = emailSettings.Value;
         _resend = resend;
         _templateReader = templateReader;
     }
@@ -32,14 +25,14 @@ public class EmailService
         string to,
         string subject,
         string templateFileName,
-        IDictionary<string, string> tokens)
+        IDictionary<string, string> tokens,
+        CancellationToken cancellationToken = default)
     {
         var template = _templateReader.LoadTemplate(templateFileName);
         var html = _templateReader.RenderValues(template, tokens);
 
         var message = new EmailMessage
         {
-            //From = $"{_emailSettings.SmtpSenderName} <{_emailSettings.SmtpSenderEmail}>",
             Subject = subject,
             HtmlBody = html
         };
@@ -52,4 +45,12 @@ public class EmailService
 
         // Optional: check result / log (depends on the Resend SDK response type)
     }
+
+    public Task SendTemplateEmailAsync(
+        string to,
+        string subject,
+        string templateFileName,
+        IDictionary<string, string> tokens,
+        CancellationToken cancellationToken = default)
+        => SendEmailViaResendAsync(to, subject, templateFileName, tokens, cancellationToken);
 }
