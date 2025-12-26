@@ -20,6 +20,8 @@ import {
 // const httpSchema= import.meta.env.VITE_API_HTTP_SCHEMA;
 // const domain=import.meta.env.VITE_API_BASE_URL;
 
+//TODO: Change this hardcoded URL 
+// Use the one from the environment variables.
 const url = 'https://server-damp-smoke-7275.fly.dev';
 export class ApiClient {
     private baseUrl: string;
@@ -86,6 +88,8 @@ export class ApiClient {
         return this._projects;
     }
 
+    //TODO: Check if we are using this method anywhere
+    //Needs to be changed, we are not making api calls this way.
     // Custom method to get projects for current user
     async getMyProjects(): Promise<never[]> {
         const client = this.createHttpClient();
