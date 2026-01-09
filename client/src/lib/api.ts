@@ -163,6 +163,8 @@ export class ApiClient {
         return this._projects;
     }
 
+    //TODO: Check if we are using this method anywhere
+    //Needs to be changed, we are not making api calls this way.
     // Custom method to get projects for current user
     async getMyProjects(): Promise<never[]> {
         const client = this.createHttpClient();
