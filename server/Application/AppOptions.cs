@@ -6,6 +6,9 @@ public sealed class AppOptions
 {
     [Required] public string JwtSecret { get; set; } = string.Empty!;
     [Required] public string DbConnectionString { get; set; } = string.Empty!;
+    [Required] public string RefreshTokenPepper { get; set; } = string.Empty!;
+    [Range(1, 1440)] public int AccessTokenMinutes { get; set; } = 60;
+    [Range(1, 365)] public int RefreshTokenDays { get; set; } = 14;
     public bool Seed { get; set; } = true;
     public int PORT { get; set; } = 8080;
     public int WS_PORT { get; set; } = 8181;
