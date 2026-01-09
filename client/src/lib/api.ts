@@ -17,12 +17,21 @@ import {
     type DocumentDto,
 } from '../generated-client';
 
-// const httpSchema= import.meta.env.VITE_API_HTTP_SCHEMA;
-// const domain=import.meta.env.VITE_API_BASE_URL;
+const envBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
+const defaultBaseUrl = import.meta.env.DEV
+    ? 'http://localhost:5001'
+    : 'https://server-damp-smoke-7275.fly.dev';
+const url = (envBaseUrl && envBaseUrl.length > 0) ? envBaseUrl : defaultBaseUrl;
 
-//TODO: Change this hardcoded URL 
-// Use the one from the environment variables.
-const url = 'https://server-damp-smoke-7275.fly.dev';
+const AUTH_JWT_KEY = 'auth_jwt';
+const AUTH_USER_KEY = 'auth_user';
+const AUTH_REFRESH_KEY = 'auth_refresh';
+const TEMP_AUTH_JWT_KEY = 'temp_auth_jwt';
+const AUTH_UPDATED_EVENT = 'auth:updated';
+const AUTH_LOGOUT_EVENT = 'auth:logout';
+
+let refreshInFlight: Promise<string | null> | null = null;
+
 export class ApiClient {
     private baseUrl: string;
 
@@ -47,27 +56,93 @@ export class ApiClient {
     }
 
     private createHttpClient() {
+        const baseUrl = this.baseUrl;
+
+        const isAuthEndpoint = (u: string) => {
+            const lower = u.toLowerCase();
+            return lower.includes('/api/auth/login') ||
+                lower.includes('/api/auth/refresh') ||
+                lower.includes('/api/auth/resetpassword');
+        };
+
+        const dispatchAuthUpdated = () => {
+            window.dispatchEvent(new Event(AUTH_UPDATED_EVENT));
+        };
+
+        const dispatchAuthLogout = () => {
+            window.dispatchEvent(new Event(AUTH_LOGOUT_EVENT));
+        };
+
+        const refreshTokens = async (): Promise<string | null> => {
+            const refreshToken = localStorage.getItem(AUTH_REFRESH_KEY);
+            if (!refreshToken) return null;
+
+            if (!refreshInFlight) {
+                refreshInFlight = (async () => {
+                    try {
+                        const res = await fetch(`${baseUrl}/api/auth/Refresh`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ refreshToken }),
+                        });
+
+                        if (!res.ok) return null;
+                        const data = await res.json();
+                        if (!data?.jwt || !data?.refreshToken) return null;
+
+                        localStorage.setItem(AUTH_JWT_KEY, data.jwt);
+                        localStorage.setItem(AUTH_REFRESH_KEY, data.refreshToken);
+                        dispatchAuthUpdated();
+                        return data.jwt as string;
+                    } catch {
+                        return null;
+                    } finally {
+                        refreshInFlight = null;
+                    }
+                })();
+            }
+
+            return refreshInFlight;
+        };
+
         return {
-            fetch: (url: RequestInfo, init?: RequestInit) => {
+            fetch: async (url: RequestInfo, init?: RequestInit) => {
                 const u = typeof url === 'string' ? url : url.toString();
 
-                // If the call is for reset-password, prefer the temp token
-                const temp = localStorage.getItem('temp_auth_jwt');
-                const auth = localStorage.getItem('auth_jwt');
-
                 const isResetPassword = u.toLowerCase().includes('/api/auth/resetpassword');
+                const temp = localStorage.getItem(TEMP_AUTH_JWT_KEY);
+                const auth = localStorage.getItem(AUTH_JWT_KEY);
                 const jwt = (isResetPassword && temp) ? temp : auth;
 
-                if (jwt && u.startsWith(this.baseUrl)) {
-                    return fetch(u, {
-                        ...init,
-                        headers: {
-                            ...init?.headers,
-                            'Authorization': `Bearer ${jwt}`,
-                        },
-                    });
+                const headers = {
+                    ...(init?.headers ?? {}),
+                    ...(jwt && u.startsWith(baseUrl) ? { Authorization: `Bearer ${jwt}` } : {}),
+                };
+
+                const response = await fetch(u, { ...init, headers });
+
+                if (response.status !== 401) return response;
+                if (!u.startsWith(baseUrl)) return response;
+                if (isAuthEndpoint(u) || isResetPassword) return response;
+
+                const newJwt = await refreshTokens();
+                if (!newJwt) {
+                    localStorage.removeItem(AUTH_JWT_KEY);
+                    localStorage.removeItem(AUTH_USER_KEY);
+                    localStorage.removeItem(AUTH_REFRESH_KEY);
+                    dispatchAuthLogout();
+                    return response;
                 }
-                return fetch(u, init);
+
+                const retryHeaders = {
+                    ...(init?.headers ?? {}),
+                    Authorization: `Bearer ${newJwt}`,
+                };
+
+                return fetch(u, { ...init, headers: retryHeaders });
             },
         };
     }

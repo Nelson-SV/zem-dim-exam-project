@@ -5,6 +5,14 @@ import type { LoginResult, User } from './auth-types';
 import { chatService } from '../lib/chatService';
 import { http } from '../lib/api';
 
+const AUTH_JWT_KEY = 'auth_jwt';
+const AUTH_USER_KEY = 'auth_user';
+const AUTH_REFRESH_KEY = 'auth_refresh';
+const TEMP_AUTH_JWT_KEY = 'temp_auth_jwt';
+const TEMP_AUTH_USER_KEY = 'temp_auth_user';
+const AUTH_UPDATED_EVENT = 'auth:updated';
+const AUTH_LOGOUT_EVENT = 'auth:logout';
+
 
 function decodeJwt<T = any>(jwt: string): T {
     const [, payload] = jwt.split('.');
@@ -39,51 +47,88 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
     const [connectedToken, setConnectedToken] = useState<string | null>(null);
 
-    useEffect(() => {
-        const storedToken = localStorage.getItem('auth_jwt');
-        const storedUser = localStorage.getItem('auth_user');
+    const syncFromStorage = async () => {
+        const storedToken = localStorage.getItem(AUTH_JWT_KEY);
+        const storedUser = localStorage.getItem(AUTH_USER_KEY);
 
         if (storedToken) {
             try {
                 let parsed: User = storedUser ? JSON.parse(storedUser) : null;
 
-                // If old/local user is missing fields, rebuild from token
                 if (!parsed || !parsed.role || !parsed.id || !parsed.email) {
                     const payload = decodeJwt<any>(storedToken);
                     parsed = mapUserFromPayload(payload);
-                    localStorage.setItem('auth_user', JSON.stringify(parsed));
+                    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(parsed));
                 }
 
                 setUser(parsed);
                 setToken(storedToken);
 
                 if (!chatService.isConnected() || connectedToken !== storedToken) {
-                    chatService.connect(storedToken).then(() => setConnectedToken(storedToken)).catch(console.error);
+                    chatService
+                        .connect(storedToken)
+                        .then(() => setConnectedToken(storedToken))
+                        .catch(console.error);
                 }
             } catch {
-                localStorage.removeItem('auth_jwt');
-                localStorage.removeItem('auth_user');
+                localStorage.removeItem(AUTH_JWT_KEY);
+                localStorage.removeItem(AUTH_USER_KEY);
+                localStorage.removeItem(AUTH_REFRESH_KEY);
+                setUser(null);
+                setToken(null);
             }
+        } else {
+            localStorage.removeItem(AUTH_USER_KEY);
+            localStorage.removeItem(AUTH_REFRESH_KEY);
+            setUser(null);
+            setToken(null);
+            chatService.disconnect();
+            setConnectedToken(null);
         }
-        setIsLoading(false);
+    };
+
+    useEffect(() => {
+        syncFromStorage().finally(() => setIsLoading(false));
     }, []);
 
+    useEffect(() => {
+        const handleAuthUpdated = () => {
+            syncFromStorage();
+        };
+
+        window.addEventListener(AUTH_UPDATED_EVENT, handleAuthUpdated);
+        window.addEventListener(AUTH_LOGOUT_EVENT, handleAuthUpdated);
+
+        return () => {
+            window.removeEventListener(AUTH_UPDATED_EVENT, handleAuthUpdated);
+            window.removeEventListener(AUTH_LOGOUT_EVENT, handleAuthUpdated);
+        };
+    }, [connectedToken]);
+
     const login = async (email: string, password: string): Promise<LoginResult> => {
-        const { jwt, mustChangePassword } = await http.auth.login({ email, password });
+        const { jwt, refreshToken, mustChangePassword } = await http.auth.login({ email, password });
 
         if (mustChangePassword) {
-            localStorage.setItem('temp_auth_jwt', jwt);
+            localStorage.removeItem(AUTH_JWT_KEY);
+            localStorage.removeItem(AUTH_REFRESH_KEY);
+            localStorage.removeItem(AUTH_USER_KEY);
+            localStorage.setItem(TEMP_AUTH_JWT_KEY, jwt);
             const payload = decodeJwt<any>(jwt);
             const userData = mapUserFromPayload(payload);
             setUser(userData);
             return { mustChangePassword: true };
         }
 
+        if (!refreshToken) {
+            throw new Error('Login response missing refresh token. Is the API updated?');
+        }
+
         const payload = decodeJwt<any>(jwt);
         const userData = mapUserFromPayload(payload);
 
-        localStorage.setItem('auth_jwt', jwt);
-        localStorage.setItem('auth_user', JSON.stringify(userData));
+        localStorage.setItem(AUTH_JWT_KEY, jwt);
+        localStorage.setItem(AUTH_REFRESH_KEY, refreshToken);
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(userData));
 
         setUser(userData);
         setToken(jwt);
@@ -95,15 +140,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { mustChangePassword: false, role: userData.role };
     };
 
-    const logout = () => {
-        localStorage.removeItem('auth_jwt');
-        localStorage.removeItem('auth_user');
+    const logout = async () => {
+        try {
+            await http.auth.logout();
+        } catch (error) {
+            console.warn('Logout request failed, clearing local session', error);
+        }
+
+        localStorage.removeItem(AUTH_JWT_KEY);
+        localStorage.removeItem(AUTH_USER_KEY);
+        localStorage.removeItem(AUTH_REFRESH_KEY);
+        localStorage.removeItem(TEMP_AUTH_JWT_KEY);
+        localStorage.removeItem(TEMP_AUTH_USER_KEY);
 
         setUser(null);
         setToken(null);
 
         chatService.disconnect();
         setConnectedToken(null);
+        window.dispatchEvent(new Event(AUTH_LOGOUT_EVENT));
     };
 
     return (

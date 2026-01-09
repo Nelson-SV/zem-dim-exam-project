@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Application.Interfaces.Auth;
 using Application.Interfaces.Infrastructure.Postgres.Admin.UserManagement;
+using Application.Interfaces.Infrastructure.Postgres.DatabaseTransactions;
 using Application.Interfaces.Security;
 using Application.Models;
 using Application.Models.Dtos.Auth;
@@ -22,7 +23,9 @@ namespace Application.Services.Security;
 public class SecurityService(
     IOptionsMonitor<AppOptions> optionsMonitor,
     IUserManagementRepository managementRepository,
-    IAuthRepository authRepository) : ISecurityService
+    IAuthRepository authRepository,
+    IRefreshTokenRepository refreshTokenRepository,
+    IDbUnitOfWork unitOfWork) : ISecurityService
 {
     public AuthResponseDto Login(AuthRequestDto dto)
     {
@@ -34,19 +37,26 @@ public class SecurityService(
 
         VerifyPasswordOrThrow(dto.Password + user.Salt, user.Passwordhash);
         
+        var now = DateTimeOffset.UtcNow;
+        var accessExpiresAt = now.AddMinutes(optionsMonitor.CurrentValue.AccessTokenMinutes);
+
+        var (plainRefresh, refreshHash) = GenerateRefreshTokenPair();
+        refreshTokenRepository.AddAsync(user.Id, refreshHash, now.AddDays(optionsMonitor.CurrentValue.RefreshTokenDays))
+            .GetAwaiter()
+            .GetResult();
+
         return new AuthResponseDto
         {
             Jwt = GenerateJwt(new JwtClaims
             {
                 Id = user.Id.ToString(),
                 Role = user.Role,
-                Exp = DateTimeOffset.UtcNow.AddHours(1000)
-                    .ToUnixTimeSeconds()
-                    .ToString(),
+                Exp = accessExpiresAt.ToUnixTimeSeconds().ToString(),
                 Email = dto.Email,
                 FirstName = user.Firstname,
                 LastName = user.Lastname,
             }),
+            RefreshToken = plainRefresh,
             MustChangePassword = user.Mustchangepassword ?? false
         };
     }
@@ -102,6 +112,7 @@ public class SecurityService(
         var secret = (optionsMonitor.CurrentValue.JwtSecret ?? string.Empty).Trim();
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
+        var exp = DateTimeOffset.FromUnixTimeSeconds(long.Parse(claims.Exp));
 
         var token = new JwtSecurityToken(
                claims: new[]
@@ -114,7 +125,7 @@ public class SecurityService(
                     new Claim(ClaimTypes.Name, $"{claims.FirstName} {claims.LastName!}".Trim()),
                 },
                 notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddHours(24),
+                expires: exp.UtcDateTime,
                 signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -133,6 +144,61 @@ public class SecurityService(
         if (DateTimeOffset.FromUnixTimeSeconds(long.Parse(token.Exp)) < DateTimeOffset.UtcNow)
             throw new AuthenticationException("Token expired");
         return token;
+    }
+
+    public async Task<AuthResponseDto> RefreshAsync(RefreshRequestDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.RefreshToken))
+            throw new AuthenticationException("Invalid refresh token.");
+
+        var hash = HashRefreshToken(dto.RefreshToken);
+
+        await unitOfWork.BeginAsync();
+        try
+        {
+            var stored = await refreshTokenRepository.GetActiveByHashAsync(hash);
+            if (stored is null)
+                throw new AuthenticationException("Refresh token invalid or expired.");
+
+            var user = await managementRepository.GetByIdAsync(stored.Userid);
+            if (user is null)
+                throw new AuthenticationException("User not found.");
+
+            await refreshTokenRepository.RevokeAllForUserAsync(user.Id, DateTimeOffset.UtcNow);
+
+            var now = DateTimeOffset.UtcNow;
+            var accessExpiresAt = now.AddMinutes(optionsMonitor.CurrentValue.AccessTokenMinutes);
+            var (newPlainRefresh, newHash) = GenerateRefreshTokenPair();
+
+            await refreshTokenRepository.AddAsync(user.Id, newHash, now.AddDays(optionsMonitor.CurrentValue.RefreshTokenDays));
+
+            await unitOfWork.CommitAsync();
+
+            return new AuthResponseDto
+            {
+                Jwt = GenerateJwt(new JwtClaims
+                {
+                    Id = user.Id.ToString(),
+                    Role = user.Role,
+                    Exp = accessExpiresAt.ToUnixTimeSeconds().ToString(),
+                    Email = user.Email,
+                    FirstName = user.Firstname,
+                    LastName = user.Lastname,
+                }),
+                RefreshToken = newPlainRefresh,
+                MustChangePassword = user.Mustchangepassword ?? false
+            };
+        }
+        catch
+        {
+            await unitOfWork.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task LogoutAllAsync(Guid userId)
+    {
+        await refreshTokenRepository.RevokeAllForUserAsync(userId, DateTimeOffset.UtcNow);
     }
 
     public string GenerateRandomPassword(int length = 12)
@@ -163,5 +229,20 @@ public class SecurityService(
 
         // Shuffle result to avoid predictable positions
         return new string(password.ToString().OrderBy(_ => RandomNumberGenerator.GetInt32(100)).ToArray());
+    }
+
+    private (string plain, string hash) GenerateRefreshTokenPair()
+    {
+        var bytes = RandomNumberGenerator.GetBytes(32);
+        var plain = Convert.ToBase64String(bytes);
+        return (plain, HashRefreshToken(plain));
+    }
+
+    private string HashRefreshToken(string token)
+    {
+        var pepper = optionsMonitor.CurrentValue.RefreshTokenPepper ?? string.Empty;
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(pepper));
+        var bytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexString(bytes);
     }
 }

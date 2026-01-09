@@ -1320,6 +1320,59 @@
         }
       }
     },
+    "/api/auth/Refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Auth_Refresh",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequestDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/Logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "operationId": "Auth_Logout",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/Secured": {
       "get": {
         "tags": [
@@ -3638,10 +3691,15 @@
         "additionalProperties": false,
         "required": [
           "jwt",
+          "refreshToken",
           "mustChangePassword"
         ],
         "properties": {
           "jwt": {
+            "type": "string",
+            "minLength": 1
+          },
+          "refreshToken": {
             "type": "string",
             "minLength": 1
           },
@@ -3665,6 +3723,19 @@
           "password": {
             "type": "string",
             "minLength": 4
+          }
+        }
+      },
+      "RefreshRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "refreshToken"
+        ],
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "minLength": 1
           }
         }
       },

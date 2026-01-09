@@ -13,6 +13,8 @@ public class AuthController(ISecurityService securityService) : ControllerBase
 {
     public const string ControllerRoute = "api/auth/";
     public const string LoginRoute = ControllerRoute + nameof(Login);
+    public const string RefreshRoute = ControllerRoute + nameof(Refresh);
+    public const string LogoutRoute = ControllerRoute + nameof(Logout);
     public const string SecuredRoute = ControllerRoute + nameof(Secured);
     public const string ResetPasswordRoute = ControllerRoute + nameof(ResetPassword);
 
@@ -23,6 +25,28 @@ public class AuthController(ISecurityService securityService) : ControllerBase
     public ActionResult<AuthResponseDto> Login([FromBody] AuthRequestDto dto)
     {
         return Ok(securityService.Login(dto));
+    }
+
+    [HttpPost]
+    [Route(RefreshRoute)]
+    public async Task<ActionResult<AuthResponseDto>> Refresh([FromBody] RefreshRequestDto dto)
+    {
+        return Ok(await securityService.RefreshAsync(dto));
+    }
+
+    [HttpPost]
+    [Authorize]
+    [Route(LogoutRoute)]
+    public async Task<ActionResult> Logout()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                         ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        if (string.IsNullOrEmpty(userIdClaim))
+            return Unauthorized();
+
+        await securityService.LogoutAllAsync(Guid.Parse(userIdClaim));
+        return NoContent();
     }
 
     [HttpGet]
