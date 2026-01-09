@@ -80,8 +80,8 @@ public static class RestStartupExtensions
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("AdminOnly", policy => policy.RequireRole(Roles.AdminRole));
-            options.AddPolicy("UserOnly", policy => policy.RequireRole(Roles.UserRole));
+            options.AddPolicy(Roles.AdminRole, policy => policy.RequireRole(Roles.AdminRole));
+            options.AddPolicy(Roles.UserRole, policy => policy.RequireRole(Roles.UserRole));
         });
 
 

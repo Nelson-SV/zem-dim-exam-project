@@ -67,6 +67,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
   const [preview, setPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [loadingClients, setLoadingClients] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const isEdit = mode === "edit";
 
@@ -114,6 +115,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
       setPreview(null);
       setFile(null);
     }
+    setHasSubmitted(false);
   }, [open, isEdit, project]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,6 +149,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
   };
 
   const handleSubmit = async () => {
+    setHasSubmitted(true);
     if (Object.keys(validationErrors).length > 0) {
       toast.error(t('projectModal.fillAllFields'));
       return;
@@ -262,7 +265,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
               onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
               placeholder={t('projectModal.projectNamePlaceholder')}
             />
-            {validationErrors.title && <p className="text-destructive text-sm">{validationErrors.title}</p>}
+            {hasSubmitted && validationErrors.title && <p className="text-destructive text-sm">{validationErrors.title}</p>}
           </div>
 
           <div className="space-y-2">
@@ -273,7 +276,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
               onChange={(e) => setForm(prev => ({ ...prev, address: e.target.value }))}
               placeholder={t('projectModal.addressPlaceholder')}
             />
-            {validationErrors.address && <p className="text-destructive text-sm">{validationErrors.address}</p>}
+            {hasSubmitted && validationErrors.address && <p className="text-destructive text-sm">{validationErrors.address}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -285,7 +288,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
                 onChange={(e) => setForm(prev => ({ ...prev, city: e.target.value }))}
                 placeholder={t('projectModal.cityPlaceholder')}
               />
-              {validationErrors.city && <p className="text-destructive text-sm">{validationErrors.city}</p>}
+              {hasSubmitted && validationErrors.city && <p className="text-destructive text-sm">{validationErrors.city}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="project-postal">{t('projectModal.postalCode')}</Label>
@@ -295,7 +298,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
                 onChange={(e) => setForm(prev => ({ ...prev, postalCode: e.target.value }))}
                 placeholder={t('projectModal.postalCodePlaceholder')}
               />
-              {validationErrors.postalCode && <p className="text-destructive text-sm">{validationErrors.postalCode}</p>}
+              {hasSubmitted && validationErrors.postalCode && <p className="text-destructive text-sm">{validationErrors.postalCode}</p>}
             </div>
           </div>
 
@@ -309,7 +312,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
                 onChange={(e) => setForm(prev => ({ ...prev, totalArea: e.target.value }))}
                 placeholder={t('projectModal.areaPlaceholder')}
               />
-              {validationErrors.totalArea && <p className="text-destructive text-sm">{validationErrors.totalArea}</p>}
+              {hasSubmitted && validationErrors.totalArea && <p className="text-destructive text-sm">{validationErrors.totalArea}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="project-budget">{t('projectModal.budget')}</Label>
@@ -339,7 +342,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
                 ))}
               </SelectContent>
             </Select>
-            {validationErrors.clientId && <p className="text-destructive text-sm">{validationErrors.clientId}</p>}
+            {hasSubmitted && validationErrors.clientId && <p className="text-destructive text-sm">{validationErrors.clientId}</p>}
           </div>
 
           <div className="space-y-2">
@@ -365,7 +368,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
                 onChange={(e) => setForm(prev => ({ ...prev, startDate: e.target.value }))}
                 disabled={isEdit}
               />
-              {validationErrors.startDate && <p className="text-destructive text-sm">{validationErrors.startDate}</p>}
+              {hasSubmitted && validationErrors.startDate && <p className="text-destructive text-sm">{validationErrors.startDate}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="planned-end-date">{t('projectModal.expectedCompletion')}</Label>
@@ -376,7 +379,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
                 min={form.startDate || undefined}
                 onChange={(e) => setForm(prev => ({ ...prev, plannedEndDate: e.target.value }))}
               />
-              {validationErrors.plannedEndDate && <p className="text-destructive text-sm">{validationErrors.plannedEndDate}</p>}
+              {hasSubmitted && validationErrors.plannedEndDate && <p className="text-destructive text-sm">{validationErrors.plannedEndDate}</p>}
             </div>
           </div>
 
@@ -390,7 +393,7 @@ export function ProjectModal({ open, mode, project, onClose, onSaved }: ProjectM
                 min={form.startDate || undefined}
                 onChange={(e) => setForm(prev => ({ ...prev, actualEndDate: e.target.value }))}
               />
-              {validationErrors.actualEndDate && <p className="text-destructive text-sm">{validationErrors.actualEndDate}</p>}
+              {hasSubmitted && validationErrors.actualEndDate && <p className="text-destructive text-sm">{validationErrors.actualEndDate}</p>}
             </div>
           )}
 

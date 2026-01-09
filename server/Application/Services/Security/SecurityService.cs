@@ -160,8 +160,9 @@ public class SecurityService(
             if (stored is null)
                 throw new AuthenticationException("Refresh token invalid or expired.");
 
-            var user = await managementRepository.GetByIdAsync(stored.Userid)
-                       ?? throw new AuthenticationException("User not found.");
+            var user = await managementRepository.GetByIdAsync(stored.Userid);
+            if (user is null)
+                throw new AuthenticationException("User not found.");
 
             await refreshTokenRepository.RevokeAllForUserAsync(user.Id, DateTimeOffset.UtcNow);
 
