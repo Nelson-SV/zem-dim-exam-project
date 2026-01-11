@@ -64,13 +64,6 @@ public class Program
         var appOptions = services.AddAppOptions(configuration);
 
         services.RegisterApplicationServices(configuration);
-        services.AddCors(options =>
-        {
-            options.AddDefaultPolicy(policy =>
-                policy.AllowAnyOrigin()
-                    .AllowAnyHeader()
-                    .AllowAnyMethod());
-        });
         services.AddDataSourceAndRepositories();
         services.RegisterWebsocketApiServices();
         services.RegisterRestApiServices(configuration);
@@ -101,7 +94,11 @@ public class Program
 
             app.UseRouting();
 
-            app.UseCors();
+            app.UseCors(policy => policy
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .SetIsOriginAllowed(_ => true)
+                .AllowCredentials());
 
             app.UseAuthentication();
             app.UseAuthorization();
