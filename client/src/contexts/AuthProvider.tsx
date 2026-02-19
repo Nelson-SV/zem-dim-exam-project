@@ -109,9 +109,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { jwt, refreshToken, mustChangePassword } = await http.auth.login({ email, password });
 
         if (mustChangePassword) {
-            localStorage.removeItem(AUTH_JWT_KEY);
-            localStorage.removeItem(AUTH_REFRESH_KEY);
-            localStorage.removeItem(AUTH_USER_KEY);
             localStorage.setItem(TEMP_AUTH_JWT_KEY, jwt);
             const payload = decodeJwt<any>(jwt);
             const userData = mapUserFromPayload(payload);
@@ -120,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (!refreshToken) {
-            throw new Error('Login response missing refresh token. Is the API updated?');
+            throw new Error('Login response missing refresh token.');
         }
 
         const payload = decodeJwt<any>(jwt);

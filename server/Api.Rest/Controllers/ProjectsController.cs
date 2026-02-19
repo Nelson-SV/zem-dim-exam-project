@@ -181,7 +181,7 @@ public class ProjectsController : ControllerBase
     /// </summary>
     [HttpPost]
     [Route(Create)]
-    [Authorize(Policy = Roles.AdminRole)]
+    [Authorize(Policy = AuthorizationRoles.Admin)]
     public async Task<ActionResult<ProjectDto>> CreateProject([FromBody] CreateProjectDto dto)
     {
         try
